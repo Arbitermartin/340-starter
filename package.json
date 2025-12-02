@@ -1,5 +1,5 @@
 {
-  "name": "cse340",
+  "name": "uhwf-project",
   "version": "1.0.0",
   "description": "Starter project for CSE 340",
   "main": "server.js",
@@ -11,7 +11,9 @@
   "license": "ISC",
   "dependencies": {
     "dotenv": "^16.0.3",
+    "ejs": "^3.1.10",
     "express": "^4.18.2",
+    "express-ejs-layouts": "^2.5.1",
     "pg": "^8.8.0"
   },
   "devDependencies": {

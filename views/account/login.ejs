@@ -1,0 +1,36 @@
+
+<main>
+
+
+    <!-- Login Form -->
+    <form action="/account/login" method="post" class="login-form" novalidate>
+        <div class="form_group">
+            <label for="account_email">Email Address:</label>
+            <input 
+                type="email" 
+                id="account_email" 
+                name="account_email" 
+                required 
+                placeholder="Enter your email"
+            >
+        </div>
+        <div class="form_group">
+            <label for="account_password">Password:</label>
+            <input 
+                type="password" 
+                id="account_password" 
+                name="account_password" 
+                required 
+                placeholder="Enter your password"
+                pattern="^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{12,}$"
+                title="Password must be at least 12 characters, contain at least 1 capital letter, 1 number, and 1 special character"
+            >
+        </div>
+        <button type="submit" class="submit_btn">Login</button>
+    </form>
+
+    <!-- Registration Link -->
+    <p class="register-link">
+        Don't have an account? <a href="/account/register">Register here</a>
+    </p>
+</main>
