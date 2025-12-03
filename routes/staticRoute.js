@@ -25,6 +25,15 @@ async function buildHome(req, res) {
     })
   }
 
+  // Render the team page from views/pages/team.ejs
+router.get("/team", utilities.handleErrors(async (req, res) => {
+  let nav = await utilities.getNav()
+  res.render("pages/team", { 
+    title: "Our Team", 
+    nav 
+  })
+}))
+
 router.get("/about", utilities.handleErrors(buildAboutUs))
 router.get("/index", utilities.handleErrors(buildHome))
 

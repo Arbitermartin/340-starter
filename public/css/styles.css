@@ -1,4 +1,8 @@
 :root{
+  --primary: #00d4ff;
+    --dark: #1a1a2e;
+    --darker: #16213e;
+    --light: #f8f9fa;
   --primary-color: #6f6af8;
   --color-primary-light: hsl(242,91%,69%,18%);
   --color-primary-variant: #5854c7;
@@ -414,6 +418,153 @@ h1{
   padding-bottom: 8px;
 }
 
+.team-page { font-family: 'Segoe UI', sans-serif; line-height: 1.6; color: #333; }
+
+  /* Hero Section */
+  .hero-section {
+    position: relative;
+    height: 70vh;
+    background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('/images/site/team-banner.jpg') center/cover no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: white;
+  }
+
+  .hero-content h1 {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    background: linear-gradient(90deg, #00ffff, #00d4ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .hero-content p { font-size: 1.5rem; opacity: 0.9; }
+
+  /* Team Section */
+  .team-section { padding: 100px 0; background: var(--light); }
+  .section-title { text-align: center; margin-bottom: 60px; }
+  .section-title h2 {
+    font-size: 3rem;
+    color: var(--dark);
+    margin-bottom: 15px;
+  }
+  .section-title p { font-size: 1.2rem; color: #666; max-width: 700px; margin: 0 auto; }
+
+  .team-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .team-card {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    transition: all 0.4s ease;
+  }
+
+  .team-card:hover {
+    transform: translateY(-15px);
+    box-shadow: 0 20px 40px rgba(0,212,255,0.2);
+  }
+
+  .team-image {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .team-image img {
+    width: 100%;
+    height: 350px;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+
+  .team-card:hover img { transform: scale(1.1); }
+
+  .social-links {
+    position: absolute;
+    bottom: -50px;
+    left: 0;
+    width: 100%;
+    background:  var(--color-gray-700);
+    padding: 15px 0;
+    text-align: center;
+    transition: bottom 0.4s ease;
+  }
+
+  .team-card:hover .social-links { bottom: 0; }
+
+  .social-links a {
+    color: white;
+    font-size: 1.3rem;
+    margin: 0 12px;
+    transition: transform 0.3s;
+  }
+
+  .social-links a:hover { transform: scale(1.3); }
+
+  .team-info {
+    padding: 30px;
+    text-align: center;
+  }
+
+  .team-info h3 {
+    font-size: 1.6rem;
+    margin-bottom: 8px;
+    color: var(--dark);
+  }
+  .team-info p{
+    color: var(--dark);
+  }
+
+  .position {
+    display: block;
+    color: var(--primary);
+    font-weight: 600;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+  }
+
+  /* Values Section */
+  .values-section {
+    padding: 100px 0;
+    background: var(--dark);
+    color: white;
+    text-align: center;
+  }
+  .values-section h2 {
+    font-size: 3rem;
+    margin-bottom: 60px;
+    background: linear-gradient(90deg, #00ffff, #00d4ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .values-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 40px;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  .value-item i {
+    font-size: 3.5rem;
+    color: var(--primary);
+    margin-bottom: 20px;
+  }
+
+  .value-item h4 {
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+  }
 /* footer style */
 footer{
   background-color: var(--mporipori-color);
@@ -433,11 +584,6 @@ footer{
   line-height: 1.8rem;
   color: rgb(146, 139, 139);
 }
-/* .footer,a:hover{
-  color: var(--color-red);
-  
-
-} */
 .footer,p{
   color: var(--color-white);
 }
@@ -492,6 +638,11 @@ footer{
         display: block;
     }
     /* end of the nav style  */
+
+    /* team style */
+    .hero-content h1 { font-size: 2.8rem; }
+    .hero-content p { font-size: 1.2rem; }
+    .team-section, .values-section { padding: 70px 0; }
 
   .footer{
     grid-template-columns: 1fr;

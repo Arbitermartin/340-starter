@@ -17,3 +17,9 @@ document.getElementById('toggleButton').addEventListener('click',function(){
       passwordInput.setAttribute('type', type);
       this.textContent = type === 'password' ? 'Show Password' : 'Hide Password';
   });
+
+  AOS.init({
+    duration: 800,
+    easing: 'ease-in-out',
+    once: true
+  });
