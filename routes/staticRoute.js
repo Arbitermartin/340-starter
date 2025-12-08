@@ -33,6 +33,14 @@ router.get("/team", utilities.handleErrors(async (req, res) => {
     nav 
   })
 }))
+ // Render the contact page from views/pages/contact.ejs
+ router.get("/contact", utilities.handleErrors(async (req, res) => {
+  let nav = await utilities.getNav()
+  res.render("pages/contact", { 
+    title: "Contact Us", 
+    nav 
+  })
+}))
 
 router.get("/about", utilities.handleErrors(buildAboutUs))
 router.get("/index", utilities.handleErrors(buildHome))

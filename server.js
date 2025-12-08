@@ -8,12 +8,14 @@
 const path = require("path")
 const express = require("express")
 const expressLayouts = require("express-ejs-layouts")
-const env = require("dotenv").config()
+require("dotenv").config()
 const app = express()
+const baseController = require("./controllers/baseController")
 const accountRoute = require("./routes/accountRoute")
 // const utilities = require("./utilities/")
 const static = require("./routes/static")
 const staticRoute = require("./routes/staticRoute")
+const pool = require('./database/')
 
 /* ***********************
  * Routes
@@ -34,13 +36,15 @@ app.use(require("./routes/static"))
 // ... later in the Routes section (add with other app.use routes)
 app.use("/account", accountRoute)
 
+
 // static routes
 app.use("/",staticRoute)
 
 //index route
-app.get("/", function(req, res){
-  res.render("index", {title: "Home"})
-})
+// app.get("/", function(req, res){
+//   res.render("index", {title: "Home"})
+// })
+app.get("/",baseController.buildHome)
 
 /* ***********************
  * Local Server Information
