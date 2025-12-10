@@ -173,6 +173,7 @@ body {
   background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 30%, #6b46c1 70%, #7c3aed 100%) !important;
   background-attachment: fixed;
   min-height: 100vh;
+  position: relative;
 }
 /* Main content */
 .container {
@@ -425,7 +426,6 @@ h1{
 }
 
 .btn-primary {
-  width: 100%;
   padding: 14px;
   background: var(--primary);
   color: white;
@@ -895,11 +895,13 @@ footer{
   @media screen and (max-width: 768px) {
   .nav_bar{
     padding: 50px;
+    position: relative;
    }
       .nav_links {
         display: none;
         flex-direction: column;
-        background: linear-gradient(to bottom, #3a2359, #2d1b4e) !important;
+        background-color: var(--color-bg);
+        /* background: linear-gradient(to bottom, #3a2359, #2d1b4e) !important; */
         position: absolute;
         top: 100%;
         left: 0;
