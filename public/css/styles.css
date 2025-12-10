@@ -182,6 +182,9 @@
 .container {
     display: flex;
     padding: 2rem;
+    max-width: 1250px;
+    width: 100%;
+    margin: 0 auto;
     gap: 3rem;
   }
   .title {
@@ -919,6 +922,9 @@ h1{
           display: block;
       }
       /* end of the nav style  */
+
+      /* body style */
+      
   
       /* team style */
       .hero-content h1 { font-size: 2.8rem; }
