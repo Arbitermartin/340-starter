@@ -179,7 +179,77 @@
   /* end of the navigation bar style */
 
   /* Main content */
-.container {
+  .container {
+    display: flex;
+    flex-wrap: wrap;              /* Allows wrapping on small screens */
+    padding: 2rem;
+    max-width: 1250px;
+    width: 100%;
+    margin: 0 auto;
+    gap: 3rem;
+    align-items: center;          /* Vertically centers content when side-by-side */
+  }
+  
+  .header-left {
+    flex: 1;                      /* Takes available space */
+    min-width: 300px;             /* Prevents text from being too cramped on small screens */
+  }
+  
+  .header-left .title {
+    margin-bottom: 1.5rem;
+    font-size: 2.5rem;            /* Adjust as needed */
+    font-weight: bold;
+  }
+  
+  .header-left p {
+    color: var(--dark);
+    line-height: 1.8;
+    margin-bottom: 2rem;
+    font-size: 1rem;
+  }
+  
+  .buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;              /* Buttons stack on very small screens if needed */
+  }
+  
+  .btn {
+    padding: 0.75rem 1.5rem;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: bold;
+    text-align: center;
+  }
+  
+  .btn-primary {
+    background-color: #007bff;    /* Adjust to your primary color */
+    color: white;
+  }
+  
+  .btn-secondary {
+    background-color: transparent;
+    color: #007bff;
+    border: 2px solid #007bff;
+  }
+  
+  /* Image side */
+  .header-right {
+    flex: 1;                      /* Takes equal space on large screens */
+    min-width: 300px;             /* Ensures image doesn't shrink too much */
+    overflow: hidden;
+    border-radius: 8px;            /* Optional: nice rounded corners */
+  }
+  
+  .header-right img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 8px;           /* Match container if using */
+  }
+/* .container {
     display: flex;
     padding: 2rem;
     max-width: 1250px;
@@ -195,11 +265,19 @@
     color: var(--dark);
     line-height: 1.8rem;
   }
-  .header-right img{
-    margin: 40px 20px;
-    height: 300px;
-  
+  .header-right{
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
   }
+  .header-right img{
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    object-position: center;
+    
+  } */
   .title {
     font-size: 2rem;
     font-weight: bold;
@@ -997,15 +1075,19 @@ h1{
       .navbar-toggler {
           display: block;
       }
-      .header-left{
+     
+      /* end of the nav style  */
+
+      /* content style */
+       .header-left{
         margin-bottom: 3rem;
       }
       .header-right img{
         display: block;
-        width: 400px;
+        width: 200px;
         margin: 0 auto;
       }
-      /* end of the nav style  */
+     
 
       /* team style */
       .hero-content h1 { font-size: 2.8rem; }
