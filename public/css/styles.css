@@ -46,21 +46,20 @@
 
   /* top header style start here */
   #top-header{
-    /* position: sticky;
+    position: sticky;
     display: flex;
     justify-content: space-between;
-    padding: 1rem; */
-    position: sticky;      /* Sticks when it reaches the top */
-      top: 0;                /* Stick to the very top */
-      background-color: #fff; /* Or your desired background */
+    padding: 1rem;
+    /* position: sticky;      
+      top: 0;                
+      background-color: #fff; 
       padding: 15px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Optional: subtle shadow */
-      z-index: 1000;         /* Ensures it stays above other content */
-      width: 100%;
-      box-sizing: border-box;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); 
+      z-index: 1000;         
+      box-sizing: border-box; */
   }
   .siteName a{
     color: var(--mporipori-color);
@@ -78,26 +77,26 @@
 
   /* navigation style */
 .nav_bar {
-    /* display: flex;
+    display: flex;
     justify-content: space-between;
     position: sticky;
     align-items: center;
     background: var(--color-bg);
     padding: 1rem;;
     padding: 10px 20px;
-    position: relative; */
-      position: sticky;  
-      top: 0;                
+    position: relative;
+      /* position: sticky;  
+      top: 0px;                
       background-color: var(--color-bg); 
       padding: 15px 20px;
       display: flex;
       color: var(--color-white);
       justify-content: space-between;
       align-items: center;
-      /* box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);  */
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); 
       z-index: 1000;         
       width: 100%;
-      box-sizing: border-box;
+      box-sizing: border-box; */
   }
   .logo {
     display: flex;
