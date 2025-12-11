@@ -1059,7 +1059,7 @@ h1{
         .nav_links {
           display: none;
           flex-direction: column;
-          background: linear-gradient(to bottom, #3a2359, #2d1b4e) !important;
+          background: var(--color-bg);
           position: absolute;
           top: 100%;
           left: 0;
