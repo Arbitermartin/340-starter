@@ -550,7 +550,7 @@
   .team-card {
     background: white;
     border-radius: 20px;
-    height: 600px;
+    height: 650px;
     overflow: hidden;
     box-shadow: 0 10px 30px rgba(0,0,0,0.1);
     transition: all 0.4s ease;
@@ -897,134 +897,66 @@ h1{
   /* end of login form style */
 
   /* registration style start here */
-.register-container {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-  }
-  
-  .register-card {
-    background: white;
-    width: 100%;
-    max-width: 480px;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    overflow: hidden;
-  }
-  
-  .register-card h2 {
-    background: var(--primary);
-    color: white;
-    padding: 20px;
-    text-align: center;
-    margin: 0;
-    font-size: 1.5rem;
-  }
-  
-  .register-form {
-    padding: 30px;
-  }
-  
-  .form-group {
-    margin-bottom: 20px;
-  }
-  
-  .form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: #2c3e50;
-  }
-  
-  .required { color: var(--error); }
-  
-  .form-group input {
-    width: 100%;
-    padding: 12px 15px;
-    border: 2px solid var(--border);
-    border-radius: 8px;
-    font-size: 1rem;
-    transition: all 0.3s;
-  }
-  
-  .form-group input:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(30, 55, 153, 0.2);
-  }
-  
-  .form-group small {
-    display: block;
-    margin-top: 6px;
-    color: var(--gray);
-    font-size: 0.85rem;
-  }
-  
-  .admin-section {
-    background: #f0f5ff;
-    padding: 20px;
-    border-radius: 8px;
-    border: 2px solid #a8c8ff;
-    margin: 20px 0;
-  }
-  
-  .admin-title {
-    color: var(--primary-dark);
-    font-weight: bold;
-    margin-bottom: 10px;
-  }
-  
-  .btn-primary {
-    padding: 14px;
-    background: var(--color-bg);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.3s;
-  }
-  
-  .btn-primary:hover {
-    background: var(--gray);
-  }
-  
-  .form-footer {
-    text-align: center;
-    padding: 20px 30px 30px;
-    background: #f9f9f9;
-    border-top: 1px solid var(--border);
-  }
-  
-  .form-footer a {
-    color: var(--primary);
-    text-decoration: none;
-    font-weight: 600;
-  }
-  
-  .form-footer a:hover { text-decoration: underline; }
-  
-  .admin-link { margin-top: 15px; font-size: 0.9rem; color: var(--gray); }
-  
-  .alert {
-    padding: 15px;
-    margin-bottom: 20px;
-    border-radius: 8px;
-    font-weight: 500;
-  }
-  
-  .alert.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-  .alert.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-  .alert.error ul { margin: 10px 0 0 20px; }
-  
-  @media (max-width: 480px) {
-    .register-form { padding: 20px; }
-    .register-card h2 { font-size: 1.3rem; padding: 15px; }
-  }
-  /* registration style end here */
+.register-form {
+  max-width: 400px;
+  margin: 20px auto;
+  padding: 2rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+.register-link{
+  color: var(--color-bg);
+}
+
+.form--group {
+  margin-bottom: 1.5rem;
+}
+
+.form--group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+.form--group input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.toggle-password {
+  margin-top: 0.5rem;
+  background-color: #6c757d;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.toggle-password:hover {
+  background-color: #5a6268;
+}
+
+.submit--btn {
+  background-color: var(--color-bg);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  width: 100%;
+}
+
+.submit-btn:hover {
+  background-color: var(--color-primary-variant);
+}
+/* registration style end here */
 
 
   /* footer style start here */
@@ -1125,7 +1057,14 @@ h1{
       /* team style */
       .hero-content h1 { font-size: 2.8rem; }
       .hero-content p { font-size: 1.2rem; }
-      .team-section, .values-section { padding: 80px 0; }
+      .team-section, 
+      .values-section { 
+        padding: 90px 0; 
+      }
+
+      .team-info{
+        height: 500px;
+      }
   
     .footer{
       grid-template-columns: 1fr;
@@ -1148,6 +1087,26 @@ h1{
         width: 80%;
         margin: 0 auto;
       }
+      /* form style */
+      .form-group {
+        max-width: 100%;
+        margin: 15px auto;
+      
+      }
+      .register-form{
+        max-width: 350px;
+      }
+    
+      .submit---btn {
+        max-width: 100%;
+        padding: 8px;
+        margin: 15px auto;
+      }
+
+      /* login form style */
+      .login-form{
+        max-width: 350px;
+      }
     
   }
   @media screen and (max-width: 600px) {
@@ -1158,8 +1117,10 @@ h1{
     form {
       padding: 30px 20px;
     }
+   
   }
   @media screen and (max-width: 480px) {
     .contact { padding: 60px 15px; }
     .contact-header h2 { font-size: 2rem; }
+    
   }

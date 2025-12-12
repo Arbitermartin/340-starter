@@ -1,130 +1,54 @@
 <!-- Registration Form -->
-<!-- <form action="/account/register" novalidate  method="post" class="register-form">
-    <div class="form--group">
-        <label for="account_firstname">First Name:</label>
-        <input 
-            type="text" 
-            id="account_firstname" 
-            name="account_firstname" 
-            required 
-            placeholder="Enter your first name"
-            value="<%= locals.account_firstname %>">
-    </div>
-    <div class="form--group">
-        <label for="account_lastname">Last Name:</label>
-        <input 
-            type="text" 
-            id="account_lastname" 
-            name="account_lastname" 
-            required 
-            placeholder="Enter your last name"
-            value="<%= locals.account_lastname || '' %>"
-        >
-    </div>
-    <div class="form--group">
-        <label for="account_email">Email Address:</label>
-        <input 
-            type="email" 
-            id="account_email" 
-            name="account_email" 
-            required 
-            placeholder="Enter your email"
-            value="<%= locals.account_email || '' %>"
-        >
-    </div>
-    <div class="form--group">
-        <label for="account_password">Password:</label>
-        <input 
-            type="password" 
-            id="account_password" 
-            name="account_password" 
-            required 
-            placeholder="Enter your password"
-            pattern="^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{12,}$"
-            title="Password must be at least 12 characters, contain at least 1 capital letter, 1 number, and 1 special character"
-        >
+<form action="/account/register" novalidate  method="post" class="register-form">
+  <div class="form--group">
+      <label for="account_firstname">First Name:</label>
+      <input 
+          type="text" 
+          id="account_firstname" 
+          name="account_firstname" 
+          required 
+          placeholder="Enter your first name"
+          value="<%= locals.account_firstname %>">
+  </div>
+  <div class="form--group">
+      <label for="account_lastname">Last Name:</label>
+      <input 
+          type="text" 
+          id="account_lastname" 
+          name="account_lastname" 
+          required 
+          placeholder="Enter your last name"
+          value="<%= locals.account_lastname || '' %>"
+      >
+  </div>
+  <div class="form--group">
+      <label for="account_email">Email Address:</label>
+      <input 
+          type="email" 
+          id="account_email" 
+          name="account_email" 
+          required 
+          placeholder="Enter your email"
+          value="<%= locals.account_email || '' %>"
+      >
+  </div>
+  <div class="form--group">
+      <label for="account_password">Password:</label>
+      <input 
+          type="password" 
+          id="account_password" 
+          name="account_password" 
+          required 
+          placeholder="Enter your password"
+          pattern="^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{12,}$"
+          title="Password must be at least 12 characters, contain at least 1 capital letter, 1 number, and 1 special character"
+      >
 
-        <button type="button" id="togglePassword" class="toggle-password">Show Password</button>
-    </div>
-    <button type="submit" class="submit--btn">Register</button>
+      <button type="button" id="togglePassword" class="toggle-password">Show Password</button>
+  </div>
+  <button type="submit" class="submit--btn">Register</button>
 </form>
 <p class="register-link">
-    Have an account? <a href="/account/login">Login here</a>
+  Have an account? <a href="/account/login">Login here</a>
 </p>
-</main> -->
-<div class="register-container">
-    <div class="register-card">
-      <h2>Create Your UHWF Account</h2>
-  
-      <!-- Flash Messages -->
-      <% if (locals.message) { %>
-        <div class="alert success"><%= message %></div>
-      <% } %>
-      <% if (errors) { %>
-        <div class="alert error">
-          <ul>
-            <% errors.array().forEach(error => { %>
-              <li><%= error.msg %></li>
-            <% }) %>
-          </ul>
-        </div>
-      <% } %>
-  
-      <form action="/account/register<%= locals.isAdminRegistration ? '?admin=true' : '' %>" method="POST" class="register-form">
-  
-        <div class="form-group">
-          <label for="account_firstname">First Name <span class="required">*</span></label>
-          <input type="text" name="account_firstname" id="account_firstname" 
-                 value="<%= locals.account_firstname || '' %>" required autofocus>
-        </div>
-  
-        <div class="form-group">
-          <label for="account_lastname">Last Name <span class="required">*</span></label>
-          <input type="text" name="account_lastname" id="account_lastname" 
-                 value="<%= locals.account_lastname || '' %>" required>
-        </div>
-  
-        <div class="form-group">
-          <label for="account_email">Email Address <span class="required">*</span></label>
-          <input type="email" name="account_email" id="account_email" 
-                 value="<%= locals.account_email || '' %>" required>
-        </div>
-  
-        <div class="form-group">
-          <label for="account_phone">Phone Number</label>
-          <input type="tel" name="account_phone" id="account_phone" 
-                 placeholder="+233 24 123 4567" value="<%= locals.account_phone || '' %>">
-        </div>
-  
-        <div class="form-group">
-          <label for="account_password">Password <span class="required">*</span></label>
-          <input type="password" name="account_password" id="account_password" required
-                 pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,}$">
-          <small>Must be 12+ characters: uppercase, lowercase, number & symbol</small>
-        </div>
-  
-        <!-- ADMIN SECRET KEY (only shown on ?admin=true) -->
-        <% if (locals.isAdminRegistration) { %>
-          <div class="admin-section">
-            <p class="admin-title">Staff / Admin Registration</p>
-            <div class="form-group">
-              <label for="admin_key">Admin Secret Key <span class="required">*</span></label>
-              <input type="password" name="admin_key" id="admin_key" required placeholder="Enter secret key">
-              <small>Only authorized personnel have this key</small>
-            </div>
-          </div>
-        <% } else { %>
-          <input type="hidden" name="admin_key" value="">
-        <% } %>
-  
-        <button type="submit" class="btn-primary">Create Account</button>
-      </form>
-  
-      <div class="form-footer">
-        <p>Already have an account? <a href="/account/login">Login here</a></p>
-        <% if (!locals.isAdminRegistration) { %>
-          <p class="admin-link">Staff member? <a href="/account/register?admin=true">Register as Admin</a></p>
-        <% } %>
-      </div>
-    </div>
-  </div>
+</main>
