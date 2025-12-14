@@ -6,6 +6,7 @@ baseController.buildHome = async function(req, res){
   const nav = await utilities.getNavWithActive(req.originalUrl)
   const stats = await utilities.getPortalStats()
 
+  req.flash("notice", "This is a flash message.")
   res.render("index", {
     title: "UHWF Research & Community Portal",
     nav,

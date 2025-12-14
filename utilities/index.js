@@ -1,6 +1,5 @@
 // utilities/index.js
-const pool = require("../database/")
-const invModel = require("../models/account-model")
+const utilities =require("../utilities")
 // This file generates the FULL navigation bar HTML that matches your design
 
 const getNav = async function () {
@@ -102,10 +101,9 @@ function handleErrors(fn) {
     }
   };
 }
-
 module.exports = {
   getNav,
   getNavWithActive,
   getPortalStats,
-  handleErrors        // ← THIS FIXES THE CRASH
+  handleErrors,
 };

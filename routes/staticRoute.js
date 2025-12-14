@@ -33,6 +33,13 @@ router.get("/team", utilities.handleErrors(async (req, res) => {
     nav 
   })
 }))
+// router.get("/login", utilities.handleErrors(async(req,res)=>{
+//   let nav =await utilities.getNav()
+//   res.render("account/login",{
+//     title: "Login",
+//     nav
+//   })
+// }))
  // Render the contact page from views/pages/contact.ejs
  router.get("/contact", utilities.handleErrors(async (req, res) => {
   let nav = await utilities.getNav()
