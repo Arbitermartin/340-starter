@@ -8,7 +8,7 @@
 const path = require("path")
 const express = require("express")
 const expressLayouts = require("express-ejs-layouts")
-require("dotenv").config()
+const env = require("dotenv").config();
 const app = express()
 const baseController = require("./controllers/baseController")
 const bodyParser = require("body-parser")
