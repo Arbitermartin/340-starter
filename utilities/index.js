@@ -1,5 +1,6 @@
 // utilities/index.js
 const utilities =require("../utilities")
+const jwt = require("jsonwebtoken")
 // This file generates the FULL navigation bar HTML that matches your design
 
 const getNav = async function () {

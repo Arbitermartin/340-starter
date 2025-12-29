@@ -1,0 +1,52 @@
+<main class="body">
+    <div class="dashboard">
+      <!-- header -->
+      <header class="header">
+        <h3>Dashboard</h3>
+        <div class="user">
+          <span> Welcme Martin</span>
+          <img src="/images/site/martin.webp" alt="profile">
+        </div>
+      </header>
+
+      <!-- asidebar -->
+       <aside id="sidebar">
+        <h2>UHWF PORTAL</h2>
+        <ul>
+          <li><i class="bi bi-border-all" style="padding: 0.6rem;"></i>Dashboard</li>
+          <li> <i class="bi bi-person" style="padding: 0.6rem;"></i>Users</li>
+          <li><i class="bi bi-file-earmark-richtext" style="padding: 0.6rem;"></i>Reports</li>
+          <li><i class="bi bi-gear" style="padding: 0.6rem;"></i>Settings</li>
+        </ul>
+       </aside>
+
+       <!-- maincontent -->
+        <div class="main-body">
+          <div class="cards">
+            <div class="card">
+              <h4>Users</h4>
+              <p>1,250</p>
+            </div>
+            <div class="card">
+              <h4>Orders</h4>
+              <p>320</p>
+            </div>
+            <div class="card">
+              <h4>Revenue</h4>
+              <p>$8,540</p>
+            </div>
+            <div class="card">
+              <h4>Feedback</h4>
+              <p>89%</p>
+            </div>
+          </div>
+    </div>
+    
+    <!-- Optional: Show user info -->
+    <% if (locals.accountData) { %>
+      <p>Welcome, <%= accountData.account_firstname %> <%= accountData.account_lastname %>!</p>
+      <p>Email: <%= accountData.account_email %></p>
+    <% } %>
+  
+    <!-- Add links later like Update Account, View Inventory (for employees), etc. -->
+  </main>

@@ -8,7 +8,7 @@
         </ul>
       <% } %>
 <!-- Registration Form -->
-<form action="/account/register" novalidate  method="post" class="register-form">
+<form action="/account/register" validate  method="post" class="register-form">
   <div class="form--group">
       <label for="account_firstname">First Name:</label>
       <input 
@@ -27,8 +27,7 @@
           name="account_lastname" 
           required 
           placeholder="Enter your last name"
-          value="<%= locals.account_lastname || '' %>"
-      >
+          value="<%= locals.account_lastname || '' %>">
   </div>
   <div class="form--group">
       <label for="account_email">Email Address:</label>
@@ -39,7 +38,7 @@
           required 
           placeholder="Enter your email"
           value="<%= locals.account_email || '' %>"
-      >
+  >
   </div>
   <div class="form--group">
       <label for="account_password">Password:</label>

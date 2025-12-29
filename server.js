@@ -15,9 +15,12 @@ const bodyParser = require("body-parser")
 const accountRoute = require("./routes/accountRoute")
 const utilities = require("./utilities/")
 const static = require("./routes/static")
+const cookieParser = require("cookie-parser")
+const jwt = require("jsonwebtoken")
 const session = require("express-session")
 const pool = require('./database/')
 const staticRoute = require("./routes/staticRoute")
+// app.use(require("jsonwebtoken"))
 
 /* ***********************
  * Routes
@@ -47,6 +50,8 @@ app.use(session({
   saveUninitialized: true,
   name: 'sessionId',
 }))
+
+
 // Express Messages Middleware
 app.use(require('connect-flash')())
 app.use(function(req, res, next){
@@ -58,6 +63,40 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
 
 
+// cookie
+app.use(cookieParser())
+
+app.use((req, res, next) => {
+  const token = req.cookies.jwt  // the cookie you set in accountLogin
+
+  if (token) {
+    try {
+      // Verify token and extract user data
+      const payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+      
+      // Populate locals so header can use them
+      res.locals.loggedin = true
+      res.locals.accountData = payload  // contains account_firstname, etc.
+      
+    } catch (err) {
+      // Invalid or expired token
+      console.log("Invalid JWT:", err.message)
+      res.locals.loggedin = false
+      res.locals.accountData = null
+      res.clearCookie("jwt")  // optional: remove bad cookie
+    }
+  } else {
+    // No token
+    res.locals.loggedin = false
+    res.locals.accountData = null
+  }
+
+  next()
+})
+
+
+// //webtoken
+// app.use(utilities.checkJWTToken)
 
 
 // ... later in the Routes section (add with other app.use routes)
