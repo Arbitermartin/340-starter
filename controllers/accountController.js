@@ -111,7 +111,7 @@ async function accountLogin(req, res) {
     req.flash("notice", "Please check your credentials and try again.")
     res.status(400).render("account/login", {
       title: "Login",
-      nav,
+      // nav,
       errors: null,
       account_email,
     })
@@ -159,6 +159,8 @@ async function accountManagement(req, res, next) {
   res.render("account/management", {
     title: "uhwf portal",
     // nav,
+    // isDashboard: true,
+    layout: false,
     errors: null,
     messages: req.flash(),
     account_firstname: accountData.account_firstname,
