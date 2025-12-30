@@ -1,90 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%- title %> | UHWF-TANZANIA 2025</title>
   <link rel="stylesheet" href="/css/styles.css">
   <!-- js script -->
-   <script src="/js/script.js" defer></script>
-    <!--  LINKS FOR fontawesome  ICON -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"/>
-    <!-- end of link for icon icon -->
+  <script src="/js/script.js" defer></script>
+  <!-- Only Bootstrap Icons (no Bootstrap CSS/JS) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <!-- Optional: Font Awesome if you want extra icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"/>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
-<main class="body">
+<body class="body">
+  <div class="overlay" id="overlay"></div>
+  <main class="body">
     <div class="dashboard">
-      <!-- header -->
+      <!-- Header -->
       <header class="header">
+        <div class="menu-toggle" id="menuToggle">
+          <i class="bi bi-list" style="color: black;"></i>
+        </div>
         <h3>Dashboard</h3>
         <div class="user">
           <div id="tools">
             <% if(locals.loggedin){%>
-               <a href="/account/" class="welcome-link">Welcome <%=locals.accountData?.account_firstname || 'User'%></a>
-               <!-- <img src="/images/site/martin.webp" alt="profile"> -->
-               <a href="/account/logout" class="logout-link"><button>Logout</button></a>
-  
-             <%} else{%>
-             <a title="Click to log in" href="/account/login">My Account</a>
-             <%}%>
-           </div>
-          <!-- <img src="/images/site/martin.webp" alt="profile"> -->
+              <a href="/account/" class="welcome-link">Welcome <%=locals.accountData?.account_firstname || 'User'%></a>
+              <a href="/account/logout" class="logout-link"><button>Logout</button></a>
+            <%} else{%>
+              <a title="Click to log in" href="/account/login">My Account</a>
+            <%}%>
+          </div>
         </div>
       </header>
 
-      <!-- asidebar -->
-       <aside id="sidebar">
+      <!-- Sidebar -->
+      <aside id="sidebar">
         <h2>UHWF PORTAL</h2>
         <ul>
-          <li><i class="bi bi-border-all" style="padding: 0.6rem;"></i>Dashboard</li>
-          <li> <i class="bi bi-person" style="padding: 0.6rem;"></i>Users</li>
-          <li><i class="bi bi-file-earmark-richtext" style="padding: 0.6rem;"></i>Reports</li>
-          <li><i class="bi bi-gear" style="padding: 0.6rem;"></i>Settings</li>
-        </ul>
-       </aside>
-
-       <!-- maincontent -->
-        <div class="main-body">
-          <div class="cards">
-            <div class="card">
-              <h4>Users</h4>
-              <p>1,250</p>
-            </div>
-            <div class="card">
-              <h4>Orders</h4>
-              <p>320</p>
-            </div>
-            <div class="card">
-              <h4>Revenue</h4>
-              <p>$8,540</p>
-            </div>
-            <div class="card">
-              <h4>Feedback</h4>
-              <p>89%</p>
-            </div>
-            <div class="card">
-              <h4>Feedback</h4>
-              <p>89%</p>
-            </div>
-            <div class="card">
-              <h4>Feedback</h4>
-              <p>89%</p>
-            </div>
-          </div>
-          
-          <div class="dashboard-footer">
-            <div class="version">
-              <p>Version: 1.0.0.0</p>
-            </div>
-            <ul id="footer">
-              <li><a href="">Home | </a></li>
-              <li><a href="">About | </a></li>
-              <li><a href="">Contact | </a></li>
-              <li><a href="">Privacy Policy</a></li>
+          <li><i class="bi bi-border-all"></i> Dashboard</li>
+          <!-- Member Dropdown -->
+          <li class="dropdown">
+            <span><i class="bi bi-person"></i> Member</span>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="#"><i class="bi bi-plus-circle"></i> Add Member</a></li>
+              <li><a class="dropdown-item" href="#"><i class="bi bi-pencil-square"></i> Edit Member</a></li>
+              <li><a class="dropdown-item" href="#"><i class="bi bi-eye"></i> View Member</a></li>
+              <li><a class="dropdown-item" href="#"><i class="bi bi-trash"></i> Delete Member</a></li>
             </ul>
-          </div>
+          </li>
+
+          <!-- Citizen Dropdown -->
+          <li class="dropdown">
+            <span><i class="bi bi-person"></i> Citizen</span>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="#"><i class="bi bi-plus-circle"></i> Add Citizen</a></li>
+              <li><a class="dropdown-item" href="#"><i class="bi bi-pencil-square"></i> Edit Citizen</a></li>
+              <li><a class="dropdown-item" href="#"><i class="bi bi-eye"></i> View Citizen</a></li>
+              <li><a class="dropdown-item" href="#"><i class="bi bi-trash"></i> Delete Citizen</a></li>
+            </ul>
+          </li>
+
+          <!-- Employee Dropdown -->
+          <li class="dropdown">
+            <span><i class="bi bi-person"></i> Employee</span>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="#"><i class="bi bi-plus-circle"></i> Add Employee</a></li>
+              <li><a class="dropdown-item" href="#"><i class="bi bi-pencil-square"></i> Edit Employee</a></li>
+              <li><a class="dropdown-item" href="#"><i class="bi bi-eye"></i> View Employee</a></li>
+              <li><a class="dropdown-item" href="#"><i class="bi bi-trash"></i> Delete Employee</a></li>
+            </ul>
+          </li>
+
+          <!-- Student Dropdown -->
+          <li class="dropdown">
+            <span><i class="bi bi-person"></i> Student</span>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="#"><i class="bi bi-plus-circle"></i> Add Student</a></li>
+              <li><a class="dropdown-item" href="#"><i class="bi bi-pencil-square"></i> Edit Student</a></li>
+              <li><a class="dropdown-item" href="#"><i class="bi bi-eye"></i> View Student</a></li>
+              <li><a class="dropdown-item" href="#"><i class="bi bi-trash"></i> Delete Student</a></li>
+            </ul>
+          </li>
+
+          <li><i class="bi bi-file-earmark-richtext"></i> Reports</li>
+
+          <!-- Settings Dropdown (Admin features) -->
+          <li class="dropdown">
+            <span><i class="bi bi-gear"></i> Settings</span>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="#"><i class="bi bi-pencil-square"></i> Edit Profile</a></li>
+              <li><a class="dropdown-item" href="#"><i class="bi bi-plus-circle"></i> Add Admin</a></li>
+              <li><a class="dropdown-item" href="#"><i class="bi bi-pencil-square"></i> Edit Admin Details</a></li>
+              <li><a class="dropdown-item" href="#"><i class="bi bi-trash"></i> Delete Admin</a></li>
+            </ul>
+          </li>
+        </ul>
+      </aside>
+
+      <!-- Main Content -->
+      <div class="main-body">
+        <div class="cards">
+          <div class="card"><h4>Users</h4><p>1,250</p></div>
+          <div class="card"><h4>Orders</h4><p>320</p></div>
+          <div class="card"><h4>Revenue</h4><p>$8,540</p></div>
+          <div class="card"><h4>Feedback</h4><p>89%</p></div>
+          <div class="card"><h4>Growth</h4><p>92%</p></div>
+          <div class="card"><h4>Active</h4><p>1,180</p></div>
+        </div>
+
+        <div class="dashboard-footer">
+          <div class="version"><p>Version: 1.0.0.0</p></div>
+          <ul id="footer">
+            <li><a href="">Home |</a></li>
+            <li><a href="">About |</a></li>
+            <li><a href="">Contact |</a></li>
+            <li><a href="">Privacy Policy</a></li>
+          </ul>
+        </div>
+      </div>
     </div>
-    
-   
   </main>
+
+  <script>
+    // Pure JavaScript for mobile sidebar toggle
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+
+    menuToggle.addEventListener('click', () => {
+      sidebar.classList.toggle('active');
+      overlay.classList.toggle('active');
+    });
+
+    overlay.addEventListener('click', () => {
+      sidebar.classList.remove('active');
+      overlay.classList.remove('active');
+    });
+  </script>
+</body>
+</html>
