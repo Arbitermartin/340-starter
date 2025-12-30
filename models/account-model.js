@@ -13,6 +13,31 @@ async function registerAccount(account_firstname, account_lastname, account_emai
   }
 }
 
+/* *****************************
+ *   Register/Add new member
+ * *************************** */
+async function registerMember(
+  first_name, 
+  last_name, 
+  email, 
+  phone, 
+  address, 
+  profile_image = 'default-avatar.jpg'
+) {
+  try {
+    const sql = `
+      INSERT INTO members 
+        (first_name, last_name, email, phone, address, profile_image) 
+      VALUES ($1, $2, $3, $4, $5, $6) 
+      RETURNING *
+    `
+    return await pool.query(sql, [first_name, last_name, email, phone, address, profile_image])
+  } catch (error) {
+    return error.message
+  }
+}
+// register member end here.
+
 /* **********************
  *   Check for existing email
  * ********************* */
@@ -39,4 +64,4 @@ async function getAccountByEmail (account_email) {
     return new Error("No matching email found")
   }
 }
-module.exports={registerAccount,checkExistingEmail,getAccountByEmail}
+module.exports={registerAccount,checkExistingEmail,getAccountByEmail,registerMember}

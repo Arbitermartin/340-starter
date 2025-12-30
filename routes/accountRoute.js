@@ -47,6 +47,8 @@ router.post(
 )
 router.get("/",utilities.handleErrors(accountController.accountManagement))
 
+router.get("/add-member",utilities.handleErrors(accountController.buildAddMember))
+
 
 
 module.exports = router

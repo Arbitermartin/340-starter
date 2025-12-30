@@ -1,0 +1,54 @@
+<!-- Add Member Modal -->
+<div class="modal-container">
+    <input type="checkbox" id="add-member-modal" class="modal-toggle">
+    <div class="modal-backdrop">
+      <label for="add-member-modal" class="modal-close-overlay"></label>
+      <div class="modal-content">
+        <label for="add-member-modal" class="modal-close-btn">&times;</label>
+        <h3>Add New Member</h3>
+        <form action="/members/add" method="POST" enctype="multipart/form-data" class="member-form">
+          <div class="form-group">
+            <label>Profile Photo</label>
+            <div class="image-preview-container">
+              <img id="profile-preview" src="/images/default-avatar.jpg" alt="Preview">
+            </div>
+            <input type="file" name="profile_image" accept="image/*" id="profile-image-input">
+          </div>
+          <div class="form-group">
+            <label>First Name *</label>
+            <input type="text" name="first_name" required>
+          </div>
+          <div class="form-group">
+            <label>Last Name *</label>
+            <input type="text" name="last_name" required>
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" name="email">
+          </div>
+          <div class="form-group">
+            <label>Phone</label>
+            <input type="text" name="phone">
+          </div>
+          <div class="form-group">
+            <label>Address</label>
+            <textarea name="address" rows="3"></textarea>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn-primary">Save Member</button>
+            <label for="add-member-modal" class="btn-cancel">Cancel</label>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    document.getElementById('profile-image-input').addEventListener('change', function(e) {
+      if (e.target.files[0]) {
+        const reader = new FileReader();
+        reader.onload = e => document.getElementById('profile-preview').src = e.target.result;
+        reader.readAsDataURL(e.target.files[0]);
+      }
+    });
+  </script>

@@ -201,7 +201,11 @@
     opacity: 1;
   }
 
-
+.version p{
+  color: var(--color-bg);
+  font-size: 12px;
+  margin-top: 1.5rem;
+}
   /* end of the navigation bar style */
 
   /* Main content */
@@ -1005,26 +1009,31 @@ h1{
    cursor: pointer;
    transition: background 0.3s;
  }
- #sidebar ul li:hover { background: #34495e; }
- #sidebar ul li i { margin-right: 12px; font-size: 1.1rem; width: 24px; text-align: center; }
+ #sidebar ul li:hover { 
+  background: #34495e; 
+}
+ #sidebar ul li i { 
+  margin-right: 12px; 
+  font-size: 1.1rem; 
+  width: 24px; 
+  text-align: center; }
 
  /* Dropdown menu - pure CSS */
- #sidebar .dropdown {
+ #sidebar .dropdown-1 {
    position: relative;
  }
- #sidebar .dropdown > span {
+ #sidebar .dropdown-1 > span {
    display: flex;
    align-items: center;
-   /* justify-content: space-between; */
  }
- #sidebar .dropdown > span::after {
+ #sidebar .dropdown-1 > span::after {
    content: '\f078'; /* chevron down */
    font-family: 'Font Awesome 6 Free';
    font-weight: 900;
    font-size: 0.8rem;
    transition: transform 0.3s;
  }
- #sidebar .dropdown:hover > span::after {
+ #sidebar .dropdown-1:hover > span::after {
    transform: rotate(180deg);
  }
  #sidebar .dropdown-menu {
@@ -1033,13 +1042,12 @@ h1{
    max-height: 0;
    overflow: hidden;
    transition: max-height 0.4s ease;
-   margin-left: 36px;
+   margin-left: 0 !important;
  }
- #sidebar .dropdown:hover .dropdown-menu {
-   max-height: 300px; /* enough for all items */
+ #sidebar .dropdown-1:hover .dropdown-menu {
+   max-height: 300px
  }
  #sidebar .dropdown-item {
-   padding: 0.6rem 1rem;
    display: flex;
    align-items: center;
    color: #ecf0f1;
@@ -1076,7 +1084,9 @@ h1{
    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
    transition: transform 0.2s;
  }
- .card:hover { transform: translateY(-5px); }
+ .card:hover { 
+  transform: translateY(-5px); 
+}
  .card h4 { font-size: 1.1rem; color: #555; margin-bottom: 0.5rem; }
  .card p { font-size: 1.8rem; font-weight: 600; color: #2c3e50; }
 
@@ -1085,7 +1095,7 @@ h1{
    display: flex;
    justify-content: space-between;
    align-items: center;
-   padding: 1rem 0;
+   /* padding: 1rem 0; */
    border-top: 1px solid #e0e0e0;
    font-size: 0.9rem;
    color: #666;
@@ -1095,8 +1105,15 @@ h1{
    list-style: none;
    gap: 1rem;
  }
- #footer a { color: #666; text-decoration: none; }
- #footer a:hover { text-decoration: underline; }
+ #footer a { 
+  color: #666; 
+  text-decoration: none;
+  margin-top: 0.4rem;
+  margin-bottom: 2rem; 
+}
+ #footer a:hover { 
+  text-decoration: underline; 
+}
  /* Overlay when sidebar open on mobile */
  .overlay {
    display: none;
@@ -1105,7 +1122,9 @@ h1{
    background: rgba(0,0,0,0.5);
    z-index: 999;
  }
- .overlay.active { display: block; }
+ .overlay.active { 
+  display: block; 
+}
 /* .body{
   margin: 0;
   padding: 0;
@@ -1381,6 +1400,8 @@ h1{
       }
       .header { padding: 1rem; }
       /* end here style */
+
+     
     
   }
   @media screen and (max-width: 600px) {
