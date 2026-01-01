@@ -155,7 +155,7 @@ async function accountLogout(req, res) {
 * *************************************** */
 async function accountManagement(req, res, next) {
   const accountData =res.locals.accountData ||{}
-  res.render("account/management", {
+  res.render("inventory/management", {
     title: "uhwf portal",
     layout: false,
     errors: null,
@@ -210,7 +210,7 @@ async function  logoutaccount  (req, res, next) {
  * *************************************** */
 async function buildAddMember(req, res, next) {
   // let nav = await utilities.getNav()
-  res.render("account/add-member", {
+  res.render("./inventory/add-member", {
     title: "Add New Member",
     // nav,
     errors: null,
