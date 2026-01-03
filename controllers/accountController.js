@@ -4,8 +4,21 @@ const utilities = require("../utilities")
 const jwt = require("jsonwebtoken")
 const accountModel =require("../models/account-model")
 const bcrypt = require("bcryptjs")
+const multer = require("multer")
 require("dotenv").config()
 
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: (req, file, cb) => {
+    const allowed = /jpeg|jpg|png|gif|webp/
+    const extOk = allowed.test(file.originalname.toLowerCase().split('.').pop())
+    const mimeOk = allowed.test(file.mimetype)
+    if (extOk && mimeOk) return cb(null, true)
+    cb(new Error("Only image files allowed!"))
+  }
+})
 
 /*************************
  * Deliver login view
@@ -177,195 +190,57 @@ async function  logoutaccount  (req, res, next) {
   res.redirect("/account/login")
 }
 
-/* ****************************************
- *  Storage configuration for multer (profile images)
- * *************************************** */
-// const storage = multer.diskStorage({
-//   destination: (req, file, cb) => {
-//     cb(null, "./public/uploads/members/")
-//   },
-//   filename: (req, file, cb) => {
-//     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1E9)
-//     cb(null, "member-" + uniqueSuffix + path.extname(file.originalname))
-//   }
-// })
-
-// const upload = multer({
-//   storage: storage,
-//   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
-//   fileFilter: (req, file, cb) => {
-//     const filetypes = /jpeg|jpg|png|gif/
-//     const mimetype = filetypes.test(file.mimetype)
-//     const extname = filetypes.test(path.extname(file.originalname).toLowerCase())
-//     if (mimetype && extname) {
-//       return cb(null, true)
-//     }
-//     cb(new Error("Error: Images only (JPEG, PNG, GIF)!"))
-//   }
-// })
 
 /* ****************************************
- *  Deliver Add Member View (via modal or page)
- *  Usually triggered from dashboard sidebar
+ *  Deliver Add Member form view
  * *************************************** */
 async function buildAddMember(req, res, next) {
-  // let nav = await utilities.getNav()
-  res.render("./inventory/add-member", {
+  res.render("inventory/add-member", {
     title: "Add New Member",
-    // nav,
+    layout:false,
     errors: null,
+    messages: req.flash()
   })
 }
 
-/* ****************************************
- *  Deliver Members List View
- * *************************************** */
-async function buildMembersView(req, res, next) {
-  let nav = await utilities.getNav()
-  const members = await memberModel.getAllMembers()
-
-  res.render("members/view", {
-    title: "Members List",
-    nav,
-    errors: null,
-    messages: req.flash(),
-    members,
-  })
-}
-
-/* ****************************************
- *  Process Add Member Registration
- * *************************************** */
-async function registerMember(req, res) {
-  let nav = await utilities.getNav()
-  const { first_name, last_name, email, phone, address } = req.body
-
-  // Handle profile image
-  let profile_image = "default-avatar.jpg"
-  if (req.file) {
-    profile_image = req.file.filename
-  }
-
-  // Check if email already exists
-  const emailExists = await memberModel.checkExistingMemberEmail(email)
-  if (emailExists > 0) {
-    req.flash("notice", "That email address is already registered as a member.")
-    return res.status(400).render("members/add", {
-      title: "Add New Member",
-      nav,
-      errors: null,
-      first_name,
-      last_name,
-      email,
-      phone,
-      address,
-    })
-  }
-
-  const regResult = await memberModel.registerMember(
-    first_name,
-    last_name,
-    email,
-    phone,
-    address,
-    profile_image
-  )
-
-  if (regResult) {
-    req.flash(
-      "notice",
-      `Congratulations! ${first_name} ${last_name} has been successfully added as a member.`
-    )
-    return res.redirect("/members")
-  } else {
-    req.flash("notice", "Sorry, adding the member failed.")
-    return res.status(501).render("members/add", {
-      title: "Add New Member",
-      nav,
-      errors: null,
-      first_name,
-      last_name,
-      email,
-      phone,
-      address,
-    })
-  }
-}
-
-/* ****************************************
- *  Deliver Edit Member View
- * *************************************** */
-async function buildEditMember(req, res, next) {
-  let nav = await utilities.getNav()
-  const member_id = parseInt(req.params.id)
-  const memberData = await memberModel.getMemberById(member_id)
-
-  if (!memberData) {
-    req.flash("notice", "Member not found.")
-    return res.redirect("/members")
-  }
-
-  res.render("members/edit", {
-    title: "Edit Member",
-    nav,
-    errors: null,
-    member_id: memberData.id,
-    first_name: memberData.first_name,
-    last_name: memberData.last_name,
-    email: memberData.email,
-    phone: memberData.phone,
-    address: memberData.address,
-    current_image: memberData.profile_image,
-  })
-}
-
-/* ****************************************
- *  Process Member Update
- * *************************************** */
-async function updateMember(req, res) {
-  let nav = await utilities.getNav()
-  const { member_id, first_name, last_name, email, phone, address, current_image } = req.body
-
-  let profile_image = current_image // Keep old image if no new upload
+async function addMember(req, res) {
+  const { first_name, last_name, email, phone, address } = req.body;
+  let profile_image = null;
 
   if (req.file) {
-    profile_image = req.file.filename
+    profile_image = req.file.buffer; // Buffer from multer memoryStorage
   }
 
-  const updateResult = await memberModel.updateMember(
-    member_id,
-    first_name,
-    last_name,
-    email,
-    phone,
-    address,
-    profile_image
-  )
+  try {
+    await memberModel.registerMember(
+      first_name?.trim(),
+      last_name?.trim(),
+      email?.trim() || null,
+      phone?.trim() || null,
+      address?.trim() || null,
+      profile_image
+    );
 
-  if (updateResult) {
-    req.flash("notice", `Member information updated successfully.`)
-    return res.redirect("/members")
-  } else {
-    req.flash("notice", "Sorry, the update failed.")
-    return res.redirect(`/members/edit/${member_id}`)
+    req.flash("notice", `Member ${first_name} ${last_name} added successfully!`);
+  } catch (error) {
+    console.error("Error adding member:", error);
+    req.flash("notice", "Failed to add member.");
   }
+
+  res.redirect("/account/");
 }
-
-/* ****************************************
- *  Process Member Deletion
- * *************************************** */
-async function deleteMember(req, res) {
-  let nav = await utilities.getNav()
-  const member_id = parseInt(req.params.id)
-
-  const deleteResult = await memberModel.deleteMember(member_id)
-
-  if (deleteResult) {
-    req.flash("notice", "Member was successfully deleted.")
-    return res.redirect("/members")
-  } else {
-    req.flash("notice", "Sorry, deleting the member failed.")
-    return res.redirect("/members")
-  }
+// module.exports={registerAccount,buildLogin,buildRegister,loginAccount,accountLogin,accountManagement,accountLogout,logoutaccount,addMember}
+module.exports = {
+  registerAccount,
+  buildLogin,
+  buildRegister,
+  loginAccount,
+  accountLogin,
+  accountManagement,
+  accountLogout,
+  logoutaccount,
+  addMember,
+  buildAddMember,
+  upload 
+  
 }
-module.exports={registerAccount,buildLogin,buildRegister,loginAccount,accountLogin,accountManagement,accountLogout,logoutaccount,buildAddMember,registerMember}

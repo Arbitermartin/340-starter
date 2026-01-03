@@ -1,54 +1,80 @@
-<!-- Add Member Modal -->
-<div class="modal-container">
-    <input type="checkbox" id="add-member-modal" class="modal-toggle">
-    <div class="modal-backdrop">
-      <label for="add-member-modal" class="modal-close-overlay"></label>
-      <div class="modal-content">
-        <label for="add-member-modal" class="modal-close-btn">&times;</label>
-        <h3>Add New Member</h3>
-        <form action="/inventory/add-member.ejs" method="POST" enctype="multipart/form-data" class="member-form">
-          <div class="form-group">
-            <label>Profile Photo</label>
-            <div class="image-preview-container">
-              <img id="profile-preview" src="/images/default-avatar.jpg" alt="Preview">
-            </div>
-            <input type="file" name="profile_image" accept="image/*" id="profile-image-input">
-          </div>
-          <div class="form-group">
-            <label>First Name *</label>
-            <input type="text" name="first_name" required>
-          </div>
-          <div class="form-group">
-            <label>Last Name *</label>
-            <input type="text" name="last_name" required>
-          </div>
-          <div class="form-group">
-            <label>Email</label>
-            <input type="email" name="email">
-          </div>
-          <div class="form-group">
-            <label>Phone</label>
-            <input type="text" name="phone">
-          </div>
-          <div class="form-group">
-            <label>Address</label>
-            <textarea name="address" rows="3"></textarea>
-          </div>
-          <div class="form-actions">
-            <button type="submit" class="btn-primary">Save Member</button>
-            <label for="add-member-modal" class="btn-cancel">Cancel</label>
-          </div>
-        </form>
+<!-- views/inventory/add-member.ejs - Popup Modal Partial -->
+<div id="addMemberModal" class="modal-overlay">
+  <div class="modal-content">
+    <span class="modal-close" onclick="closeAddMemberModal()">&times;</span>
+    <h2>Add New Member</h2>
+
+    <!-- Success message after submit -->
+    <% if (messages && messages.notice) { %>
+      <div class="success-message"><%= messages.notice %></div>
+    <% } %>
+
+    <form action="/account/add-member" method="POST" enctype="multipart/form-data">
+      <div class="profile-preview-container">
+        <img id="profilePreview" src="/images/default-avatar.jpg" alt="Profile Preview" class="profile-preview">
+        <br><br>
+        <input type="file" name="profile_image" id="profileImageInput" accept="image/*">
       </div>
-    </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>First Name *</label>
+          <input type="text" name="first_name" required>
+        </div>
+        <div class="form-group">
+          <label>Last Name *</label>
+          <input type="text" name="last_name" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" name="email">
+      </div>
+
+      <div class="form-group">
+        <label>Phone</label>
+        <input type="text" name="phone">
+      </div>
+
+      <div class="form-group">
+        <label>Address</label>
+        <textarea name="address" rows="3"></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" onclick="closeAddMemberModal()" class="btn-cancel">Cancel</button>
+        <button type="submit" class="btn-save">Save Member</button>
+      </div>
+    </form>
   </div>
-  
-  <script>
-    document.getElementById('profile-image-input').addEventListener('change', function(e) {
-      if (e.target.files[0]) {
-        const reader = new FileReader();
-        reader.onload = e => document.getElementById('profile-preview').src = e.target.result;
-        reader.readAsDataURL(e.target.files[0]);
-      }
-    });
-  </script>
+</div>
+<script>
+  function openAddMemberModal() {
+    document.getElementById('addMemberModal').classList.add('active');
+  }
+
+  function closeAddMemberModal() {
+    document.getElementById('addMemberModal').classList.remove('active');
+    document.querySelector('#addMemberModal form').reset();
+    document.getElementById('profilePreview').src = '/images/default-avatar.jpg';
+  }
+
+  // Image preview
+  document.getElementById('profileImageInput').addEventListener('change', function(e) {
+    if (e.target.files && e.target.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        document.getElementById('profilePreview').src = ev.target.result;
+      };
+      reader.readAsDataURL(e.target.files[0]);
+    }
+  });
+
+  // Close modal when clicking outside
+  document.getElementById('addMemberModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeAddMemberModal();
+    }
+  });
+</script>

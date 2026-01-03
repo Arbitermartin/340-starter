@@ -47,7 +47,15 @@ router.post(
 )
 router.get("/",utilities.handleErrors(accountController.accountManagement))
 
+
 router.get("/add-member",utilities.handleErrors(accountController.buildAddMember))
+
+router.post(
+  "/add-member",
+  utilities.handleErrors,
+  accountController.upload.single("profile_image"),
+  utilities.handleErrors(accountController.addMember)
+)
 
 
 

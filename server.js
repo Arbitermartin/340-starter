@@ -102,7 +102,6 @@ app.use((req, res, next) => {
 // ... later in the Routes section (add with other app.use routes)
 app.use("/account", accountRoute)
 
-
 // static routes
 app.use("/",staticRoute)
 

@@ -15,6 +15,7 @@ async function registerAccount(account_firstname, account_lastname, account_emai
 
 /* *****************************
  *   Register/Add new member
+ *   Supports profile_image as BYTEA (binary) or NULL
  * *************************** */
 async function registerMember(
   first_name, 
@@ -22,21 +23,32 @@ async function registerMember(
   email, 
   phone, 
   address, 
-  profile_image = 'default-avatar.jpg'
+  profile_image = null  // Now defaults to null (for BYTEA column)
 ) {
   try {
     const sql = `
       INSERT INTO members 
-        (first_name, last_name, email, phone, address, profile_image) 
-      VALUES ($1, $2, $3, $4, $5, $6) 
+        (first_name, last_name, email, phone, address, profile_image, created_at) 
+      VALUES ($1, $2, $3, $4, $5, $6, NOW()) 
       RETURNING *
     `
-    return await pool.query(sql, [first_name, last_name, email, phone, address, profile_image])
+
+    const values = [
+      first_name,
+      last_name,
+      email || null,
+      phone || null,
+      address || null,
+      profile_image  // This can be Buffer (from multer) or null
+    ]
+
+    const result = await pool.query(sql, values)
+    return result.rows[0]  // Return the inserted member record
   } catch (error) {
-    return error.message
+    console.error("Error in registerMember:", error)
+    throw new Error(error.message || "Failed to add member")
   }
 }
-// register member end here.
 
 /* **********************
  *   Check for existing email

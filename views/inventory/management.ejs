@@ -46,7 +46,7 @@
           <li class="dropdown-1">
             <span><i class="bi bi-person"></i> Member</span>
             <ul class="dropdown-menu">
-              <li><a class="dropdown-item" href="./inventory/add-member"><i class="bi bi-plus-circle"></i> Add Member</a></li>
+              <li><a class="dropdown-item" href="javascript:openAddMemberModal()"><i class="bi bi-plus-circle"></i> Add Member</a></li>
               <li><a class="dropdown-item" href="#"><i class="bi bi-pencil-square"></i> Edit Member</a></li>
               <li><a class="dropdown-item" href="#"><i class="bi bi-eye"></i> View Member</a></li>
               <li><a class="dropdown-item" href="#"><i class="bi bi-trash"></i> Delete Member</a></li>
@@ -140,5 +140,6 @@
       overlay.classList.remove('active');
     });
   </script>
+  <%- include('add-member') %>
 </body>
 </html>
