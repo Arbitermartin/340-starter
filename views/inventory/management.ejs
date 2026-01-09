@@ -39,7 +39,7 @@
 
       <!-- Sidebar -->
       <aside id="sidebar">
-        <h2>UHWF PORTAL</h2>
+        <h2 style="border-bottom: 2px solid black; margin-bottom: 1.5rem;">UHWF PORTAL</h2>
         <ul>
           <li><i class="bi bi-border-all"></i> Dashboard</li>
           <!-- Member Dropdown -->
@@ -47,7 +47,7 @@
             <span><i class="bi bi-person"></i> Member</span>
             <ul class="dropdown-menu">
               <li><a class="dropdown-item" href="javascript:openAddMemberModal()"><i class="bi bi-plus-circle"></i> Add Member</a></li>
-              <li><a class="dropdown-item" href="#"><i class="bi bi-pencil-square"></i> Edit Member</a></li>
+              <li><a class="dropdown-item" href="javascript:openSearchMemberModal()"><i class="bi bi-pencil-square"></i> Edit Member</a></li>
               <li><a class="dropdown-item" href="#"><i class="bi bi-eye"></i> View Member</a></li>
               <li><a class="dropdown-item" href="#"><i class="bi bi-trash"></i> Delete Member</a></li>
             </ul>
@@ -140,6 +140,80 @@
       overlay.classList.remove('active');
     });
   </script>
+
+  <!-- Success Popup Modal -->
+<div id="successModal" class="modal-overlay">
+  <div class="modal-content" style="max-width: 400px; text-align: center;">
+    <span class="modal-close" onclick="closeSuccessModal()">&times;</span>
+    <h3 style="color: #28a745;">Success!</h3>
+    <p style="font-size: 18px;"><%= messages.notice %></p>
+    <button onclick="closeSuccessModal()" style="padding:10px 20px; background:#28a745; color:white; border:none; border-radius:6px; margin-top:20px;">
+      OK
+    </button>
+  </div>
+</div>
   <%- include('add-member') %>
+  <%- include('edit-member') %>
+  <%- include('search-member') %>
+
+<!-- Success Popup Modal -->
+<div id="successModal" class="modal-overlay">
+  <div class="modal-content" style="max-width: 400px; text-align: center;">
+    <span class="modal-close" onclick="closeSuccessModal()">&times;</span>
+    <h3 style="color: #28a745; margin: 20px 0;">Success!</h3>
+    <p style="font-size: 18px; margin: 20px 0;">
+      <%= messages.notice || 'Changes saved successfully!' %>
+    </p>
+    <button onclick="closeSuccessModal()" 
+            style="padding: 12px 30px; background: #28a745; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer;">
+      OK
+    </button>
+  </div>
+</div>
+
+<script>
+  // Show popup if we came from update
+  window.addEventListener('load', function() {
+    if (window.location.search.includes('updated=true')) {
+      document.getElementById('successModal').classList.add('active');
+    }
+  });
+
+  function closeSuccessModal() {
+    document.getElementById('successModal').classList.remove('active');
+    // Optional: remove ?updated=true from URL
+    history.replaceState(null, '', '/account/');
+  }
+
+  // Close when clicking outside
+  document.getElementById('successModal').addEventListener('click', function(e) {
+    if (e.target === this) closeSuccessModal();
+  });
+</script>
+
+<style>
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.6);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  .modal-overlay.active {
+    display: flex;
+  }
+  .modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  }
+  .modal-overlay p{
+    color: black;
+  }
+</style>
+</style>
 </body>
 </html>

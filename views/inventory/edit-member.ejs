@@ -1,0 +1,95 @@
+<!-- views/inventory/edit-member.ejs - Edit Member Popup -->
+<div id="editMemberModal" class="modal-overlay-1">
+  <div class="modal-content">
+    <span class="modal-close" onclick="closeEditMemberModal()">&times;</span>
+    <h2>Edit Member</h2>
+
+    <% if (messages && messages.notice) { %>
+      <div class="success-message"><%= messages.notice %></div>
+    <% } %>
+
+    <form id="editMemberForm" action="account/edit-member" method="POST" enctype="multipart/form-data">
+      <div class="profile-preview-container">
+        <img id="editProfilePreview" src="/images/default-avatar.jpg" alt="Profile Preview" class="profile-preview">
+        <br><br>
+        <input type="file" name="profile_image" id="editProfileImageInput" accept="image/*">
+        <small>Upload new photo to replace current (optional)</small>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>First Name *</label>
+          <input type="text" id="editFirstName" name="first_name" required>
+        </div>
+        <div class="form-group">
+          <label>Last Name *</label>
+          <input type="text" id="editLastName" name="last_name" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="editEmail" name="email">
+      </div>
+
+      <div class="form-group">
+        <label>Phone</label>
+        <input type="text" id="editPhone" name="phone">
+      </div>
+
+      <div class="form-group">
+        <label>Address</label>
+        <textarea id="editAddress" name="address" rows="3"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Membership Number</label>
+        <input type="text" id="editMembershipNumber" disabled>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" onclick="closeEditMemberModal()" class="btn-cancel">Cancel</button>
+        <button type="submit" class="btn-save">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function openEditMemberModal(member) {
+    const modal = document.getElementById('editMemberModal');
+    modal.classList.add('active');
+
+    document.getElementById('editFirstName').value = member.member_firstname || '';
+    document.getElementById('editLastName').value = member.member_lastname || '';
+    document.getElementById('editEmail').value = member.member_email || '';
+    document.getElementById('editPhone').value = member.member_phone || '';
+    document.getElementById('editAddress').value = member.member_address || '';
+    document.getElementById('editMembershipNumber').value = member.membership_number || '';
+
+    const preview = document.getElementById('editProfilePreview');
+    preview.src = member.member_profile_image ? `/account/member-photo/${member.member_id}` : '/images/default-avatar.jpg';
+
+    document.getElementById('editMemberForm').action = `/account/update-member/${member.member_id}`;
+  }
+
+  function closeEditMemberModal() {
+    document.getElementById('editMemberModal').classList.remove('active');
+    document.getElementById('editMemberForm').reset();
+    document.getElementById('editProfilePreview').src = '/images/default-avatar.jpg';
+  }
+
+  document.getElementById('editProfileImageInput').addEventListener('change', function(e) {
+    if (e.target.files && e.target.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        document.getElementById('editProfilePreview').src = ev.target.result;
+      };
+      reader.readAsDataURL(e.target.files[0]);
+    }
+  });
+
+  document.getElementById('editMemberModal').addEventListener('click', function(e) {
+    if (e.target === this) closeEditMemberModal();
+  });
+</script>

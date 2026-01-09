@@ -1,0 +1,78 @@
+<!-- views/inventory/search-member.ejs -->
+<div id="searchMemberModal" class="modal-overlay-1">
+  <div class="modal-content" style="max-width: 600px;">
+    <span class="modal-close" onclick="closeSearchMemberModal()">&times;</span>
+    <h2>Search Member to Edit</h2>
+
+    <div style="margin-bottom: 20px;">
+      <label>First Name</label>
+      <input type="text" id="searchFirstName" placeholder="Enter first name..." style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px;">
+      <button onclick="searchMembers()" style="margin-top:15px; padding:10px 20px; background:#007bff; color:white; border:none; border-radius:6px;">
+        Search
+      </button>
+    </div>
+
+    <div id="searchResults" style="max-height:400px; overflow-y:auto; border:1px solid #eee; border-radius:6px; padding:10px;">
+      <p style="text-align:center; color:#666;">Enter a first name and click Search</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openSearchMemberModal() {
+    document.getElementById('searchMemberModal').classList.add('active');
+    document.getElementById('searchFirstName').value = '';
+    document.getElementById('searchResults').innerHTML = '<p style="text-align:center; color:#666;">Enter a first name and click Search</p>';
+  }
+
+  function closeSearchMemberModal() {
+    document.getElementById('searchMemberModal').classList.remove('active');
+  }
+
+  async function searchMembers() {
+    const firstName = document.getElementById('searchFirstName').value.trim();
+    if (!firstName) {
+      document.getElementById('searchResults').innerHTML = '<p style="color:red;">Please enter a first name</p>';
+      return;
+    }
+
+    try {
+      const response = await fetch(`/account/search-member?firstname=${encodeURIComponent(firstName)}`);
+      const members = await response.json();
+
+      const resultsDiv = document.getElementById('searchResults');
+      if (members.length === 0) {
+        resultsDiv.innerHTML = '<p style="text-align:center; color:#999;">No members found</p>';
+        return;
+      }
+
+      let html = '<h4 style="margin:10px 0;">Select Member to Edit:</h4>';
+      members.forEach(member => {
+        const photoSrc = member.member_profile_image 
+          ? member.member_profile_image 
+          : '/images/default-avatar.jpg';
+
+        html += `
+          <div style="padding:12px; border-bottom:1px solid #eee; display:flex; align-items:center; gap:15px; cursor:pointer;" 
+               onclick='openEditMemberModal(${JSON.stringify(member)}); closeSearchMemberModal();'>
+            <img src="${photoSrc}" 
+                 alt="Photo" 
+                 style="width:60px; height:60px; object-fit:cover; border-radius:50%; border:2px solid #ddd;">
+            <div style="flex:1;">
+              <strong>${member.member_firstname} ${member.member_lastname}</strong><br>
+              <small style="color:#666;">${member.membership_number} • ${member.member_email || 'No email'}</small>
+            </div>
+            <span style="color:#007bff; font-weight:bold;">Edit →</span>
+          </div>
+        `;
+      });
+      resultsDiv.innerHTML = html;
+    } catch (error) {
+      document.getElementById('searchResults').innerHTML = '<p style="color:red;">Search failed. Try again.</p>';
+    }
+  }
+
+  document.getElementById('searchMemberModal').addEventListener('click', function(e) {
+    if (e.target === this) closeSearchMemberModal();
+  });
+</script>
