@@ -3,12 +3,35 @@ const pool = require("../database")  // This assumes your database/index.js expo
 /* *****************************
  *   Register new account
  * *************************** */
-async function registerAccount(account_firstname, account_lastname, account_email, account_password) {
+// async function registerAccount(account_firstname, account_lastname, account_email, account_password) {
+//   try {
+//     const sql = `
+//       INSERT INTO public.account 
+//         (account_firstname, account_lastname, account_email, account_password, account_type) 
+//       VALUES ($1, $2, $3, $4, 'citizen') 
+//       RETURNING account_id, account_firstname, account_lastname, account_email, account_type
+//     `;
+
+//     const result = await pool.query(sql, [
+//       account_firstname,
+//       account_lastname,
+//       account_email,
+//       account_password
+//     ]);
+
+//     return result.rows[0]; // Return the newly created account
+//   } catch (error) {
+//     console.error("registerAccount ERROR:", error); // This will show in terminal
+//     throw new Error(error.message || "Failed to register account");
+//     // ↑ IMPORTANT: Throw, don't return string
+//   }
+// }
+async function registerAccount(account_firstname, account_lastname, account_email, account_password, account_type) {
   try {
     const sql = `
       INSERT INTO public.account 
         (account_firstname, account_lastname, account_email, account_password, account_type) 
-      VALUES ($1, $2, $3, $4, 'citizen') 
+      VALUES ($1, $2, $3, $4, $5)
       RETURNING account_id, account_firstname, account_lastname, account_email, account_type
     `;
 
@@ -16,14 +39,14 @@ async function registerAccount(account_firstname, account_lastname, account_emai
       account_firstname,
       account_lastname,
       account_email,
-      account_password
+      account_password,
+      account_type  // ← New parameter
     ]);
 
-    return result.rows[0]; // Return the newly created account
+    return result.rows[0];
   } catch (error) {
-    console.error("registerAccount ERROR:", error); // This will show in terminal
+    console.error("registerAccount ERROR:", error);
     throw new Error(error.message || "Failed to register account");
-    // ↑ IMPORTANT: Throw, don't return string
   }
 }
 

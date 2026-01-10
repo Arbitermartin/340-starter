@@ -28,8 +28,8 @@
         <div class="user">
           <div id="tools">
             <% if(locals.loggedin){%>
-              <a href="/account/" class="welcome-link">Welcome <%=locals.accountData?.account_firstname || 'User'%></a>
-              <a href="/account/logout" class="logout-link"><button>Logout</button></a>
+              <a href="/account/" class="welcome-link">Welcome back, <%=locals.accountData?.account_firstname || 'User'%></a>
+              <a href="/account/logout" class="logout-link"><button>Logout <i class="bi bi-box-arrow-right"></i></button></a>
             <%} else{%>
               <a title="Click to log in" href="/account/login">My Account</a>
             <%}%>
@@ -103,21 +103,20 @@
       <!-- Main Content -->
       <div class="main-body">
         <div class="cards">
-          <div class="card"><h4>Users</h4><p>1,250</p></div>
-          <div class="card"><h4>Orders</h4><p>320</p></div>
-          <div class="card"><h4>Revenue</h4><p>$8,540</p></div>
-          <div class="card"><h4>Feedback</h4><p>89%</p></div>
-          <div class="card"><h4>Growth</h4><p>92%</p></div>
-          <div class="card"><h4>Active</h4><p>1,180</p></div>
+          <div class="card"><h4>Students</h4><p><%= studentCount || 0 %></p></div>
+          <div class="card"><h4>Members</h4><p><%= memberCount || 0 %></p></div>
+          <div class="card"><h4>Payments</h4><p>TSH 0</p></div>
+          <div class="card"><h4>Feedback</h4><p>0%</p></div>
+          <div class="card"><h4>Growth</h4><p>0%</p></div>
+          <div class="card"><h4>Active Users</h4><p><p><%= activeCount %></p></p></div>
         </div>
 
         <div class="dashboard-footer">
-          <div class="version"><p>Version: 1.0.0.0</p></div>
+          <div class="version" style="margin-top: 1.9rem;"><p>Version: 1.0.0.0</p></div>
           <ul id="footer">
             <li><a href="">Home |</a></li>
             <li><a href="">About |</a></li>
             <li><a href="">Contact |</a></li>
-            <li><a href="">Privacy Policy</a></li>
           </ul>
         </div>
       </div>
@@ -215,5 +214,6 @@
   }
 </style>
 </style>
+
 </body>
 </html>

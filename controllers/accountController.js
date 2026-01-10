@@ -6,6 +6,7 @@ const accountModel =require("../models/account-model")
 const bcrypt = require("bcryptjs")
 const multer = require("multer")
 require("dotenv").config();
+const pool = require("../database") 
 const path = require("path");
 
 // Save uploaded images to public/images/members folder
@@ -60,102 +61,148 @@ async function buildRegister(req,res,next) {
 *  Process Registration
 * *************************************** */
 async function registerAccount(req, res) {
-  let nav = await utilities.getNav()
-  const { account_firstname, account_lastname, account_email, account_password } = req.body
-  // Hash the password before storing
-let hashedPassword
-try {
-  // regular password and cost (salt is generated automatically)
-  hashedPassword = await bcrypt.hashSync(account_password, 10)
-} catch (error) {
-  req.flash("notice", 'Sorry, there was an error processing the registration.')
-  res.status(500).render("account/register", {
-    title: "Registration",
-    nav,
-    errors: null,
-  })
-}
+  let nav = await utilities.getNav();
+  const { 
+    account_firstname, 
+    account_lastname, 
+    account_email, 
+    account_password,
+    account_type   // ← NEW: from form
+  } = req.body;
 
-  const regResult = await accountModel.registerAccount(
-    account_firstname,
-    account_lastname,
-    account_email,
-    hashedPassword
-  )
-
-  if (regResult) {
-    req.flash(
-      "notice",
-      `Congratulations, you\'re registered ${account_firstname}. Please log in.`
-    )
-    res.status(201).render("account/login", {
-      title: "Login",
-      nav,
-      // changes i added this at 02/06/2025.
-      errors: null,
-      account_email,
-    });
-  } else {
-    req.flash("notice", "Sorry, the registration failed.")
-    res.status(501).render("account/register", {
-      title: "Registration",
-      nav,
-      // changes i added this at 02/06/2025.
-      errors: [{ msg: error.message }],
-      account_firstname: req.body.account_firstname || "",
-      account_lastname: req.body.account_lastname || "",
-      account_email: req.body.account_email || "",
-    })
+  // Validate allowed types (security!)
+  const allowedTypes = ['student', 'citizen', 'member'];
+  if (!allowedTypes.includes(account_type)) {
+    req.flash("notice", "Invalid account type selected.");
+    return res.render("account/register", { title: "Register", nav, errors: null });
   }
+
+  // Hash password
+  const hashedPassword = await bcrypt.hash(account_password, 10);
+
+  try {
+    const regResult = await accountModel.registerAccount(
+      account_firstname,
+      account_lastname,
+      account_email,
+      hashedPassword,
+      account_type   // ← Pass the selected type
+    );
+
+    if (regResult) {
+      req.flash("notice", `Congratulations, you're registered as ${account_type}! Please log in.`);
+      return res.redirect("/account/login");
+    } else {
+      req.flash("notice", "Registration failed.");
+      return res.render("account/register", { title: "Register", nav, errors: null });
+    }
+  } catch (error) {
+    req.flash("notice", error.message || "Registration failed.");
+    return res.render("account/register", { title: "Register", nav, errors: null });
+  }
+}
+async function userDashboard(req, res) {
+  const accountData = res.locals.accountData || {};
+  res.render("inventory/dashboard", {
+    title: "UHWF Portal",
+    layout: false,
+    messages: req.flash(),
+    account_firstname: accountData.account_firstname,
+    account_email: accountData.account_email,
+    account_type: accountData.account_type,
+  });
 }
 /* ****************************************
  *  Process login request
  * ************************************ */
 async function accountLogin(req, res) {
-  let nav = await utilities.getNav()
-  const { account_email, account_password } = req.body
-  const accountData = await accountModel.getAccountByEmail(account_email)
+  let nav = await utilities.getNav();
+  const { account_email, account_password } = req.body;
+
+  const accountData = await accountModel.getAccountByEmail(account_email);
   if (!accountData) {
-    req.flash("notice", "Please check your credentials and try again.")
-    res.status(400).render("account/login", {
+    req.flash("notice", "Please check your credentials and try again.");
+    return res.status(400).render("account/login", {
       title: "Login",
-      // nav,
+      nav,
       errors: null,
       account_email,
-    })
-    return
+    });
   }
+
   try {
     if (await bcrypt.compare(account_password, accountData.account_password)) {
-      delete accountData.account_password
-      const accessToken = jwt.sign(accountData, process.env.ACCESS_TOKEN_SECRET, { expiresIn: 3600 * 1000 })
-      if(process.env.NODE_ENV === 'development') {
-        res.cookie("jwt", accessToken, { httpOnly: true, maxAge: 3600 * 1000 })
+      delete accountData.account_password;
+
+      const accessToken = jwt.sign(accountData, process.env.ACCESS_TOKEN_SECRET, { expiresIn: 3600 * 1000 });
+
+      res.cookie("jwt", accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV !== 'development',
+        maxAge: 3600 * 1000,
+      });
+
+      // Normalize account_type (trim spaces + lowercase) to avoid case issues
+      const accountType = (accountData.account_type || '').trim().toLowerCase();
+
+      if (accountType === 'admin') {
+        req.flash("notice", "Welcome Admin!");
+        return res.redirect("/account/");  // Admin dashboard (your management view)
+      } else if (['citizen', 'student', 'member'].includes(accountType)) {
+        req.flash("notice", "Welcome back!");
+        return res.redirect("/account/dashboard/");  // User dashboard for citizen/student/member
       } else {
-        res.cookie("jwt", accessToken, { httpOnly: true, secure: true, maxAge: 3600 * 1000 })
+        // Debug: show what the actual value is
+        req.flash("notice", `Unknown account type: "${accountData.account_type}" (contact support)`);
+        return res.redirect("/account/login");
       }
-      return res.redirect("/account/")
-    }
-    else {
-      req.flash("message notice", "Please check your credentials and try again.")
-      res.status(400).render("account/login", {
+    } else {
+      req.flash("notice", "Please check your credentials and try again.");
+      return res.status(400).render("account/login", {
         title: "Login",
         nav,
         errors: null,
         account_email,
-      })
+      });
     }
   } catch (error) {
-    throw new Error('Access Forbidden')
+    console.error("Login error:", error);
+    req.flash("notice", "Access error. Please try again.");
+    return res.redirect("/account/login");
   }
 }
-
 /* ****************************************
 *  Deliver account management view
 * *************************************** */
 async function accountManagement(req, res) {
   const accountData = res.locals.accountData || {};
   const members = await accountModel.getAllMembers();  // ← Fetch all members
+  const studentCountResult = await pool.query(
+    "SELECT COUNT(*) AS count FROM public.account WHERE account_type = 'student'"
+  );
+  const studentCount = studentCountResult.rows[0].count;
+  const memberCountResult = await pool.query(
+    "SELECT COUNT(*) AS count FROM public.member WHERE account_type = 'member'"
+  );
+  const memberCount = memberCountResult.rows[0].count;
+  // In your accountManagement controller function
+const activeTotalResult = await pool.query(`
+  SELECT (
+    -- Students from account table
+    (SELECT COUNT(*) 
+     FROM public.account 
+     WHERE LOWER(TRIM(account_type)) = 'student'
+       -- AND is_active = true   <-- Uncomment if you have is_active column in account table
+    ) +
+    -- Members from member table
+    (SELECT COUNT(*) 
+     FROM public.member
+       -- AND is_active = true   <-- Uncomment if you have is_active column in member table
+    )
+  ) AS total_active
+`);
+
+const activeCount = parseInt(activeTotalResult.rows[0].total_active, 10);
   res.render("inventory/management", {
     title: "UHWF Portal",
     layout: false,
@@ -163,7 +210,10 @@ async function accountManagement(req, res) {
     account_firstname: accountData.account_firstname,
     account_email: accountData.account_email,
     account_type: accountData.account_type,
-    members  // ← Pass members to the view
+    members,  // ← Pass members to the view
+    studentCount,
+    memberCount,
+    activeCount
   });
 }
 /* ***************************
@@ -354,3 +404,4 @@ module.exports.accountManagement = accountManagement;
 module.exports.buildAddMember = buildAddMember;
 module.exports.addMember =addMember;
 module.exports.buildEditMember =buildEditMember;
+module.exports.userDashboard=userDashboard;

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Dashboard | UHWF-TANZANIA 2025</title>
+  <link rel="stylesheet" href="/css/styles.css">
+   
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="overlay" id="overlay"></div>
+  <div class="dashboard">
+    <!-- Header -->
+    <header class="header">
+      <div class="menu-toggle" id="menuToggle">
+        <i class="bi bi-list" style="color: black;"></i>
+      </div>
+      <h3>Student Dashboard</h3>
+      <div class="user">
+        <span class="welcome-link">Welcome back, <%= locals.accountData?.account_firstname || 'Student' %></span>
+        <a href="/account/logout" class="logout-link">
+          <button>Logout <i class="bi bi-box-arrow-right"></i></button>
+        </a>
+      </div>
+    </header>
+
+    <!-- Sidebar (Left) -->
+    <aside id="sidebar">
+      <h2 style="text-align:center; margin-bottom:30px; border-bottom: 2px solid white; margin-top: 1rem;">STUDENT PORTAL</h2>
+      <ul>
+        <li><a href="#"><i class="bi bi-house-door"></i> Dashboard</a></li>
+
+        <li class="dropdown-1">
+          <span><i class="bi bi-gear"></i> Quick Actions</span>
+          <ul class="dropdown-menu">
+            <li><a href="#"><i class="bi bi-person-circle"></i> View My Profile</a></li>
+            <li><a href="#"><i class="bi bi-calendar-event"></i> Register Events</a></li>
+            <li><a href="#"><i class="bi bi-pencil-square"></i> Edit Profile</a></li>
+          </ul>
+        </li>
+
+        <li><a href="#"><i class="bi bi-book"></i> My Courses</a></li>
+        <li><a href="#"><i class="bi bi-calendar-check"></i> Upcoming Events</a></li>
+        <li><a href="#"><i class="bi bi-file-earmark-text"></i> Certificates</a></li>
+        <li><a href="#"><i class="bi bi-question-circle"></i> Help & Support</a></li>
+      </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-body">
+      <div class="cards">
+        <div class="card">
+          <h4>Membership Status</h4>
+          <p>Active</p>
+        </div>
+        <div class="card">
+          <h4>Events Attended</h4>
+          <p>12</p>
+        </div>
+        <div class="card">
+          <h4>Upcoming Events</h4>
+          <p>3</p>
+        </div>
+        <div class="card">
+          <h4>Points Earned</h4>
+          <p>450</p>
+        </div>
+        <div class="card">
+          <h4>Feedback</h4>
+          <p>89%</p>
+        </div>
+        <div class="card">
+          <h4>Growth</h4>
+          <p>92%</p>
+        </div>
+      </div>
+
+      <div class="dashboard-footer">
+        <div class="version" style="margin-top: 1.9rem;"><p>Version: 1.0.0.0</p></div>
+        <ul id="footer">
+          <li><a href="">Home |</a></li>
+          <li><a href="">About |</a></li>
+          <li><a href="">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Sidebar toggle
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+
+    menuToggle.addEventListener('click', () => {
+      sidebar.classList.toggle('active');
+      overlay.classList.toggle('active');
+    });
+
+    overlay.addEventListener('click', () => {
+      sidebar.classList.remove('active');
+      overlay.classList.remove('active');
+    });
+
+    // Dropdown toggle
+    document.querySelectorAll('.dropdown-1 > span').forEach(item => {
+      item.addEventListener('click', function() {
+        this.parentElement.classList.toggle('active');
+      });
+    });
+  </script>
+</body>
+</html>
