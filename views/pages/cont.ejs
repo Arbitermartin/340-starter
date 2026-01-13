@@ -3,21 +3,11 @@
         <h2>Get In Touch</h2>
         <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, dolores.</p>
     </div>
-
-    <!-- Success/Error Message -->
-    <% if (messages && messages.success) { %>
-        <div class="success-message">
-            <%= messages.success %>
-        </div>
-    <% } %>
-    <% if (messages && messages.error) { %>
-        <div class="error-message">
-            <%= messages.error %>
-        </div>
-    <% } %>
-
     <div class="cards">
         <div class="content-card">
+            <!-- <div class="emoji">
+                <i class="fa-regular fa-comment-smile"></i>
+            </div> -->
             <h2>Chat to sales</h2>
             <p>speak to our team </p>
             <button class="btn-02">Chat to sales</button>
@@ -38,55 +28,36 @@
             <button class="btn-02">Call our team</button>
         </div>
     </div>
-
     <div class="message">
         <div class="message-header">
             <h2>Message Us</h2>
-            <p>We'll get back to you within 24 hours.</p>
+            <p>we'll get back to you within 24 hours.</p>
         </div>
-
-        <form action="/submit" method="POST" class="contact-form" enctype="multipart/form-data">
+        <form action="">
+            <!-- Firstname and Lastname in two columns -->
             <div class="name-row">
                 <div class="form-control">
                     <label for="firstname">Firstname</label>
-                    <input type="text" id="firstname" name="firstname" placeholder="Enter your Firstname" required>
+                    <input type="text" id="firstname" placeholder="Enter your Firstname" required>
                 </div>
                 <div class="form-control">
                     <label for="lastname">Lastname</label>
-                    <input type="text" id="lastname" name="lastname" placeholder="Enter your Lastname" required>
+                    <input type="text" id="lastname" placeholder="Enter your Lastname" required>
                 </div>
             </div>
-
+    
             <div class="form-control">
                 <label for="email">Email</label>
-                <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                <input type="email" id="email" placeholder="Enter your email" required>
             </div>
-
+    
             <div class="form-control">
                 <label for="message">Message</label>
-                <textarea id="message" name="message" placeholder="Write your message here..." required rows="6"></textarea>
+                <textarea id="message" placeholder="Write your message here..." required></textarea>
             </div>
-
+    
             <button type="submit" class="btn-02">Send Message</button>
         </form>
+        </div>
     </div>
 </div>
-
-<style>
-  .success-message {
-    background: #d4edda;
-    color: #155724;
-    padding: 15px;
-    border-radius: 6px;
-    margin: 20px 0;
-    text-align: center;
-  }
-  .error-message {
-    background: #f8d7da;
-    color: #721c24;
-    padding: 15px;
-    border-radius: 6px;
-    margin: 20px 0;
-    text-align: center;
-  }
-</style>

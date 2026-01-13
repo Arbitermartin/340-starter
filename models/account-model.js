@@ -244,4 +244,26 @@ async function getAccountByEmail (account_email) {
     return new Error("No matching email found")
   }
 }
-module.exports={registerAccount,checkExistingEmail,getAccountByEmail,addMember,updateMember,getMemberById,getAllMembers}
+
+// for contact form.
+async function saveContactMessage(firstname, lastname, email, message) {
+  try {
+    const sql = `
+      INSERT INTO public.contact_messages 
+        (firstname, lastname, email, message) 
+      VALUES ($1, $2, $3, $4)
+      RETURNING id
+    `;
+    const result = await pool.query(sql, [
+      firstname.trim(),
+      lastname.trim(),
+      email.trim(),
+      message.trim()
+    ]);
+    return result.rows[0];
+  } catch (error) {
+    console.error("Contact save error:", error);
+    throw error;
+  }
+}
+module.exports={registerAccount,checkExistingEmail,getAccountByEmail,addMember,updateMember,getMemberById,getAllMembers,saveContactMessage}

@@ -98,5 +98,7 @@ router.get("/search-member", utilities.handleErrors(async (req, res) => {
 // GET: User dashboard (citizen/student/member)
 router.get("/dashboard",utilities.handleErrors(accountController.userDashboard))
 
-
+// POST: Submit contact form
+// In accountRoute.js or new contactRoute.js
+router.post("/contact/submit", utilities.handleErrors(accountController.submitContact));
 module.exports = router

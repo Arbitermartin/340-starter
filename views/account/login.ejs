@@ -1,34 +1,58 @@
-<main>
-    <%- messages() %>
-    <!-- Login Form -->
-    <form action="/account/login" method="post" class="login-form" validate>
-        <div class="form_group">
-            <label for="account_email">Email Address:</label>
-            <input 
-                type="email" 
-                id="account_email" 
-                name="account_email" 
-            
-                placeholder="Enter your email"
-                required>
+<main class="auth-container">
+    <div class="split-layout">
+        <!-- Left: Community Image / Welcome Section -->
+        <div class="left-side">
+            <div class="community-image-wrapper">
+                <img 
+                    src="https://media.istockphoto.com/id/2218732486/photo/young-professionals-collaborating-on-a-computer-in-a-modern-darkly-lit-office-setting.webp?a=1&b=1&s=612x612&w=0&k=20&c=KOAj44Q91NM5Ncld21tYAu44ARv861Fiw2r_-BRIkJQ=" 
+                    alt="Community of people" 
+                    class="community-image"
+                >
+                <!-- Optional overlay text -->
+                <div class="image-overlay">
+                    <h2>Welcome Back!</h2>
+                    <p>Join our growing community</p>
+                </div>
+            </div>
         </div>
-        <div class="form_group">
-            <label for="account_password">Password:</label>
-            <input 
-                type="password" 
-                id="account_password" 
-                name="account_password" 
-               
-                placeholder="Enter your password"
-                pattern="^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{12,}$"
-                title="Password must be at least 12 characters, contain at least 1 capital letter, 1 number, and 1 special character"
-                required >
-        </div>
-        <button type="submit" class="submit_btn">Login</button>
-    </form>
 
-    <!-- Registration Link -->
-    <p class="register-link">
-        Don't have an account? <a href="/account/register">Register here</a>
-    </p>
+        <!-- Right: Login Form (exactly your original code) -->
+        <div class="right-side">
+            <div class="login-wrapper">
+                <%- messages() %>
+
+                <h1> Manual Sign In</h1>
+
+                <!-- Login Form - unchanged -->
+                <form action="/account/login" method="post" class="login-form" validate>
+                    <div class="form_group">
+                        <label for="account_email">Email Address:</label>
+                        <input 
+                            type="email" 
+                            id="account_email" 
+                            name="account_email" 
+                            placeholder="Enter your email"
+                            required>
+                    </div>
+                    <div class="form_group">
+                        <label for="account_password">Password:</label>
+                        <input 
+                            type="password" 
+                            id="account_password" 
+                            name="account_password" 
+                            placeholder="Enter your password"
+                            pattern="^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{12,}$"
+                            title="Password must be at least 12 characters, contain at least 1 capital letter, 1 number, and 1 special character"
+                            required >
+                    </div>
+                    <button type="submit" class="submit_btn">Login</button>
+                </form>
+
+                <!-- Registration Link -->
+                <p class="register-link">
+                    Don't have an account? <a href="/account/register">Register here</a>
+                </p>
+            </div>
+        </div>
+    </div>
 </main>

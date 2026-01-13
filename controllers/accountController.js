@@ -181,6 +181,7 @@ async function accountManagement(req, res) {
     "SELECT COUNT(*) AS count FROM public.account WHERE account_type = 'student'"
   );
   const studentCount = studentCountResult.rows[0].count;
+  
   const memberCountResult = await pool.query(
     "SELECT COUNT(*) AS count FROM public.member WHERE account_type = 'member'"
   );
@@ -383,6 +384,26 @@ async function processUpdateMember(req, res) {
   }
 }
 
+// contact
+async function submitContact(req, res) {
+  const { firstname, lastname, email, message } = req.body;
+
+  // Basic validation
+  if (!firstname || !lastname || !email || !message) {
+    req.flash("error", "All fields are required.");
+    return res.redirect("/contact");
+  }
+
+  try {
+    await accountModel.saveContactMessage(firstname, lastname, email, message);
+
+    req.flash("success", "Your message has been sent successfully! We will get back to you within 24 hours.");
+    res.redirect("/contact");
+  } catch (error) {
+    req.flash("error", "Sorry, there was an error sending your message. Please try again.");
+    res.redirect("/contact");
+  }
+}
 // Export the middleware chain correctly
 module.exports.addMemberMiddleware = [
   upload.single("profile_image"),
@@ -405,3 +426,4 @@ module.exports.buildAddMember = buildAddMember;
 module.exports.addMember =addMember;
 module.exports.buildEditMember =buildEditMember;
 module.exports.userDashboard=userDashboard;
+module.exports.submitContact=submitContact;

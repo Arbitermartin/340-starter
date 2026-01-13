@@ -27,8 +27,27 @@
         <h3>Dashboard</h3>
         <div class="user">
           <div id="tools">
-            <% if(locals.loggedin){%>
-              <a href="/account/" class="welcome-link">Welcome back, <%=locals.accountData?.account_firstname || 'User'%></a>
+            <% if(locals.loggedin){ %>
+
+              <% 
+                const now = new Date();
+                const hour = now.getHours();
+                let greeting = "👋 Hello";
+                
+                if (hour >= 5 && hour < 12) {
+                  greeting = "🌅 Good morning";
+                } else if (hour >= 12 && hour < 17) {
+                  greeting = "☀️ Good afternoon";
+                } else if (hour >= 17 && hour < 22) {
+                  greeting = "🌆 Good evening";
+                } else {
+                  greeting = "🌙 Good night";
+                }
+              %>
+      
+              <a href="/account/" class="welcome-link">
+                <%= greeting %>, <%= locals.accountData?.account_firstname || 'User' %>
+              </a>
               <a href="/account/logout" class="logout-link"><button>Logout <i class="bi bi-box-arrow-right"></i></button></a>
             <%} else{%>
               <a title="Click to log in" href="/account/login">My Account</a>
@@ -39,7 +58,7 @@
 
       <!-- Sidebar -->
       <aside id="sidebar">
-        <h2 style="border-bottom: 2px solid black; margin-bottom: 1.5rem;">UHWF PORTAL</h2>
+        <h2>UHWF PORTAL</h2>
         <ul>
           <li><i class="bi bi-border-all"></i> Dashboard</li>
           <!-- Member Dropdown -->

@@ -140,6 +140,16 @@ FOREIGN KEY (account_id)
 REFERENCES public.account (account_id)
 ON UPDATE CASCADE;
 
+--  FOR CONTACT PAGE
+CREATE TABLE public.contact_messages (
+    id SERIAL PRIMARY KEY,
+    firstname VARCHAR(100) NOT NULL,
+    lastname VARCHAR(100) NOT NULL,
+    email VARCHAR(150) NOT NULL,
+    message TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(20) DEFAULT 'new'  -- e.g., 'new', 'read', 'replied'
+);
 -- =================================================================
 -- SAMPLE DATA
 -- =================================================================

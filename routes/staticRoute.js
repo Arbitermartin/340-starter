@@ -40,6 +40,29 @@ router.get("/team", utilities.handleErrors(async (req, res) => {
     nav 
   })
 }))
+router.get("/land", utilities.handleErrors(async (req, res) => {
+  let nav = await utilities.getNav()
+  res.render("pages/land", { 
+    title: "Land Planning", 
+    nav 
+  })
+}))
+
+router.get("/wildlife", utilities.handleErrors(async (req, res) => {
+  let nav = await utilities.getNav()
+  res.render("pages/wildlife", { 
+    title: "Wildlife Conservation", 
+    nav 
+  })
+}))
+
+router.get("/community", utilities.handleErrors(async (req, res) => {
+  let nav = await utilities.getNav()
+  res.render("pages/community", { 
+    title: "Community Engagement", 
+    nav 
+  })
+}))
 
 router.get("/about", utilities.handleErrors(buildAboutUs))
 router.get("/index", utilities.handleErrors(buildHome))
