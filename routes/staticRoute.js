@@ -63,6 +63,13 @@ router.get("/community", utilities.handleErrors(async (req, res) => {
     nav 
   })
 }))
+router.get("/help", utilities.handleErrors(async (req, res) => {
+  let nav = await utilities.getNav()
+  res.render("pages/help", { 
+    title: "Help Center", 
+    nav 
+  })
+}))
 
 router.get("/about", utilities.handleErrors(buildAboutUs))
 router.get("/index", utilities.handleErrors(buildHome))
