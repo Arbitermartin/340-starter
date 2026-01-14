@@ -147,7 +147,7 @@ async function accountLogin(req, res) {
 
       if (accountType === 'admin') {
         req.flash("notice", "Welcome Admin!");
-        return res.redirect("/account/management");  // Admin dashboard (your management view)
+        return res.redirect("/account/");  // Admin dashboard (your management view)
       } else if (['citizen', 'student', 'member'].includes(accountType)) {
         req.flash("notice", "Welcome back!");
         return res.redirect("/account/dashboard/");  // User dashboard for citizen/student/member
