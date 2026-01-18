@@ -1613,7 +1613,7 @@ h1 {
   margin-bottom: 2rem;
   color: var(--color-green);
 }
-.message{
+.note li{
   margin-top: 1.2rem;
   text-align: center;
   color: var(--color-red);

@@ -147,7 +147,7 @@ async function accountLogin(req, res) {
 
       if (accountType === 'admin') {
         req.flash("notice", "Welcome Admin!");
-        return res.redirect("/account/");  // Admin dashboard (your management view)
+        return res.redirect("/account/management/");  // Admin dashboard (your management view)
       } else if (['citizen', 'student', 'member'].includes(accountType)) {
         req.flash("notice", "Welcome back!");
         return res.redirect("/account/dashboard/");  // User dashboard for citizen/student/member
@@ -157,7 +157,7 @@ async function accountLogin(req, res) {
         return res.redirect("/account/login");
       }
     } else {
-      req.flash("notice", "Please check your credentials and try again.");
+      req.flash("note", " Warning!! Please check your credentials and try again.");
       return res.status(400).render("account/login", {
         title: "Login",
         nav,
@@ -463,28 +463,6 @@ async function deleteMember(req, res) {
     res.status(500).json({ error: "Failed to delete member" });
   }
 }
-
-// // view student.
-// async function viewStudents(req, res) {
-//   try {
-//     const students = await accountModel.getAllStudents()   // model function
-
-//     res.render("inventory/student", {
-//       title: "Student Management",
-//       layout: false,
-//       students,
-//       showAccount: false,
-//       showMembers: false,
-//       showStudents: true,
-//       messages: req.flash()
-//     })
-//   } catch (error) {
-//     console.error("View students error:", error)
-//     req.flash("notice", "Failed to load students")
-//     res.redirect("/account/")
-//   }
-// }
-
 // for get student in management view.
 async function getAllStudents(req, res) {
   try {
