@@ -1,0 +1,59 @@
+<div class="main-body-1" id="studentManagement">
+    <div class="page-header">
+      <h1>Student Management</h1>
+      <p>All Registered Students</p>
+    </div>
+  
+    <div class="table-container">
+      <table class="members-table">
+        <thead>
+          <tr>
+            <th>Photo</th>
+            <th>Reg. No</th>
+            <th>Full Name</th>
+            <th>Email</th>
+            <th>Phone.No</th>
+            <th>Programme</th>
+            <th>Year</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if(students && students.length > 0){ %>
+            <% students.forEach(s => { %>
+              <tr>
+                <td>
+                  <% if(s.profile_image){ %>
+                    <img src="<%= s.profile_image %>" class="table-avatar-1">
+                  <% } else { %>
+                    <i class="bi bi-person-circle fs-3"></i>
+                  <% } %>
+                </td>
+                <td><%= s.registration_no %></td>
+                <td><%= s.account_firstname %> <%= s.account_lastname %></td>
+                <td><%= s.account_email %></td>
+                <td><%= s.phone %></td>
+                <td><%= s.programme %></td>
+                <td><%= s.year_level %></td>
+                <td><%= s.status %></td>
+                <td>
+                  <a href="/account/students/view/<%= s.student_id %>"><i class="bi bi-eye"></i></a>
+                  <a href="/account/students/edit/<%= s.student_id %>"><i class="bi bi-pencil-square"></i></a>
+                  <a href="/account/students/delete/<%= s.student_id %>"
+                     onclick="return confirm('Delete this student?')">
+                     <i class="bi bi-trash"></i>
+                  </a>
+                </td>
+              </tr>
+            <% }) %>
+          <% } else { %>
+            <tr>
+              <td colspan="8" style="text-align:center;">No Students Found</td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  

@@ -1,19 +1,19 @@
 <!-- views/inventory/search-member.ejs -->
 <div id="searchMemberModal" class="modal-overlay-1">
-  <div class="modal-content" style="max-width: 600px;">
+  <div class="modal-content">
     <span class="modal-close" onclick="closeSearchMemberModal()">&times;</span>
     <h2>Search Member to Edit</h2>
 
-    <div style="margin-bottom: 20px;">
+    <div id="search">
       <label>First Name</label>
-      <input type="text" id="searchFirstName" placeholder="Enter first name..." style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px;">
-      <button onclick="searchMembers()" style="margin-top:15px; padding:10px 20px; background:#007bff; color:white; border:none; border-radius:6px;">
+      <input type="text" id="searchFirstName" placeholder="Enter first name...">
+      <button onclick="searchMembers()" class="btn-member">
         Search
       </button>
     </div>
 
-    <div id="searchResults" style="max-height:400px; overflow-y:auto; border:1px solid #eee; border-radius:6px; padding:10px;">
-      <p style="text-align:center; color:#666;">Enter a first name and click Search</p>
+    <div id="searchResults">
+      <p>Enter a first name and click Search</p>
     </div>
   </div>
 </div>
@@ -42,7 +42,7 @@
 
       const resultsDiv = document.getElementById('searchResults');
       if (members.length === 0) {
-        resultsDiv.innerHTML = '<p style="text-align:center; color:#999;">No members found</p>';
+        resultsDiv.innerHTML = '<p class="noMember">No members found</p>';
         return;
       }
 
@@ -53,16 +53,16 @@
           : '/images/default-avatar.jpg';
 
         html += `
-          <div style="padding:12px; border-bottom:1px solid #eee; display:flex; align-items:center; gap:15px; cursor:pointer;" 
+          <div class="member-search" 
                onclick='openEditMemberModal(${JSON.stringify(member)}); closeSearchMemberModal();'>
             <img src="${photoSrc}" 
                  alt="Photo" 
-                 style="width:60px; height:60px; object-fit:cover; border-radius:50%; border:2px solid #ddd;">
-            <div style="flex:1;">
+                 class="photo-style">
+            <div class="flex">
               <strong>${member.member_firstname} ${member.member_lastname}</strong><br>
-              <small style="color:#666;">${member.membership_number} • ${member.member_email || 'No email'}</small>
+              <small class="small">${member.membership_number} • ${member.member_email || 'No email'}</small>
             </div>
-            <span style="color:#007bff; font-weight:bold;">Edit →</span>
+            <span >Edit →</span>
           </div>
         `;
       });

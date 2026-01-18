@@ -68,6 +68,34 @@ router.post(
   accountController.updateMemberMiddleware
 );
 
+// View all members (management page)
+router.get(
+  "/inventory/members",
+  utilities.handleErrors(accountController.viewMembers)
+);
+
+// Get single member (JSON for modal)
+router.get(
+  "/inventory/members/:id",
+  utilities.handleErrors(accountController.getAllMembers)
+);
+
+// Delete member
+router.delete(
+  "/inventory/members/:id",
+  utilities.handleErrors(accountController.deleteMember)
+);
+
+// for student route.
+// ===============================
+// Admin – Manage Students
+// ===============================
+router.get("/inventory/students", accountController.getAllStudents);
+// router.get("/inventory/students", accountController.viewStudents);
+
+
+// ── Other Routes ──────────────────────────────────────────────────────────
+
 /// GET: Search member by first name
 router.get("/search-member", utilities.handleErrors(async (req, res) => {
   const firstname = req.query.firstname?.trim();

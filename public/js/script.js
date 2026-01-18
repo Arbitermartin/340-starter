@@ -39,7 +39,162 @@ document.getElementById('toggleButton').addEventListener('click',function(){
       sidebar.classList.remove('active');
       overlay.classList.remove('active');
     });
+    
 
 
 
     
+// // View Member Details (AJAX)
+// async function viewMember(memberId) {
+//   try {
+//     const response = await fetch(`/account/inventory/member/${memberId}`);
+//     if (!response.ok) throw new Error('Failed to load member');
+
+//     const member = await response.json();
+
+//     const content = `
+//       <div style="text-align:center; margin-bottom:1.5rem;">
+//         ${member.member_profile_image ? `
+//           <img src="${member.member_profile_image}" alt="Profile" 
+//                style="width:140px; height:140px; border-radius:50%; object-fit:cover; border:4px solid #e8f5e9;">
+//         ` : '<p>No profile image</p>'}
+//       </div>
+      
+//       <p><strong>ID:</strong> ${member.member_id}</p>
+//       <p><strong>Full Name:</strong> ${member.member_firstname} ${member.member_lastname}</p>
+//       <p><strong>Email:</strong> ${member.member_email}</p>
+//       <p><strong>Phone:</strong> ${member.member_phone || 'N/A'}</p>
+//       <p><strong>Address:</strong> ${member.member_address || 'N/A'}</p>
+//       <p><strong>Membership Number:</strong> ${member.membership_number || 'N/A'}</p>
+//       <p><strong>Joined:</strong> ${new Date(member.created_at).toLocaleString('en-GB')}</p>
+//     `;
+
+//     document.getElementById('memberDetailContent').innerHTML = content;
+//     document.getElementById('viewMemberModal').classList.add('active');
+//   } catch (err) {
+//     alert('Error loading member details');
+//   }
+// }
+
+// // Delete Confirmation
+// let currentDeleteId = null;
+
+// function confirmDeleteMember(memberId) {
+//   currentDeleteId = memberId;
+//   document.getElementById('deleteConfirmModal').classList.add('active');
+// }
+
+// // Confirm Yes - Delete via AJAX
+// document.getElementById('confirmDeleteBtn')?.addEventListener('click', async () => {
+//   if (!currentDeleteId) return;
+
+//   try {
+//     const response = await fetch(`/inventory/members/${currentDeleteId}`, {
+//       method: 'DELETE',
+//       headers: { 'Content-Type': 'application/json' }
+//     });
+
+//     if (response.ok) {
+//       alert('Member deleted successfully');
+//       location.reload(); // Refresh table
+//     } else {
+//       alert('Failed to delete member');
+//     }
+//   } catch (err) {
+//     alert('Error during deletion');
+//   }
+
+//   closeModal('deleteConfirmModal');
+// });
+
+// // Close modal helper
+// function closeModal(modalId) {
+//   document.getElementById(modalId).classList.remove('active');
+// }
+
+// // Close modals when clicking outside
+// document.querySelectorAll('.modal-overlay').forEach(modal => {
+//   modal.addEventListener('click', e => {
+//     if (e.target === modal) closeModal(modal.id);
+//   });
+// });
+// --- VIEW MEMBER DETAILS (AJAX) ---
+async function viewMember(memberId) {
+  try {
+    const response = await fetch(`/account/inventory/members/${memberId}`);
+    if (!response.ok) throw new Error('Failed to load member');
+
+    const member = await response.json();
+
+    const content = `
+      <div class="member-01">
+        ${member.member_profile_image ? `
+          <img src="${member.member_profile_image}" alt="Profile" 
+              class="member-profile">
+        ` : '<p>No profile image</p>'}
+      </div>
+      <p><strong>ID:</strong> ${member.member_id}</p>
+      <p><strong>Full Name:</strong> ${member.member_firstname} ${member.member_lastname}</p>
+      <p><strong>Email:</strong> ${member.member_email}</p>
+      <p><strong>Phone:</strong> ${member.member_phone || 'N/A'}</p>
+      <p><strong>Address:</strong> ${member.member_address || 'N/A'}</p>
+      <p><strong>Membership Number:</strong> ${member.membership_number || 'N/A'}</p>
+      <p><strong>Joined:</strong> ${new Date(member.created_at).toLocaleString('en-GB')}</p>
+    `;
+
+    document.getElementById('memberDetailContent').innerHTML = content;
+    document.getElementById('viewMemberModal').classList.add('active');
+  } catch (err) {
+    console.error(err);
+    alert('Error loading member details');
+  }
+}
+
+// --- DELETE MEMBER ---
+let currentDeleteId = null;
+
+function confirmDeleteMember(memberId) {
+  currentDeleteId = memberId;
+  document.getElementById('deleteConfirmModal').classList.add('active');
+}
+
+// Confirm deletion
+document.getElementById('confirmDeleteBtn')?.addEventListener('click', async () => {
+  if (!currentDeleteId) return;
+
+  try {
+    const response = await fetch(`/account/inventory/members/${currentDeleteId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (response.ok) {
+      // Remove member row from table
+      const row = document.querySelector(`tr[data-member-id="${currentDeleteId}"]`);
+      if (row) row.remove();
+
+      alert('Member deleted successfully');
+    } else {
+      const errData = await response.json();
+      alert(errData.message || 'Failed to delete member');
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Error during deletion');
+  }
+
+  closeModal('deleteConfirmModal');
+  currentDeleteId = null;
+});
+
+// --- CLOSE MODAL ---
+function closeModal(modalId) {
+  document.getElementById(modalId)?.classList.remove('active');
+}
+
+// Close modal if clicking outside content
+document.querySelectorAll('.modal-overlay').forEach(modal => {
+  modal.addEventListener('click', e => {
+    if (e.target === modal) closeModal(modal.id);
+  });
+});

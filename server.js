@@ -17,11 +17,33 @@ const utilities = require("./utilities/")
 const static = require("./routes/static")
 const cookieParser = require("cookie-parser")
 const jwt = require("jsonwebtoken")
+const helmet =require ("helmet")
+// const crypto = require('crypto');
 const session = require("express-session")
 const pool = require('./database/')
 const staticRoute = require("./routes/staticRoute")
 // app.use(require("jsonwebtoken"))
 
+
+// helmet for secure header and dashboard and other things in my system.
+// app.use(helmet());
+
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "https://cdnjs.cloudflare.com","https://cdn.jsdelivr.net","https://fonts.googleapis.com"], // if i use link for style i must add here link for style.
+      scriptSrc: ["'self'", "'unsafe-inline'"], //for link of script if i add in my system i must add here links for script.
+      scriptSrcAttr: ["'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"], //if i add https link for image it can be controlled here in order to be.
+    },
+  })
+);
+
+// app.use((req, res, next) => {
+//   res.locals.cspNonce = crypto.randomBytes(16).toString('base64');
+//   next();
+// });
 /* ***********************
  * Routes
  *************************/

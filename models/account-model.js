@@ -1,31 +1,5 @@
-// models/uhwf-model.js
-const pool = require("../database")  // This assumes your database/index.js exports the pool
-/* *****************************
- *   Register new account
- * *************************** */
-// async function registerAccount(account_firstname, account_lastname, account_email, account_password) {
-//   try {
-//     const sql = `
-//       INSERT INTO public.account 
-//         (account_firstname, account_lastname, account_email, account_password, account_type) 
-//       VALUES ($1, $2, $3, $4, 'citizen') 
-//       RETURNING account_id, account_firstname, account_lastname, account_email, account_type
-//     `;
-
-//     const result = await pool.query(sql, [
-//       account_firstname,
-//       account_lastname,
-//       account_email,
-//       account_password
-//     ]);
-
-//     return result.rows[0]; // Return the newly created account
-//   } catch (error) {
-//     console.error("registerAccount ERROR:", error); // This will show in terminal
-//     throw new Error(error.message || "Failed to register account");
-//     // ↑ IMPORTANT: Throw, don't return string
-//   }
-// }
+// models/account-model.js
+const pool = require("../database")  //database accountModel
 async function registerAccount(account_firstname, account_lastname, account_email, account_password, account_type) {
   try {
     const sql = `
@@ -266,4 +240,48 @@ async function saveContactMessage(firstname, lastname, email, message) {
     throw error;
   }
 }
-module.exports={registerAccount,checkExistingEmail,getAccountByEmail,addMember,updateMember,getMemberById,getAllMembers,saveContactMessage}
+// for delete member
+async function deleteMember(memberId) {
+  const result = await db.query(
+      'DELETE FROM members WHERE member_id = $1 RETURNING *',
+      [memberId]
+  );
+  return result.rowCount > 0; // true if a row was deleted
+
+
+}
+
+/* *****************************
+ *   Get all students (Admin View)
+ * *************************** */
+async function getAllStudents() {
+  try {
+    const sql = `
+      SELECT 
+        s.student_id,
+        s.registration_no,
+        s.programme,
+        s.phone,
+        s.year_level,
+        s.status,
+        s.profile_image,
+        a.account_id,
+        a.account_firstname,
+        a.account_lastname,
+        a.account_email
+      FROM public.students s
+      INNER JOIN public.account a 
+        ON s.account_id = a.account_id
+      ORDER BY a.account_firstname, a.account_lastname
+    `;
+
+    const result = await pool.query(sql);
+    return result.rows;
+  } catch (error) {
+    console.error("getAllStudents error:", error);
+    throw error;
+  }
+}
+
+module.exports={registerAccount,checkExistingEmail,getAccountByEmail,addMember,updateMember,getMemberById,getAllMembers,deleteMember,getAllStudents,saveContactMessage}
+

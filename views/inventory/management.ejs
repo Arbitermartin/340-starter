@@ -1,3 +1,9 @@
+<%
+  const displayDashboard = (typeof showAccount === 'undefined') ? true : showAccount;
+  const displayMembers = (typeof showMembers === 'undefined') ? false : showMembers;
+  const displaystudents = (typeof  showStudents ==='undefined')?  false : showStudents;
+%>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -60,20 +66,24 @@
       <aside id="sidebar">
         <h2>UHWF PORTAL</h2>
         <ul>
-          <li><i class="bi bi-border-all"></i> Dashboard</li>
+          <li>
+            <a href="/account/">
+              <i class="bi bi-border-all"></i> Dashboard
+            </a>
+          </li>
           <!-- Member Dropdown -->
           <li class="dropdown-1">
-            <span><i class="bi bi-person"></i> Member</span>
+            <span><i class="bi bi-people"></i> Member</span>
             <ul class="dropdown-menu">
               <li><a class="dropdown-item" href="javascript:openAddMemberModal()"><i class="bi bi-plus-circle"></i> Add Member</a></li>
               <li><a class="dropdown-item" href="javascript:openSearchMemberModal()"><i class="bi bi-pencil-square"></i> Edit Member</a></li>
-              <li><a class="dropdown-item" href="#"><i class="bi bi-eye"></i> View Member</a></li>
-              <li><a class="dropdown-item" href="#"><i class="bi bi-trash"></i> Delete Member</a></li>
+              <li><a class="dropdown-item" href="/account/inventory/members"><i class="bi bi-people"></i>Manage Member</a></li>
+          
             </ul>
           </li>
           <!-- Citizen Dropdown -->
           <li class="dropdown-1">
-            <span><i class="bi bi-person"></i> Citizen</span>
+            <span><i class="bi bi-people"></i> Citizen</span>
             <ul class="dropdown-menu">
               <li><a class="dropdown-item" href="#"><i class="bi bi-plus-circle"></i> Add Citizen</a></li>
               <li><a class="dropdown-item" href="#"><i class="bi bi-pencil-square"></i> Edit Citizen</a></li>
@@ -84,7 +94,7 @@
 
           <!-- Employee Dropdown -->
           <li class="dropdown-1">
-            <span><i class="bi bi-person"></i> Employee</span>
+            <span><i class="bi bi-person-workspace"></i> Employee</span>
             <ul class="dropdown-menu">
               <li><a class="dropdown-item" href="#"><i class="bi bi-plus-circle"></i> Add Employee</a></li>
               <li><a class="dropdown-item" href="#"><i class="bi bi-pencil-square"></i> Edit Employee</a></li>
@@ -95,12 +105,10 @@
 
           <!-- Student Dropdown -->
           <li class="dropdown-1">
-            <span><i class="bi bi-person"></i> Student</span>
+            <span><i class="bi bi-mortarboard"></i> Student</span>
             <ul class="dropdown-menu">
-              <li><a class="dropdown-item" href="#"><i class="bi bi-plus-circle"></i> Add Student</a></li>
-              <li><a class="dropdown-item" href="#"><i class="bi bi-pencil-square"></i> Edit Student</a></li>
-              <li><a class="dropdown-item" href="#"><i class="bi bi-eye"></i> View Student</a></li>
-              <li><a class="dropdown-item" href="#"><i class="bi bi-trash"></i> Delete Student</a></li>
+              <li><a class="dropdown-item" href="/account/inventory/students"><i class="bi bi-plus-circle"></i>Manage student</a></li>
+  
             </ul>
           </li>
 
@@ -120,28 +128,36 @@
       </aside>
 
       <!-- Main Content -->
-      <div class="main-body">
-        <div class="cards">
-          <div class="card"><h4>Students</h4><p><%= studentCount || 0 %></p></div>
-          <div class="card"><h4>Members</h4><p><%= memberCount || 0 %></p></div>
-          <div class="card"><h4>Payments</h4><p>TSH 0</p></div>
-          <div class="card"><h4>Feedback</h4><p>0%</p></div>
-          <div class="card"><h4>Growth</h4><p>0%</p></div>
-          <div class="card"><h4>Active Users</h4><p><p><%= activeCount %></p></p></div>
-        </div>
+       <% if(displayDashboard !== false){%>
+        <div class="main-body">
+          <div class="cards">
+            <div class="card"><h4>Students</h4><p><%= studentCount || 0 %></p></div>
+            <div class="card"><h4>Members</h4><p><%= memberCount || 0 %></p></div>
+            <div class="card"><h4>Payments</h4><p>TSH 0</p></div>
+            <div class="card"><h4>Feedback</h4><p>0%</p></div>
+            <div class="card"><h4>Growth</h4><p>0%</p></div>
+            <div class="card"><h4>Active Users</h4><p><p><%= activeCount %></p></p></div>
+          </div>
 
-        <div class="dashboard-footer">
-          <div class="version" style="margin-top: 1.9rem;"><p>Version: 1.0.0.0</p></div>
-          <ul id="footer">
-            <li><a href="">Home |</a></li>
-            <li><a href="">About |</a></li>
-            <li><a href="">Contact |</a></li>
-          </ul>
+          <div class="dashboard-footer">
+            <div class="version" style="margin-top: 1.9rem;"><p>Version: 1.0.0.0</p></div>
+            <ul id="footer">
+              <li><a href="">Home |</a></li>
+              <li><a href="">About |</a></li>
+              <li><a href="">Contact |</a></li>
+            </ul>
+          </div>
         </div>
       </div>
-    </div>
-  </main>
+    </main>
 
+
+       <%}%>
+
+      
+
+      
+  
   <script>
     // Pure JavaScript for mobile sidebar toggle
     const menuToggle = document.getElementById('menuToggle');
@@ -173,6 +189,13 @@
   <%- include('add-member') %>
   <%- include('edit-member') %>
   <%- include('search-member') %>
+  <% if (displayMembers === true) { %>
+    <%- include('member') %>
+  <% } %>
+  <% if (displaystudents === true) { %>
+    <%- include('student') %>
+  <% } %>
+  
 
 <!-- Success Popup Modal -->
 <div id="successModal" class="modal-overlay">

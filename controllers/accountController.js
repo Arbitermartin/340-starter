@@ -121,7 +121,7 @@ async function accountLogin(req, res) {
 
   const accountData = await accountModel.getAccountByEmail(account_email);
   if (!accountData) {
-    req.flash("notice", "Please check your credentials and try again.");
+    req.flash("message", "Please check your credentials and try again.");
     return res.status(400).render("account/login", {
       title: "Login",
       nav,
@@ -211,6 +211,8 @@ const activeCount = parseInt(activeTotalResult.rows[0].total_active, 10);
     account_firstname: accountData.account_firstname,
     account_email: accountData.account_email,
     account_type: accountData.account_type,
+    showAccount: true,   // default dashboard view
+    showMembers: false,
     members,  // ← Pass members to the view
     studentCount,
     memberCount,
@@ -404,6 +406,105 @@ async function submitContact(req, res) {
     res.redirect("/contact");
   }
 }
+// member page to be getted in admin dashboard.
+async function viewMembers(req, res) {
+  try {
+    const members = await accountModel.getAllMembers(); // Use your existing model method
+    res.render("inventory/management", {
+      title: "View All Members",
+      layout: false, // or your dashboard layout
+       members,
+       showMembers: true,
+       showAccount: false,
+      messages: req.flash()
+    });
+  } catch (error) {
+    console.error("View members error:", error);
+    req.flash("error", "Failed to load members");
+    res.redirect("/account/");
+  }
+}
+
+/**
+ * Get single member details (JSON for AJAX modal)
+ */
+async function getMemberDetail(req, res) {
+  try {
+    const memberId = parseInt(req.params.id);
+    const member = await accountModel.getMemberById(memberId); // Assume this exists in model
+
+    if (!member) {
+      return res.status(404).json({ error: "Member not found" });
+    }
+
+    res.json(member);
+  } catch (error) {
+    console.error("Get member detail error:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+}
+
+/**
+ * Delete member
+ */
+async function deleteMember(req, res) {
+  try {
+    const memberId = parseInt(req.params.id);
+    const deleted = await accountModel.deleteMember(memberId); // Assume model has this
+
+    if (!deleted) {
+      return res.status(404).json({ error: "Member not found" });
+    }
+
+    req.flash("notice", "Member deleted successfully");
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Delete member error:", error);
+    res.status(500).json({ error: "Failed to delete member" });
+  }
+}
+
+// // view student.
+// async function viewStudents(req, res) {
+//   try {
+//     const students = await accountModel.getAllStudents()   // model function
+
+//     res.render("inventory/student", {
+//       title: "Student Management",
+//       layout: false,
+//       students,
+//       showAccount: false,
+//       showMembers: false,
+//       showStudents: true,
+//       messages: req.flash()
+//     })
+//   } catch (error) {
+//     console.error("View students error:", error)
+//     req.flash("notice", "Failed to load students")
+//     res.redirect("/account/")
+//   }
+// }
+
+// for get student in management view.
+async function getAllStudents(req, res) {
+  try {
+    const students = await accountModel.getAllStudents(); // fetch from model
+
+    res.render("inventory/management", {
+      title: "Manage Students",
+      layout: false,
+      showAccount: false,
+      showMembers: false,
+      showStudents: true,
+      students,
+      messages: req.flash(),
+    });
+  } catch (error) {
+    console.error("Error fetching students:", error);
+    req.flash("notice", "Failed to load students");
+    res.redirect("/account/");
+  }
+}
 // Export the middleware chain correctly
 module.exports.addMemberMiddleware = [
   upload.single("profile_image"),
@@ -427,3 +528,7 @@ module.exports.addMember =addMember;
 module.exports.buildEditMember =buildEditMember;
 module.exports.userDashboard=userDashboard;
 module.exports.submitContact=submitContact;
+module.exports.viewMembers=viewMembers;
+module.exports.getAllMembers=getMemberDetail;
+module.exports.deleteMember=deleteMember;
+module.exports.getAllStudents=getAllStudents;
