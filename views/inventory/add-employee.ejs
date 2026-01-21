@@ -1,0 +1,73 @@
+<div class="main-body-1" id="addEmployeeForm">
+    <div class="page-header">
+      <h1>Add Employee</h1>
+      <p>Fill in the form below to register a new employee</p>
+    </div>
+  
+    <form action="/account/inventory/add-employees" method="POST" enctype="multipart/form-data" class="employee-form">
+      <div class="form-row">
+  
+        <!-- Left Column: Account Info -->
+        <div class="form-column">
+          <label for="firstname">First Name</label>
+          <input type="text" name="firstname" id="firstname" placeholder="Enter first name" required>
+  
+          <label for="lastname">Last Name</label>
+          <input type="text" name="lastname" id="lastname" placeholder="Enter last name" required>
+  
+          <label for="email">Email</label>
+          <input type="email" name="email" id="email" placeholder="Enter email" required>
+  
+          <label for="password">Password</label>
+          <input type="password" name="password" id="password" placeholder="Enter password" required>
+  
+          <label for="account_type">Account Type</label>
+          <select name="account_type" id="account_type" required>
+            <option value="employee">Employee</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+  
+        <!-- Right Column: Employee Info -->
+        <div class="form-column">
+          <label for="employee_code">Employee Code</label>
+          <input type="text" name="employee_code" id="employee_code" placeholder="EMP-YYYY-XXXX" required>
+  
+          <label for="phone_number">Phone Number</label>
+          <input type="text" name="phone_number" id="phone_number" placeholder="Enter phone number" required>
+  
+          <label for="department">Department</label>
+          <select name="department" id="department" required>
+            <option value="">--Select Department--</option>
+            <option value="Human Resources">Human Resources</option>
+            <option value="Finance">Finance</option>
+            <option value="IT">IT</option>
+            <option value="Marketing">Marketing</option>
+            <option value="Operations">Operations</option>
+            <option value="Customer Service">Customer Service</option>
+          </select>
+  
+          <label for="position">Position</label>
+          <select name="position" id="position" required>
+            <option value="">--Select Position--</option>
+            <option value="Manager">Manager</option>
+            <option value="Assistant Manager">Assistant Manager</option>
+            <option value="Senior Staff">Senior Staff</option>
+            <option value="Junior Staff">Junior Staff</option>
+            <option value="Intern">Intern</option>
+            <option value="Team Lead">Team Lead</option>
+          </select>
+  
+          <label for="hire_date">Hire Date</label>
+          <input type="date" name="hire_date" id="hire_date">
+  
+          <label for="profile_image">Profile Image</label>
+          <input type="file" name="profile_image" id="profileImageInput" accept="image/*">
+  
+          <button type="submit" class="btn-submit">Add Employee</button>
+        </div>
+  
+      </div>
+    </form>
+  </div>
+  

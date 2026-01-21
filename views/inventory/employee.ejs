@@ -1,0 +1,72 @@
+
+<div class="main-body-1" id="employeeManagement">
+  <div class="page-header">
+    <h1>Employee Management</h1>
+    <p>All Registered Employees</p>
+  </div>
+
+  <div class="table-container">
+    <table class="members-table">
+      <thead>
+        <tr>
+          <th>Photo</th>
+          <th>Emp. Code</th>
+          <th>Full Name</th>
+          <th>Email</th>
+          <th>Phone.No</th>
+          <th>Department</th>
+          <th>Position</th>
+          <th>Hire Date</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (employees && employees.length > 0) { %>
+          <% employees.forEach(e => { %>
+            <tr>
+              <td>
+                <% if (e.profile_image) { %>
+                  <img src="<%= e.profile_image %>" class="table-avatar-1" alt="Profile">
+                <% } else { %>
+                  <i class="bi bi-person-circle fs-3"></i>
+                <% } %>
+              </td>
+              <td><%= e.employee_code %></td>
+              <td><%= e.account_firstname %> <%= e.account_lastname %></td>
+              <td><%= e.account_email %></td>
+              <td><%= e.phone_number || 'N/A' %></td>
+              <td><%= e.department || 'N/A' %></td>
+              <td><%= e.position || 'N/A' %></td>
+              <td><%= e.hire_date ? new Date(e.hire_date).toLocaleDateString('en-GB') : 'N/A' %></td>
+              <td>
+                <span class="status-badge <%= e.status === 'active' ? 'status-active' : 'status-inactive' %>">
+                  <%= e.status.charAt(0).toUpperCase() + e.status.slice(1) %>
+                </span>
+              </td>
+              <td class="actions-cell">
+                <a href="/account/employees/view/<%= e.employee_id %>" title="View">
+                  <i class="bi bi-eye"></i>
+                </a>
+                <a href="/account/employees/edit/<%= e.employee_id %>" title="Edit">
+                  <i class="bi bi-pencil-square"></i>
+                </a>
+                <a href="/account/employees/delete/<%= e.employee_id %>"
+                   onclick="return confirm('Are you sure you want to delete this employee?')"
+                   title="Delete">
+                  <i class="bi bi-trash"></i>
+                </a>
+              </td>
+            </tr>
+          <% }) %>
+        <% } else { %>
+          <tr>
+            <td colspan="10" style="text-align:center; padding: 3rem;">
+              No employees registered yet.
+            </td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>

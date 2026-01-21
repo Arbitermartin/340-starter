@@ -93,6 +93,20 @@ router.delete(
 router.get("/inventory/students", accountController.getAllStudents);
 // router.get("/inventory/students", accountController.viewStudents);
 
+/*************************
+ *  employee routes.
+ */
+router.get("/inventory/employees",accountController.viewEmployees);
+
+router.get("/inventory/add-employees", accountController.buildaddEmployee);
+
+router.post(
+  "/inventory/add-employees",
+  accountController.addEmployeeMiddleware,
+);
+
+
+
 
 // ── Other Routes ──────────────────────────────────────────────────────────
 
@@ -125,6 +139,9 @@ router.get("/search-member", utilities.handleErrors(async (req, res) => {
 
 // GET: User dashboard (citizen/student/member)
 router.get("/dashboard",utilities.handleErrors(accountController.userDashboard))
+
+// get employee dashboard
+router.get("/dashEmployee",utilities.handleErrors(accountController.employeeDashboard))
 
 // POST: Submit contact form
 // In accountRoute.js or new contactRoute.js

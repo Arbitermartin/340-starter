@@ -283,5 +283,83 @@ async function getAllStudents() {
   }
 }
 
-module.exports={registerAccount,checkExistingEmail,getAccountByEmail,addMember,updateMember,getMemberById,getAllMembers,deleteMember,getAllStudents,saveContactMessage}
+/***************************
+ * Delivery fetch employee data from database.
+ */
+
+async function viewEmployees() {
+  try {
+    const sql = `
+    SELECT 
+      e.employee_id,
+      e.employee_code,
+      e.phone_number,
+      e.department,
+      e.position,
+      e.hire_date,
+      e.profile_image,
+      e.status,
+      a.account_id,
+      a.account_firstname,
+      a.account_lastname,
+      a.account_email
+   FROM public.employees e
+      INNER JOIN public.account a 
+        ON e.account_id = a.account_id
+      ORDER BY a.account_firstname, a.account_lastname
+  `;
+  const result = await pool.query(sql);
+  return result.rows;
+} catch (error) {
+  console.error("viewEmployees error:", error);
+  throw error;
+}
+}
+
+/*************************
+ * Deliver registration for add employee
+ */
+async function addAccount(firstname, lastname, email, password, account_type) {  // password is now already hashed
+  try {
+    const sql = `
+      INSERT INTO public.account (
+        account_firstname,
+        account_lastname,
+        account_email,
+        account_password,
+        account_type
+      ) VALUES ($1,$2,$3,$4,$5)8
+      RETURNING account_id;
+    `;
+    const values = [firstname, lastname, email, password, account_type];  // Use password as-is (hashed)
+    const result = await pool.query(sql, values);
+    return result.rows[0];
+  } catch (error) {
+    console.error("addAccount error:", error.message);
+    throw error;
+  }
+}
+
+// Add employee
+async function addEmployee(account_id, employee_code, phone_number, department, position, hire_date, profile_image) {
+  try {
+    const sql = `
+      INSERT INTO public.employees (
+        account_id, employee_code, phone_number, department, position, hire_date, profile_image
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7)
+      RETURNING *;
+    `;
+    const values = [account_id, employee_code, phone_number, department, position, hire_date, profile_image];
+    const result = await pool.query(sql, values);
+    return result.rows[0];
+  } catch (error) {
+    console.error("addEmployee error:", error.message);
+    throw error;
+  }
+}
+
+// end here
+
+
+module.exports={registerAccount,checkExistingEmail,getAccountByEmail,addMember,updateMember,getMemberById,getAllMembers,deleteMember,getAllStudents,viewEmployees,addAccount,addEmployee,saveContactMessage}
 

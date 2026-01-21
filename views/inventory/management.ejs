@@ -2,6 +2,9 @@
   const displayDashboard = (typeof showAccount === 'undefined') ? true : showAccount;
   const displayMembers = (typeof showMembers === 'undefined') ? false : showMembers;
   const displaystudents = (typeof  showStudents ==='undefined')?  false : showStudents;
+  const displayemployees = (typeof showEmployees === 'undefined') ? false : showEmployees;
+  const displayEmployee = (typeof showEmployee === 'undefined') ? false : showEmployee;
+
 %>
 
 <!DOCTYPE html>
@@ -96,10 +99,9 @@
           <li class="dropdown-1">
             <span><i class="bi bi-person-workspace"></i> Employee</span>
             <ul class="dropdown-menu">
-              <li><a class="dropdown-item" href="#"><i class="bi bi-plus-circle"></i> Add Employee</a></li>
-              <li><a class="dropdown-item" href="#"><i class="bi bi-pencil-square"></i> Edit Employee</a></li>
-              <li><a class="dropdown-item" href="#"><i class="bi bi-eye"></i> View Employee</a></li>
-              <li><a class="dropdown-item" href="#"><i class="bi bi-trash"></i> Delete Employee</a></li>
+              <li><a class="dropdown-item" href="/account/inventory/add-employees"><i class="bi bi-plus-circle"></i> Add Employee</a></li>
+              <li><a class="dropdown-item" href="/account/inventory/employees"><i class="bi bi-pencil-square"></i>Manage Employee</a></li>
+          
             </ul>
           </li>
 
@@ -194,6 +196,12 @@
   <% } %>
   <% if (displaystudents === true) { %>
     <%- include('student') %>
+  <% } %>
+  <% if (displayemployees === true) { %>
+    <%- include('employee') %>
+  <% } %>
+  <% if (displayEmployee === true) { %>
+    <%- include('add-employee') %>
   <% } %>
   
 

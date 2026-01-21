@@ -147,7 +147,7 @@ async function accountLogin(req, res) {
 
       if (accountType === 'admin') {
         req.flash("notice", "Welcome Admin!");
-        return res.redirect("/account/management/");  // Admin dashboard (your management view)
+        return res.redirect("/account/");  // Admin dashboard (your management view)
       } else if (['citizen', 'student', 'member'].includes(accountType)) {
         req.flash("notice", "Welcome back!");
         return res.redirect("/account/dashboard/");  // User dashboard for citizen/student/member
@@ -483,10 +483,118 @@ async function getAllStudents(req, res) {
     res.redirect("/account/");
   }
 }
+ /****************************
+  * Delivery employee view in admin dashboard
+  */
+ async function viewEmployees(req, res) {
+  try {
+    const  employees = await accountModel.viewEmployees(); // fetch from model
+
+    res.render("inventory/management", {
+      title: "Manage Employees",
+      layout: false,
+      showAccount: false,
+      showMembers: false,
+      showEmployees: true,
+      employees,
+      messages: req.flash(),
+    });
+  } catch (error) {
+    console.error("Error fetching employees:", error);
+    req.flash("notice", "Failed to load employees");
+    res.redirect("/account/");
+  }
+}
+// end here employee views
+
+/*********************
+ * Deliver employee registration form.
+ */
+// GET: show add employee form
+async function buildaddEmployee(req, res) {
+  try {
+    res.render("inventory/management", {
+      title: "Add Employee",
+      layout: false,
+      showAccount :false,
+      showEmployee: true,
+      messages: req.flash()
+    });
+  } catch (error) {
+    console.error("Error loading add employee form:", error);
+    req.flash("notice", "Failed to load add employee form");
+    res.redirect("/account/");
+  }
+}
+// POST: create account + employee
+async function processAddEmployee(req, res) {
+  try {
+    const { firstname, lastname, email, password, account_type, employee_code, phone_number, department, position, hire_date } = req.body;
+    const profile_image = req.file
+      ? `/images/site/${req.file.filename}`  // Adjust path if needed (match your multer destination)
+      : null;  // Or use default from table
+
+    // Hash password HERE (in controller)
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // 1. Create account (pass hashed password)
+    const account = await accountModel.addAccount(firstname, lastname, email, hashedPassword, account_type);
+
+    // 2. Create employee
+    await accountModel.addEmployee(
+      account.account_id,
+      employee_code,
+      phone_number,
+      department,
+      position,
+      hire_date,
+      profile_image
+    );
+
+    req.flash("notice", "Employee account added successfully!");
+    res.redirect("/account/");
+  } catch (error) {
+    console.error("Error adding employee + account:", error);
+    req.flash("notice", "Failed to add employee: " + error.message);
+    res.redirect("/account/inventory/add-employees");
+  }
+}
+
+
+/* *****************************
+ * Deliver employee dashboard
+ * *************************** */
+async function employeeDashboard(req, res) {
+  const accountData = res.locals.accountData || {};
+
+  // Optional: Fetch real stats from DB (dummy for now)
+  const stats = {
+    patients: 15,
+    pendingTasks: 5,
+    attendedHours: 32,
+    nextPayday: "May 31, 2024"
+  };
+
+  res.render("inventory/dasEmployee", {
+    title: "Employee Dashboard",
+    layout: false,
+    messages: req.flash(),
+    account_firstname: accountData.account_firstname,
+    account_email: accountData.account_email,
+    account_type: accountData.account_type,
+    stats
+  });
+}
+
 // Export the middleware chain correctly
 module.exports.addMemberMiddleware = [
   upload.single("profile_image"),
   utilities.handleErrors(processAddMember)  // ← wrap your actual handler
+];
+// Export the middleware chain correctly
+module.exports.addEmployeeMiddleware = [
+  upload.single("profile_image"),
+  utilities.handleErrors(processAddEmployee)  // ← wrap your actual handler
 ];
 
 module.exports.updateMemberMiddleware = [
@@ -510,3 +618,7 @@ module.exports.viewMembers=viewMembers;
 module.exports.getAllMembers=getMemberDetail;
 module.exports.deleteMember=deleteMember;
 module.exports.getAllStudents=getAllStudents;
+module.exports.viewEmployees=viewEmployees;
+module.exports.buildaddEmployee =buildaddEmployee;
+module.exports.employeeDashboard=employeeDashboard;
+

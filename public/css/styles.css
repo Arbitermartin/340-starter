@@ -2687,6 +2687,356 @@ h2 {
 }
 /* end here member */
 
+/* employeee dashboard style start here */
+
+:root {
+  --primary-color: #2e7d32;
+  --secondary-color: #e8f5e9;
+  --text-color: #333;
+  --background-color: #f8f9fa;
+  --card-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* body {
+  font-family: 'Roboto', sans-serif;
+  margin: 0;
+  padding: 0;
+  background: var(--background-color);
+  color: var(--text-color);
+  display: flex;
+} */
+
+.dashboard-04 {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.sidebar {
+  background: var(--primary-color);
+  color: white;
+  width: 250px;
+  padding: 1rem;
+  position: fixed;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.logo-01 {
+  display: flex;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.logo-01 img {
+  width: 40px;
+  margin-right: 1rem;
+}
+
+.logo-01 h1 {
+  font-size: 1.2rem;
+}
+
+.sidebar .employee ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar .employee li {
+  margin-bottom: 1rem;
+}
+
+.sidebar .employee li a {
+  color: white;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: background 0.3s;
+}
+
+.sidebar .employee li a:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.main-content-04 {
+  flex: 1;
+  padding: 2rem;
+  margin-left: 250px;
+}
+
+.header-04 {
+  display: flex;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.search-bar {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  margin-right: 1rem;
+}
+
+.user-info-01 {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-info-01 i {
+  font-size: 1.5rem;
+}
+
+.user-info-01 img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.greeting {
+  margin-bottom: 2rem;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.card-03 {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: var(--card-shadow);
+  text-align: center;
+}
+
+.card-03 i {
+  font-size: 2rem;
+  color: var(--primary-color);
+  margin-bottom: 0.5rem;
+}
+
+.card-03 h2 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.card-03 p {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.welcome-card {
+  background: var(--secondary-color);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.tasks {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: var(--card-shadow);
+  margin-bottom: 2rem;
+}
+
+.tabs {
+  display: flex;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+
+.tabs button {
+  background: var(--secondary-color);
+  border: none;
+  padding: 0.5rem 1rem;
+  margin-right: 0.5rem;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+td {
+  padding: 0.5rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.due {
+  background: var(--secondary-color);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.feedback {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: var(--card-shadow);
+  text-align: center;
+}
+
+.emojis {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.emojis i {
+  font-size: 2rem;
+  cursor: pointer;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dashboard-04 {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    position: relative;
+    height: auto;
+  }
+
+  .main-content-04 {
+    margin-left: 0;
+  }
+
+  .header-04 {
+    flex-direction: column;
+  }
+
+  .search-bar {
+    margin-right: 0;
+    margin-bottom: 1rem;
+  }
+
+  .stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .tabs {
+    flex-direction: column;
+  }
+
+  .tabs button {
+    margin-right: 0;
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* employee add form */
+
+/* Employee form styling */
+.employee-form {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  background-color: #f9f9f9;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  max-width: 900px;
+  margin: 2rem auto;
+  font-family: 'Roboto', sans-serif;
+}
+
+.form-row {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.form-column {
+  flex: 1;
+  min-width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+label {
+  font-weight: 500;
+  margin-bottom: 0.3rem;
+  color: #333;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="date"],
+select,
+input[type="file"] {
+  padding: 0.8rem 1rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+input[type="file"] {
+  padding: 0.3rem;
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0,123,255,0.3);
+}
+
+.btn-submit {
+  padding: 0.8rem 1.5rem;
+  background-color: var(--color-login);
+  color: white;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 1rem;
+  align-self: flex-start;
+}
+
+.btn-submit:hover {
+  background-color: var(--color-hover-btn);
+}
+
+/* Page header */
+.page-header h1 {
+  font-size: 1.8rem;
+  margin-bottom: 0.3rem;
+}
+
+.page-header p {
+  color: #555;
+  margin-bottom: 1.5rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .form-row {
+    flex-direction: column;
+  }
+}
+
+
+/* end here employee dashboard stylee */
 
   /* footer style start here */
   footer{

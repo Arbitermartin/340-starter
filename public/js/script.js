@@ -198,3 +198,13 @@ document.querySelectorAll('.modal-overlay').forEach(modal => {
     if (e.target === modal) closeModal(modal.id);
   });
 });
+
+
+// Employee Dashboard JS (if needed for interactivity)
+// e.g., feedback emojis click
+const emojis = document.querySelectorAll('.emojis i');
+emojis.forEach(emoji => {
+  emoji.addEventListener('click', () => {
+    alert('Feedback submitted!');
+  });
+});
