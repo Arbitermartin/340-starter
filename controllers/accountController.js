@@ -511,54 +511,218 @@ async function getAllStudents(req, res) {
  * Deliver employee registration form.
  */
 // GET: show add employee form
+// async function buildaddEmployee(req, res) {
+//   try {
+//     res.render("inventory/management", {
+//       title: "Add Employee",
+//       layout: false,
+//       showAccount :false,
+//       showEmployee: true,
+//       messages: req.flash()
+//     });
+//   } catch (error) {
+//     console.error("Error loading add employee form:", error);
+//     req.flash("notice", "Failed to load add employee form");
+//     res.redirect("/account/");
+//   }
+// }
+// // POST: create account + employee
+// async function processAddEmployee(req, res) {
+//   try {
+//     const { firstname, lastname, email, password, account_type, employee_code, phone_number, department, position, hire_date } = req.body;
+//     const profile_image = req.file
+//       ? `/images/site/${req.file.filename}`  // Adjust path if needed (match your multer destination)
+//       : null;  // Or use default from table
+
+//     // Hash password HERE (in controller)
+//     const hashedPassword = await bcrypt.hash(password, 10);
+
+//     // 1. Create account (pass hashed password)
+//     const account = await accountModel.addAccount(firstname, lastname, email, hashedPassword, account_type);
+
+//     // 2. Create employee
+//     await accountModel.addEmployee(
+//       account.account_id,
+//       employee_code,
+//       phone_number,
+//       department,
+//       position,
+//       hire_date,
+//       profile_image
+//     );
+
+//     req.flash("notice", "Employee account added successfully!");
+//     res.redirect("/account/");
+//   } catch (error) {
+//     console.error("Error adding employee + account:", error);
+//     req.flash("notice", "Failed to add employee: " + error.message);
+//     res.redirect("/account/inventory/add-employees");
+//   }
+// }
+// GET: Show add employee form
 async function buildaddEmployee(req, res) {
   try {
     res.render("inventory/management", {
       title: "Add Employee",
       layout: false,
-      showAccount :false,
+      showAccount: false,
       showEmployee: true,
-      messages: req.flash()
+      messages: req.flash(),
     });
   } catch (error) {
     console.error("Error loading add employee form:", error);
-    req.flash("notice", "Failed to load add employee form");
+    req.flash("notice", "Failed to load form: " + error.message);
     res.redirect("/account/");
   }
 }
-// POST: create account + employee
+
+// POST: Create account + employee with full checks
 async function processAddEmployee(req, res) {
   try {
-    const { firstname, lastname, email, password, account_type, employee_code, phone_number, department, position, hire_date } = req.body;
-    const profile_image = req.file
-      ? `/images/site/${req.file.filename}`  // Adjust path if needed (match your multer destination)
-      : null;  // Or use default from table
+    const { 
+      firstname, lastname, email, password, account_type, 
+      phone_number, department, position, hire_date 
+    } = req.body;
 
-    // Hash password HERE (in controller)
+    const profile_image = req.file
+      ? `/images/site/${req.file.filename}`
+      : null;
+
+    // Validate required fields
+    if (!firstname || !lastname || !email || !password || !phone_number) {
+      req.flash("notice", "Missing required fields.");
+      return res.redirect("/account/inventory/add-employees");
+    }
+
+    // Check email uniqueness
+    const existing = await accountModel.checkExistingEmail(email);
+    if (existing > 0) {
+      req.flash("notice", "Email already in use.");
+      return res.redirect("/account/inventory/add-employees");
+    }
+
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 1. Create account (pass hashed password)
-    const account = await accountModel.addAccount(firstname, lastname, email, hashedPassword, account_type);
-
-    // 2. Create employee
-    await accountModel.addEmployee(
-      account.account_id,
-      employee_code,
-      phone_number,
-      department,
-      position,
-      hire_date,
-      profile_image
+    // Create account
+    const account = await accountModel.addAccount(
+      firstname, lastname, email, hashedPassword, account_type
     );
 
-    req.flash("notice", "Employee account added successfully!");
+    // Create employee (no employee_code — model generates it)
+    await accountModel.addEmployee(
+      account.account_id,
+      phone_number, department, position, hire_date, profile_image
+    );
+
+    req.flash("notice", "Employee added successfully!");
     res.redirect("/account/");
   } catch (error) {
-    console.error("Error adding employee + account:", error);
+    console.error("Add employee error:", error.message);
     req.flash("notice", "Failed to add employee: " + error.message);
     res.redirect("/account/inventory/add-employees");
   }
 }
+
+
+/* ****************************************
+ *  Delivering Build Edit Employee Form (GET)
+ * *************************************** */
+async function buildEditEmployee(req, res) {
+  const employeeId = parseInt(req.params.employee_id);
+  const accountData = res.locals.accountData || {};
+
+  try {
+    // Fetch full employee data (joined with account)
+    const employee = await accountModel.getEmployeeById(employeeId);
+
+    if (!employee) {
+      req.flash("notice", "Employee not found");
+      return res.redirect("/account/");
+    }
+
+    res.render("inventory/management", {
+      title: "Edit Employee",
+      layout: false,
+      showAccount : false,
+      showEditEmployee: true,
+      messages: req.flash(),
+      account_firstname: accountData.account_firstname,
+      account_email: accountData.account_email,
+      account_type: accountData.account_type,
+      employee,           // ← pass the full employee object to pre-fill form
+    });
+  } catch (error) {
+    console.error("Error loading edit employee form:", error);
+    req.flash("notice", "Failed to load employee data");
+    res.redirect("/account/");
+  }
+}
+
+/* ****************************************
+ *  Process Update Employee (POST)
+ *  Uses multer middleware for optional new image
+ * *************************************** */
+async function processUpdateEmployee(req, res) {
+  const employeeId = parseInt(req.params.employee_id);
+
+  console.log("UPDATE EMPLOYEE - Body:", req.body);
+  console.log("UPDATE EMPLOYEE - File:", req.file ? req.file.originalname : "No new file");
+
+  const {
+    firstname,
+    lastname,
+    email,
+    employee_code,
+    phone_number,
+    department,
+    position,
+    hire_date,
+    status,           // optional: allow changing status (active/inactive)
+  } = req.body;
+
+  let profile_image = null;
+
+  if (req.file) {
+    profile_image = `/images/site/${req.file.filename}`;   // match your multer folder
+  }
+  // If no new file → keep existing (null = don't update image column)
+
+  try {
+    // 1. Update account table (name + email)
+    await accountModel.updateAccountBasic(
+      employeeId.account_id,   // we get this from getEmployeeById
+      firstname?.trim() || "",
+      lastname?.trim() || "",
+      email?.trim() || ""
+    );
+
+    // 2. Update employee table
+    const updated = await accountModel.updateEmployee(
+      employeeId,
+      employee_code?.trim() || "",
+      phone_number?.trim() || null,
+      department?.trim() || null,
+      position?.trim() || null,
+      hire_date || null,
+      profile_image,          // null = keep old
+      status || "active"
+    );
+
+    if (updated) {
+      req.flash("notice", `Employee ${firstname} ${lastname} updated successfully!`);
+      return res.redirect("/account/");   // or "/account/inventory/employees"
+    } else {
+      req.flash("notice", "No changes made or employee not found.");
+      return res.redirect(`/account/inventory/edit-employee/${employeeId}`);
+    }
+  } catch (error) {
+    console.error("Update employee failed:", error);
+    req.flash("notice", `Error: ${error.message || "Update failed"}`);
+    return res.redirect(`/account/inventory/edit-employee/${employeeId}`);
+  }
+}
+
 
 
 /* *****************************
@@ -597,6 +761,12 @@ module.exports.addEmployeeMiddleware = [
   utilities.handleErrors(processAddEmployee)  // ← wrap your actual handler
 ];
 
+// Export middleware chain for update (with multer) for employee edit
+module.exports.updateEmployeeMiddleware = [
+  upload.single("profile_image"),
+  utilities.handleErrors(processUpdateEmployee)
+];
+
 module.exports.updateMemberMiddleware = [
   upload.single("profile_image"),
   utilities.handleErrors(processUpdateMember)
@@ -621,4 +791,5 @@ module.exports.getAllStudents=getAllStudents;
 module.exports.viewEmployees=viewEmployees;
 module.exports.buildaddEmployee =buildaddEmployee;
 module.exports.employeeDashboard=employeeDashboard;
+module.exports.buildEditEmployee=buildEditEmployee;
 

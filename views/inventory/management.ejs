@@ -4,6 +4,7 @@
   const displaystudents = (typeof  showStudents ==='undefined')?  false : showStudents;
   const displayemployees = (typeof showEmployees === 'undefined') ? false : showEmployees;
   const displayEmployee = (typeof showEmployee === 'undefined') ? false : showEmployee;
+  const displayEmployees =(typeof showEditEmployee === 'undefined')? false : showEditEmployee;
 
 %>
 
@@ -202,6 +203,9 @@
   <% } %>
   <% if (displayEmployee === true) { %>
     <%- include('add-employee') %>
+  <% } %>
+  <% if (displayEmployees === true) { %>
+    <%- include('edit-employee') %>
   <% } %>
   
 

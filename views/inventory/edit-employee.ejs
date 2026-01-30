@@ -1,0 +1,97 @@
+
+<div class="main-body-1" id="editEmployeeForm">
+  <div class="page-header">
+    <h1>Edit Employee</h1>
+    <p>Update information for <%= employee.firstname %> <%= employee.lastname %></p>
+  </div>
+
+  <form action="/account/inventory/update-employee/<%= employee?.employee_id %>" 
+        method="POST" 
+        enctype="multipart/form-data" 
+        class="employee-form">
+
+    <div class="form-row">
+
+      <!-- Left: Account Info -->
+      <div class="form-column">
+        <label for="firstname">First Name</label>
+        <input type="text" name="firstname" id="firstname" value="<%= employee.firstname %>" required>
+
+        <label for="lastname">Last Name</label>
+        <input type="text" name="lastname" id="lastname" value="<%= employee.lastname %>" required>
+
+        <label for="email">Email</label>
+        <input type="email" name="email" id="email" value="<%= employee.email %>" required>
+
+        <!-- Optional: Password change (add field + logic if needed) -->
+        <!-- <label for="password">New Password (leave blank to keep current)</label>
+             <input type="password" name="password" id="password" placeholder="Leave blank"> -->
+      </div>
+
+      <!-- Right: Employee Info -->
+      <div class="form-column">
+        <label for="employee_code">Employee Code</label>
+        <input type="text" name="employee_code" id="employee_code" value="<%= employee.employee_code %>" required>
+
+        <label for="phone_number">Phone Number</label>
+        <input type="text" name="phone_number" id="phone_number" value="<%= employee.phone_number || '' %>">
+
+        <label for="department">Department</label>
+        <select name="department" id="department" required>
+          <option value="">--Select Department--</option>
+          <option value="Human Resources" <%= employee.department === 'Human Resources' ? 'selected' : '' %>>Human Resources</option>
+          <option value="Finance" <%= employee.department === 'Finance' ? 'selected' : '' %>>Finance</option>
+          <option value="IT" <%= employee.department === 'IT' ? 'selected' : '' %>>IT</option>
+          <!-- add others -->
+        </select>
+
+        <label for="position">Position</label>
+        <select name="position" id="position" required>
+          <option value="">--Select Position--</option>
+          <option value="Manager" <%= employee.position === 'Manager' ? 'selected' : '' %>>Manager</option>
+          <!-- add others -->
+        </select>
+
+        <label for="hire_date">Hire Date</label>
+        <input type="date" name="hire_date" id="hire_date" value="<%= employee.hire_date ? employee.hire_date.toISOString().split('T')[0] : '' %>">
+
+        <label for="status">Status</label>
+        <select name="status" id="status">
+          <option value="active" <%= employee.status === 'active' ? 'selected' : '' %>>Active</option>
+          <option value="inactive" <%= employee.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+        </select>
+
+        <label for="profile_image">Profile Image (leave blank to keep current)</label>
+  <input 
+    type="file" 
+    name="profile_image" 
+    id="profileImageInput" 
+    accept="image/*"
+  >
+  <% if (employee && employee.profile_image) { %>
+    <div class="current-image mt-2">
+      <small>Current:</small><br>
+      <img src="<%= employee.profile_image %>" alt="Current profile" style="max-width: 180px; border-radius: 8px; margin-top: 8px;">
+    </div>
+  <% } %>
+      </div>
+
+    </div>
+
+    <button type="submit" class="btn-submit">Update Employee</button>
+  </form>
+</div>
+
+<!-- Optional: Image preview script -->
+<script>
+  document.getElementById('profileImageInput').onchange = function(e) {
+    const file = e.target.files[0];
+    if (file) {
+      const preview = document.createElement('img');
+      preview.src = URL.createObjectURL(file);
+      preview.style.maxWidth = '180px';
+      preview.style.marginTop = '10px';
+      this.parentNode.appendChild(preview);
+    }
+  };
+</script>

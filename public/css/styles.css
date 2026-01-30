@@ -7,6 +7,7 @@
      --color-hover-btn: #FBC02D;
      --color-header:#6a994e;
      --color-text: #f2e8cf;
+     --color-header-title: #B58B00;
 
      /* for land use */
      --primary-green: #2e7d32;
@@ -579,7 +580,7 @@
   
   
 .about-content h2 {
-    color: var(--color-bg);
+    color: var(--color-header-title);
     margin-top: 30px;
     border-bottom: 4px solid var(--color-header);
     padding-bottom: 8px;
@@ -3021,10 +3022,11 @@ select:focus {
 .page-header h1 {
   font-size: 1.8rem;
   margin-bottom: 0.3rem;
+  color: var(--color-white);
 }
 
 .page-header p {
-  color: #555;
+  color: var(--color-header-title);
   margin-bottom: 1.5rem;
 }
 
@@ -3297,6 +3299,7 @@ select:focus {
         padding: 5px 8px;
         font-size: 12px;
       }
+      
   }
   @media screen and (max-width: 600px) {
     .name-row {

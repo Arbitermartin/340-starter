@@ -46,24 +46,24 @@ CREATE TABLE public.students (
 
 -- 3. Employee table (all additional employee details + link to account)
 CREATE TABLE public.employees (
-    employee_id         SERIAL PRIMARY KEY,
-    account_id          INT UNIQUE NOT NULL,
-    employee_code       VARCHAR(20) UNIQUE NOT NULL,
-    phone_number        VARCHAR(20) UNIQUE NOT NULL,
-    department          VARCHAR(100),
-    position            VARCHAR(100),
-    hire_date           DATE,
-    profile_image       TEXT DEFAULT '/uploads/employees/default.png',
-    status              VARCHAR(20) DEFAULT 'active',
-    created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
+    employee_id SERIAL PRIMARY KEY,
+    account_id INT UNIQUE NOT NULL,
+    employee_code VARCHAR(20) UNIQUE NOT NULL,
+    phone_numberVARCHAR(20) UNIQUE,           -- made optional (NULL allowed)
+    department VARCHAR(100),
+    position VARCHAR(100),
+    hire_date DATE,
+    profile_image   TEXT DEFAULT '/uploads/employees/default.png',
+    status VARCHAR(20) DEFAULT 'active',
+        CHECK (status IN ('active', 'inactive', 'suspended', 'terminated')),
+    created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    -- Foreign key constraint (no semicolon here!)
     CONSTRAINT fk_employee_account
         FOREIGN KEY (account_id)
         REFERENCES public.account(account_id)
         ON DELETE CASCADE
 );
-
  --employees table end here
 
 -- 3. Table: document_category

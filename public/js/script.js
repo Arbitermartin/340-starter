@@ -208,3 +208,41 @@ emojis.forEach(emoji => {
     alert('Feedback submitted!');
   });
 });
+
+// File: public/js/script.js
+
+// // Wait for the DOM to be fully loaded
+// document.addEventListener('DOMContentLoaded', function () {
+//   // Find the file input for profile image (used in both add & edit forms)
+//   const profileInput = document.getElementById('profileImageInput');
+
+//   if (profileInput) {
+//     profileInput.addEventListener('change', function (e) {
+//       const file = e.target.files[0];
+
+//       if (file) {
+//         // Remove any previous preview (to avoid stacking multiple images)
+//         const oldPreview = this.parentNode.querySelector('.preview-image');
+//         if (oldPreview) {
+//           oldPreview.remove();
+//         }
+
+//         // Create new preview
+//         const preview = document.createElement('img');
+//         preview.src = URL.createObjectURL(file);
+//         preview.alt = 'Image preview';
+//         preview.className = 'preview-image'; // add class for easier styling/removal
+//         preview.style.maxWidth = '180px';
+//         preview.style.marginTop = '10px';
+//         preview.style.borderRadius = '8px';
+//         preview.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+
+//         // Insert after the file input
+//         this.parentNode.appendChild(preview);
+//       }
+//     });
+//   }
+
+//   // Optional: also handle if you have multiple forms on the same page
+//   // (e.g. add-employee and edit-employee both use the same id)
+// });

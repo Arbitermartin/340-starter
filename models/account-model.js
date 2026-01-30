@@ -328,7 +328,7 @@ async function addAccount(firstname, lastname, email, password, account_type) { 
         account_email,
         account_password,
         account_type
-      ) VALUES ($1,$2,$3,$4,$5)8
+      ) VALUES ($1,$2,$3,$4,$5)
       RETURNING account_id;
     `;
     const values = [firstname, lastname, email, password, account_type];  // Use password as-is (hashed)
@@ -341,15 +341,49 @@ async function addAccount(firstname, lastname, email, password, account_type) { 
 }
 
 // Add employee
-async function addEmployee(account_id, employee_code, phone_number, department, position, hire_date, profile_image) {
+// async function addEmployee(account_id, employee_code, phone_number, department, position, hire_date, profile_image) {
+//   try {
+//     const sql = `
+//       INSERT INTO public.employees (
+//         account_id, employee_code, phone_number, department, position, hire_date, profile_image
+//       ) VALUES ($1,$2,$3,$4,$5,$6,$7)
+//       RETURNING *;
+//     `;
+//     const values = [account_id, employee_code, phone_number, department, position, hire_date, profile_image];
+//     const result = await pool.query(sql, values);
+//     return result.rows[0];
+//   } catch (error) {
+//     console.error("addEmployee error:", error.message);
+//     throw error;
+//   }
+// }
+async function addEmployee(account_id, phone_number, department, position, hire_date, profile_image) {
   try {
+    // Generate employee_code automatically: EMP-YYYY-XXXX
+    const currentYear = new Date().getFullYear();
+    const countRes = await pool.query("SELECT COUNT(*) FROM public.employees");
+    const nextNumber = parseInt(countRes.rows[0].count) + 1;
+    const paddedNumber = nextNumber.toString().padStart(4, '0');
+    const employee_code = `EMP-${currentYear}-${paddedNumber}`;
+
+    console.log("Generated employee_code:", employee_code); // For debug
+
     const sql = `
       INSERT INTO public.employees (
-        account_id, employee_code, phone_number, department, position, hire_date, profile_image
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7)
+        account_id, employee_code, phone_number, department, 
+        position, hire_date, profile_image
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *;
     `;
-    const values = [account_id, employee_code, phone_number, department, position, hire_date, profile_image];
+    const values = [
+      account_id,
+      employee_code,
+      phone_number,
+      department,
+      position,
+      hire_date,
+      profile_image
+    ];
     const result = await pool.query(sql, values);
     return result.rows[0];
   } catch (error) {
@@ -360,6 +394,102 @@ async function addEmployee(account_id, employee_code, phone_number, department, 
 
 // end here
 
+/* ****************************************
+ *   Get full employee data by employee_id (joined with account) for editing
+ * *************************************** */
+async function getEmployeeById(employee_id) {
+  try {
+    const sql = `
+      SELECT 
+        e.employee_id,
+        e.account_id,
+        e.employee_code,
+        e.phone_number,
+        e.department,
+        e.position,
+        e.hire_date,
+        e.profile_image,
+        e.status,
+        a.account_firstname AS firstname,
+        a.account_lastname AS lastname,
+        a.account_email AS email
+      FROM public.employees e
+      INNER JOIN public.account a ON e.account_id = a.account_id
+      WHERE e.employee_id = $1
+    `;
+    const result = await pool.query(sql, [employee_id]);
+    return result.rows[0] || null;
+  } catch (error) {
+    console.error("getEmployeeById error:", error);
+    throw error;
+  }
+}
 
-module.exports={registerAccount,checkExistingEmail,getAccountByEmail,addMember,updateMember,getMemberById,getAllMembers,deleteMember,getAllStudents,viewEmployees,addAccount,addEmployee,saveContactMessage}
+/* ****************************************
+ *   Update basic account info (firstname, lastname, email)
+ * *************************************** */
+async function updateAccountBasic(account_id, firstname, lastname, email) {
+  try {
+    const sql = `
+      UPDATE public.account
+      SET 
+        account_firstname = $1,
+        account_lastname = $2,
+        account_email = $3,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE account_id = $4
+      RETURNING account_id
+    `;
+    const result = await pool.query(sql, [firstname, lastname, email, account_id]);
+    return result.rowCount > 0;
+  } catch (error) {
+    console.error("updateAccountBasic error:", error);
+    throw error;
+  }
+}
+
+/* ****************************************
+ *   Update employee-specific fields
+ *   (profile_image = null → keep existing)
+ * *************************************** */
+async function updateEmployee(
+  employee_id,
+  employee_code,
+  phone_number,
+  department,
+  position,
+  hire_date,
+  profile_image = null,
+  status = 'active'
+) {
+  try {
+    let sql = `
+      UPDATE public.employees
+      SET 
+        employee_code = $1,
+        phone_number = $2,
+        department = $3,
+        position = $4,
+        hire_date = $5,
+        status = $6,
+        updated_at = CURRENT_TIMESTAMP
+    `;
+    let values = [employee_code, phone_number, department, position, hire_date, status];
+
+    if (profile_image !== null) {
+      sql += `, profile_image = $7`;
+      values.push(profile_image);
+    }
+
+    sql += ` WHERE employee_id = $${values.length + 1} RETURNING employee_id`;
+    values.push(employee_id);
+
+    const result = await pool.query(sql, values);
+    return result.rowCount > 0;
+  } catch (error) {
+    console.error("updateEmployee error:", error);
+    throw error;
+  }
+}
+module.exports={registerAccount,checkExistingEmail,getAccountByEmail,addMember,updateMember,getMemberById,getAllMembers,deleteMember,getAllStudents,viewEmployees,addAccount,addEmployee,getEmployeeById,updateAccountBasic,updateEmployee,saveContactMessage}
 

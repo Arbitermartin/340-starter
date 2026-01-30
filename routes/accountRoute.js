@@ -105,6 +105,17 @@ router.post(
   accountController.addEmployeeMiddleware,
 );
 
+router.get(
+  "/inventory/edit-employee/:employee_id",          // ← or your role check
+  utilities.handleErrors(accountController.buildEditEmployee)
+);
+
+// POST: Process employee update
+router.post(
+  "/inventory/update-employee/:employee_id",
+  accountController.updateEmployeeMiddleware   // ← [upload.single('profile_image'), processUpdateEmployee]
+);
+
 
 
 
