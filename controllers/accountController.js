@@ -1,5 +1,3 @@
-// module.exports = accountController
-// controllers/accountController.js
 const utilities = require("../utilities")
 const jwt = require("jsonwebtoken")
 const accountModel =require("../models/account-model")
@@ -41,6 +39,7 @@ async function buildLogin(req,res,next) {
       title: "Login",
       nav,
       errors: null,
+      login_id: ""
   })
   
 }
@@ -117,21 +116,25 @@ async function userDashboard(req, res) {
  * ************************************ */
 async function accountLogin(req, res) {
   let nav = await utilities.getNav();
-  const { account_email, account_password } = req.body;
+  const { login_id, account_password } = req.body;
+  let accountData = await accountModel.getAccountByEmail(login_id);
 
-  const accountData = await accountModel.getAccountByEmail(account_email);
+  // If not found → try employee code
   if (!accountData) {
-    req.flash("message", "Please check your credentials and try again.");
+    accountData = await accountModel.getAccountByEmployeeCode(login_id);
+  }
+  if (!accountData) {
+    req.flash("note", "Warning!! Invalid Employee ID / Email or password.");
     return res.status(400).render("account/login", {
       title: "Login",
       nav,
       errors: null,
-      account_email,
+      login_id: req.body.login_id || "",
     });
   }
-
   try {
-    if (await bcrypt.compare(account_password, accountData.account_password)) {
+    const passwordMatch = await bcrypt.compare(account_password, accountData.account_password);
+    if (passwordMatch) {
       delete accountData.account_password;
 
       const accessToken = jwt.sign(accountData, process.env.ACCESS_TOKEN_SECRET, { expiresIn: 3600 * 1000 });
@@ -141,34 +144,61 @@ async function accountLogin(req, res) {
         secure: process.env.NODE_ENV !== 'development',
         maxAge: 3600 * 1000,
       });
-
-      // Normalize account_type (trim spaces + lowercase) to avoid case issues
       const accountType = (accountData.account_type || '').trim().toLowerCase();
-
+      const rawType = accountData.account_type || '(missing)';
       if (accountType === 'admin') {
         req.flash("notice", "Welcome Admin!");
-        return res.redirect("/account/");  // Admin dashboard (your management view)
-      } else if (['citizen', 'student', 'member'].includes(accountType)) {
+        return res.redirect("/account/");
+      } 
+      else if (accountType === 'employee') {
+        req.flash("notice", "Welcome back");
+        return res.redirect("/account/dashboard_01/");
+      } 
+      else if (['citizen', 'student', 'member'].includes(accountType)) {
         req.flash("notice", "Welcome back!");
-        return res.redirect("/account/dashboard/");  // User dashboard for citizen/student/member
-      } else {
-        // Debug: show what the actual value is
-        req.flash("notice", `Unknown account type: "${accountData.account_type}" (contact support)`);
+        return res.redirect("/account/dashboard/");
+      } 
+      else {
+        req.flash("notice", `Unknown account type: "${rawType}" (contact support)`);
         return res.redirect("/account/login");
       }
-    } else {
-      req.flash("note", " Warning!! Please check your credentials and try again.");
+    } 
+    else {
+      req.flash("note", "Warning!! Invalid Employee ID / Email or password.");
       return res.status(400).render("account/login", {
         title: "Login",
         nav,
         errors: null,
-        account_email,
+        login_id: req.body.login_id || "",
       });
     }
   } catch (error) {
-    console.error("Login error:", error);
     req.flash("notice", "Access error. Please try again.");
     return res.redirect("/account/login");
+  }
+}
+
+async function employeeDashboard(req, res) {
+  console.log("EMPLOYEE DASHBOARD CONTROLLER REACHED");
+  console.log("User:", res.locals.accountData?.account_email || "unknown");
+  console.log("Account type:", res.locals.accountData?.account_type);
+
+  try {
+    const accountData = res.locals.accountData || {};
+
+    res.render("inventory/dashboard_01", {   // ← confirm this view file exists!
+      title: "Employee Dashboard",
+      layout: false,
+      messages: req.flash(),
+      account_firstname: accountData.account_firstname || "Employee",
+      account_email: accountData.account_email || "",
+      account_type: accountData.account_type || "employee",
+      // ... your stats object if any
+    });
+  } catch (err) {
+    console.error("EMPLOYEE DASHBOARD CRASH:", err.message);
+    console.error(err.stack);
+    res.status(500).send("Error loading employee dashboard – check server logs");
   }
 }
 /* ****************************************
@@ -507,58 +537,6 @@ async function getAllStudents(req, res) {
 }
 // end here employee views
 
-/*********************
- * Deliver employee registration form.
- */
-// GET: show add employee form
-// async function buildaddEmployee(req, res) {
-//   try {
-//     res.render("inventory/management", {
-//       title: "Add Employee",
-//       layout: false,
-//       showAccount :false,
-//       showEmployee: true,
-//       messages: req.flash()
-//     });
-//   } catch (error) {
-//     console.error("Error loading add employee form:", error);
-//     req.flash("notice", "Failed to load add employee form");
-//     res.redirect("/account/");
-//   }
-// }
-// // POST: create account + employee
-// async function processAddEmployee(req, res) {
-//   try {
-//     const { firstname, lastname, email, password, account_type, employee_code, phone_number, department, position, hire_date } = req.body;
-//     const profile_image = req.file
-//       ? `/images/site/${req.file.filename}`  // Adjust path if needed (match your multer destination)
-//       : null;  // Or use default from table
-
-//     // Hash password HERE (in controller)
-//     const hashedPassword = await bcrypt.hash(password, 10);
-
-//     // 1. Create account (pass hashed password)
-//     const account = await accountModel.addAccount(firstname, lastname, email, hashedPassword, account_type);
-
-//     // 2. Create employee
-//     await accountModel.addEmployee(
-//       account.account_id,
-//       employee_code,
-//       phone_number,
-//       department,
-//       position,
-//       hire_date,
-//       profile_image
-//     );
-
-//     req.flash("notice", "Employee account added successfully!");
-//     res.redirect("/account/");
-//   } catch (error) {
-//     console.error("Error adding employee + account:", error);
-//     req.flash("notice", "Failed to add employee: " + error.message);
-//     res.redirect("/account/inventory/add-employees");
-//   }
-// }
 // GET: Show add employee form
 async function buildaddEmployee(req, res) {
   try {
@@ -663,11 +641,85 @@ async function buildEditEmployee(req, res) {
  *  Process Update Employee (POST)
  *  Uses multer middleware for optional new image
  * *************************************** */
+// async function processUpdateEmployee(req, res) {
+//   // const employee = parseInt(req.params.employee_id);
+//   const employee = await accountModel.getEmployeeById(id);
+
+//   console.log("UPDATE EMPLOYEE - Body:", req.body);
+//   console.log("UPDATE EMPLOYEE - File:", req.file ? req.file.originalname : "No new file");
+
+//   const {
+//     firstname,
+//     lastname,
+//     email,
+//     employee_code,
+//     phone_number,
+//     department,
+//     position,
+//     hire_date,
+//     status,           // optional: allow changing status (active/inactive)
+//   } = req.body;
+
+//   let profile_image = null;
+
+//   if (req.file) {
+//     profile_image = `/images/site/${req.file.filename}`;   // match your multer folder
+//   }
+//   // If no new file → keep existing (null = don't update image column)
+
+//   try {
+//     // 1. Update account table (name + email)
+//     await accountModel.updateAccountBasic(
+//       employee.account_id,   // we get this from getEmployeeById
+//       firstname?.trim() || "",
+//       lastname?.trim() || "",
+//       email?.trim() || ""
+//     );
+
+//     // 2. Update employee table
+//     const updated = await accountModel.updateEmployee(
+//       employee,
+//       employee_code?.trim() || "",
+//       phone_number?.trim() || null,
+//       department?.trim() || null,
+//       position?.trim() || null,
+//       hire_date || null,
+//       profile_image,          // null = keep old
+//       status || "active"
+//     );
+
+//     if (updated) {
+//       req.flash("notice", `Employee ${firstname} ${lastname} updated successfully!`);
+//       return res.redirect("/account/");   // or "/account/inventory/employees"
+//     } else {
+//       req.flash("notice", "No changes made or employee not found.");
+//       return res.redirect(`/account/inventory/edit-employee/${employeeId}`);
+//     }
+//   } catch (error) {
+//     console.error("Update employee failed:", error);
+//     req.flash("notice", `Error: ${error.message || "Update failed"}`);
+//     return res.redirect(`/account/inventory/edit-employee/${employee}`);
+//   }
+// }
 async function processUpdateEmployee(req, res) {
   const employeeId = parseInt(req.params.employee_id);
 
+  console.log("UPDATE EMPLOYEE - ID:", employeeId);
   console.log("UPDATE EMPLOYEE - Body:", req.body);
   console.log("UPDATE EMPLOYEE - File:", req.file ? req.file.originalname : "No new file");
+
+  let employee;
+  try {
+    employee = await accountModel.getEmployeeById(employeeId);
+    if (!employee) {
+      req.flash("notice", "Employee not found");
+      return res.redirect("/account/inventory/employees");
+    }
+  } catch (err) {
+    console.error("Failed to fetch employee:", err);
+    req.flash("error", "Could not load employee data");
+    return res.redirect("/account/inventory/employees");
+  }
 
   const {
     firstname,
@@ -678,48 +730,47 @@ async function processUpdateEmployee(req, res) {
     department,
     position,
     hire_date,
-    status,           // optional: allow changing status (active/inactive)
+    status
   } = req.body;
 
   let profile_image = null;
-
   if (req.file) {
-    profile_image = `/images/site/${req.file.filename}`;   // match your multer folder
+    profile_image = `/images/site/${req.file.filename}`;
   }
-  // If no new file → keep existing (null = don't update image column)
 
   try {
     // 1. Update account table (name + email)
     await accountModel.updateAccountBasic(
-      employeeId.account_id,   // we get this from getEmployeeById
+      employee.account_id,
       firstname?.trim() || "",
       lastname?.trim() || "",
-      email?.trim() || ""
+      email?.trim().toLowerCase() || ""
     );
 
     // 2. Update employee table
-    const updated = await accountModel.updateEmployee(
-      employeeId,
-      employee_code?.trim() || "",
-      phone_number?.trim() || null,
-      department?.trim() || null,
-      position?.trim() || null,
-      hire_date || null,
-      profile_image,          // null = keep old
-      status || "active"
-    );
+    const updated = await accountModel.updateEmployee({
+      employee_id: employee.employee_id,          // ← FIXED: use the real ID
+      employee_code: employee_code?.trim() || employee.employee_code || "",
+      phone_number: phone_number?.trim() || null,
+      department: department?.trim() || null,
+      position: position?.trim() || null,
+      hire_date: hire_date && hire_date.trim() !== '' ? hire_date.trim() : null,
+      profile_image,                              // null = keep old
+      status: status || employee.status || "active"
+    });
 
     if (updated) {
       req.flash("notice", `Employee ${firstname} ${lastname} updated successfully!`);
-      return res.redirect("/account/");   // or "/account/inventory/employees"
+      return res.redirect("/account/inventory/employees");  // better redirect
     } else {
-      req.flash("notice", "No changes made or employee not found.");
-      return res.redirect(`/account/inventory/edit-employee/${employeeId}`);
+      req.flash("notice", "No changes made or update failed.");
+      return res.redirect(`/account/inventory/edit-employee/${employee.employee_id}`);
     }
   } catch (error) {
-    console.error("Update employee failed:", error);
+    console.error("Update employee failed:", error.message);
+    console.error(error.stack);  // ← helps see full error
     req.flash("notice", `Error: ${error.message || "Update failed"}`);
-    return res.redirect(`/account/inventory/edit-employee/${employeeId}`);
+    return res.redirect(`/account/inventory/edit-employee/${employee.employee_id}`);
   }
 }
 
@@ -739,15 +790,284 @@ async function employeeDashboard(req, res) {
     nextPayday: "May 31, 2024"
   };
 
-  res.render("inventory/dasEmployee", {
+  res.render("inventory/dashboard_01", {     // ← confirm this file exists!
     title: "Employee Dashboard",
     layout: false,
     messages: req.flash(),
-    account_firstname: accountData.account_firstname,
-    account_email: accountData.account_email,
-    account_type: accountData.account_type,
-    stats
+    account_firstname: accountData.account_firstname || "Employee",
+    account_email: accountData.account_email || "",
+    account_type: accountData.account_type || "employee",
+     stats
   });
+}
+
+/******************************
+ * 
+ * Deliver delete Employee page
+ */
+
+async function deleteEmployee(req, res) {
+  try {
+    const employeeId = parseInt(req.params.employee_id);
+
+    if (!employeeId || isNaN(employeeId)) {
+      req.flash("notice", "Invalid employee ID");
+      return res.redirect("/account/inventory/employees");
+    }
+
+    // Security: only admin can delete
+    if (res.locals.accountData?.account_type !== 'admin') {
+      req.flash("notice", "Only administrators can delete employees");
+      return res.redirect("/account/inventory/employees");
+    }
+
+    const success = await accountModel.deleteEmployee(employeeId);
+
+    if (success) {
+      req.flash("notice", "Employee permanently deleted from the system.");
+    } else {
+      req.flash("notice", "Failed to delete employee. Please try again.");
+    }
+
+    res.redirect("/account/inventory/employees");
+  } catch (error) {
+    console.error("Delete controller error:", error);
+    req.flash("notice", "Error occurred while deleting employee");
+    res.redirect("/account/inventory/employees");
+  }
+}
+// Home page - public view
+async function buildHome(req, res) {
+  try {
+    const latestNews = await accountModel.getLatestNews(5);
+    const upcomingEvents = await accountModel.getUpcomingEvents(5);
+
+    let nav = await utilities.getNav();
+
+    res.render("index", {
+      title: "Home",
+      nav,
+      latestNews,
+      upcomingEvents,
+      messages: req.flash(),
+      loggedin: res.locals.loggedin || false,
+      accountData: res.locals.accountData || null
+    });
+  } catch (err) {
+    console.error("Home page error:", err);
+    res.render("index", {
+      title: "Home",
+      nav: await utilities.getNav(),
+      latestNews: [],
+      upcomingEvents: [],
+      messages: req.flash()
+    });
+  }
+}
+
+// Admin: Show form to add news
+async function buildAddNews(req, res) {
+  if (!res.locals.loggedin || res.locals.accountData?.account_type !== 'admin') {
+    req.flash("notice", "Only admins can post news.");
+    return res.redirect("/account");
+  }
+
+  res.render("inventory/management", {
+    title: "Post News",
+    layout: false,
+    showAccount : false,
+    showAddNew: true,
+    messages: req.flash()
+  });
+}
+
+// Admin: Process news post
+async function processAddNews(req, res) {
+  if (!res.locals.loggedin || res.locals.accountData?.account_type !== 'admin') {
+    req.flash("notice", "Only administrators can add news.");
+    return res.redirect("/account");
+  }
+
+  const { title, description, news_date } = req.body;
+  const profile_image = req.file 
+    ? `/images/site/${req.file.filename}` 
+    : null;
+
+  try {
+    if (!title?.trim() || !description?.trim()) {
+      req.flash("notice", "Title and description are required.");
+      return res.redirect("/account/inventory/add-new");
+    }
+
+    await accountModel.createNews({
+      title,
+      description,
+      profile_image,
+      news_date,
+      created_by: res.locals.accountData.account_id
+    });
+
+    req.flash("success", "News published successfully!");
+    res.redirect("/account/inventory/add-new");   // stay on form or change to "/" 
+
+  } catch (err) {
+    console.error("Process Add News Error:", err.message);
+    req.flash("notice", "Failed to publish news: " + err.message);
+    res.redirect("/account/inventory/add-new");
+  }
+}
+// Same for events (copy & change names)
+async function buildAddEvent(req, res) {
+  // same auth check as above
+  res.render("inventory/management", {
+    title: "Add Event",
+    layout: false,
+    showAccount : false,
+    showAddEvent: true,
+    messages: req.flash()
+  });
+}
+async function processAddEvent(req, res) {
+  if (!res.locals.loggedin || res.locals.accountData?.account_type !== 'admin') {
+    req.flash("notice", "Only administrators can add events.");
+    return res.redirect("/account");
+  }
+
+  const { title, description, event_date, location } = req.body;
+  const profile_image = req.file 
+    ? `/images/site/${req.file.filename}` 
+    : null;
+
+  try {
+    if (!title?.trim() || !event_date) {
+      req.flash("notice", "Title and event date are required.");
+      return res.redirect("/account/inventory/add-event");
+    }
+
+    await accountModel.createEvent({
+      title,
+      description,
+      event_date,
+      location,
+      profile_image,
+      created_by: res.locals.accountData.account_id
+    });
+
+    req.flash("success", "Event created successfully!");
+    res.redirect("/account/inventory/add-event");   // or /account/ if you prefer
+
+  } catch (err) {
+    console.error("Process Add Event Error:", err.message);
+    req.flash("notice", "Failed to create event: " + err.message);
+    res.redirect("/account/inventory/add-event");
+  }
+}
+
+/* ****************************************
+ *   Build Event Read More / Detail Page
+ * *************************************** */
+async function buildEventDetail(req, res) {
+  try {
+    const eventId = parseInt(req.params.id);
+
+    if (!eventId || isNaN(eventId)) {
+      req.flash("notice", "Invalid event link.");
+      return res.redirect("/");
+    }
+
+    const event = await accountModel.getEventById(eventId);
+
+    if (!event || event.is_active === false) {
+      req.flash("notice", "Event not found or no longer available.");
+      return res.redirect("/");
+    }
+
+    let nav = await utilities.getNav();
+
+    res.render("pages/details", {
+      title: event.title || "Event Details",
+      event: event,
+      nav,
+      messages: req.flash(),
+      loggedin: res.locals.loggedin || false
+    });
+
+  } catch (err) {
+    console.error("Event Detail Controller Error:", err.message);
+    req.flash("notice", "Something went wrong.");
+    res.redirect("/");
+  }
+}
+
+/* ****************************************
+ *   Process Event Registration (POST)
+ * *************************************** */
+async function processEventRegistration(req, res) {
+  try {
+    const {
+      event_id,
+      full_name,
+      phone_number,
+      email,
+      course_of_study,
+      university_name,
+      date_of_birth,
+      working_experience,
+      company_name
+    } = req.body;
+
+    // Basic validation
+    if (!event_id || !full_name || !phone_number || !email) {
+      req.flash("notice", "Please fill all required fields.");
+      return res.redirect(`/events/register/${event_id}`);
+    }
+
+    // Save to database
+    await accountModel.addEventRegistration({
+      event_id: parseInt(event_id),
+      full_name: full_name.trim(),
+      phone_number: phone_number.trim(),
+      email: email.trim().toLowerCase(),
+      course_of_study: course_of_study ? course_of_study.trim() : null,
+      university_name: university_name ? university_name.trim() : null,
+      date_of_birth: date_of_birth || null,
+      working_experience: parseInt(working_experience) || 0,
+      company_name: company_name ? company_name.trim() : null
+    });
+
+    req.flash("success", "Registration successful! Thank you for registering.");
+    res.redirect("/");   // or redirect to a thank you page
+
+  } catch (error) {
+    console.error("Process Event Registration Error:", error.message);
+    req.flash("notice", "Failed to register. Please try again.");
+    res.redirect(`/events/register/${req.body.event_id || ''}`);
+  }
+}
+
+/* ****************************************
+ *   View All Event Registrations (Admin)
+ * *************************************** */
+async function viewEventRegistrations(req, res) {
+  try {
+    const registrations = await accountModel.getAllEventRegistrations();
+
+    res.render("inventory/management", {
+      title: "Event Registrations",
+      layout: false,
+      registrations: registrations,
+      messages: req.flash(),
+      account_firstname: res.locals.accountData?.account_firstname,
+      account_type: res.locals.accountData?.account_type,
+      // Hide default dashboard sections
+      showAccount: false,
+      showRegistrations: true
+    });
+  } catch (error) {
+    console.error("View Event Registrations Error:", error.message);
+    req.flash("notice", "Failed to load event registrations");
+    res.redirect("/account/");
+  }
 }
 
 // Export the middleware chain correctly
@@ -759,6 +1079,14 @@ module.exports.addMemberMiddleware = [
 module.exports.addEmployeeMiddleware = [
   upload.single("profile_image"),
   utilities.handleErrors(processAddEmployee)  // ← wrap your actual handler
+];
+module.exports.addEventMiddleware = [
+  upload.single("profile_image"),
+  utilities.handleErrors(processAddEvent)  // ← wrap your actual handler
+];
+module.exports.addNewMiddleware = [
+  upload.single("profile_image"),
+  utilities.handleErrors(processAddNews)  // ← wrap your actual handler
 ];
 
 // Export middleware chain for update (with multer) for employee edit
@@ -792,4 +1120,15 @@ module.exports.viewEmployees=viewEmployees;
 module.exports.buildaddEmployee =buildaddEmployee;
 module.exports.employeeDashboard=employeeDashboard;
 module.exports.buildEditEmployee=buildEditEmployee;
+module.exports.deleteEmployee=deleteEmployee;
+module.exports.buildHome=buildHome;
+module.exports.buildAddEvent=buildAddEvent;
+module.exports.processAddEvent=processAddEvent;
+module.exports.buildAddNews=buildAddNews;
+module.exports.processAddNews=processAddNews;
+module.exports.buildEventDetail=buildEventDetail;
+module.exports.processEventRegistration=processEventRegistration;
+module.exports.viewEventRegistrations=viewEventRegistrations;
+
+
 

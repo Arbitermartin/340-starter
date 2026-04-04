@@ -5,6 +5,9 @@
   const displayemployees = (typeof showEmployees === 'undefined') ? false : showEmployees;
   const displayEmployee = (typeof showEmployee === 'undefined') ? false : showEmployee;
   const displayEmployees =(typeof showEditEmployee === 'undefined')? false : showEditEmployee;
+  const displayEvent =(typeof  showAddNew === 'undefined')? false : showAddNew;
+  const displayEvents =(typeof  showAddEvent === 'undefined')? false : showAddEvent;
+  const displayRegistrations = (typeof showRegistrations === 'undefined') ? false : showRegistrations;
 
 %>
 
@@ -32,9 +35,9 @@
       <!-- Header -->
       <header class="header">
         <div class="menu-toggle" id="menuToggle">
-          <i class="bi bi-list" style="color: black;"></i>
+          <i class="bi bi-list Menu-02" ></i>
         </div>
-        <h3>Dashboard</h3>
+        <h3>Admin Dashboard</h3>
         <div class="user">
           <div id="tools">
             <% if(locals.loggedin){ %>
@@ -127,6 +130,19 @@
               <li><a class="dropdown-item" href="#"><i class="bi bi-trash"></i> Delete Admin</a></li>
             </ul>
           </li>
+          <li class="dropdown-1">
+            <span><i class="bi bi-newspaper"></i>Events & News</span>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="/account/inventory/add-event"><i class="bi bi-calendar-event"></i>Add Events</a></li>
+              <li><a class="dropdown-item" href="/account/inventory/add-new"><i class="bi bi-newspaper"></i>Add News</a></li>
+  
+            </ul>
+            <li>
+              <a class="dropdown-item" href="/account/inventory/event-registrations">
+                <i class="bi bi-list-check"></i> Event Registrations
+              </a>
+            </li>
+          </li>
         </ul>
       </aside>
 
@@ -176,19 +192,7 @@
       sidebar.classList.remove('active');
       overlay.classList.remove('active');
     });
-  </script>
-
-  <!-- Success Popup Modal -->
-<div id="successModal" class="modal-overlay">
-  <div class="modal-content" style="max-width: 400px; text-align: center;">
-    <span class="modal-close" onclick="closeSuccessModal()">&times;</span>
-    <h3 style="color: #28a745;">Success!</h3>
-    <p style="font-size: 18px;"><%= messages.notice %></p>
-    <button onclick="closeSuccessModal()" style="padding:10px 20px; background:#28a745; color:white; border:none; border-radius:6px; margin-top:20px;">
-      OK
-    </button>
-  </div>
-</div>
+  </script>>
   <%- include('add-member') %>
   <%- include('edit-member') %>
   <%- include('search-member') %>
@@ -207,21 +211,16 @@
   <% if (displayEmployees === true) { %>
     <%- include('edit-employee') %>
   <% } %>
-  
-
-<!-- Success Popup Modal -->
-<div id="successModal" class="modal-overlay">
-  <div class="modal-content" style="max-width: 400px; text-align: center;">
-    <span class="modal-close" onclick="closeSuccessModal()">&times;</span>
-    <h3 style="color: #28a745; margin: 20px 0;">Success!</h3>
-    <p style="font-size: 18px; margin: 20px 0;">
-      <%= messages.notice || 'Changes saved successfully!' %>
-    </p>
-    <button onclick="closeSuccessModal()" 
-            style="padding: 12px 30px; background: #28a745; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer;">
-      OK
-    </button>
-  </div>
+  <!-- for add event -->
+  <% if (displayEvent === true) { %>
+    <%- include('add-new') %>
+  <% } %>
+  <% if (displayEvents === true) { %>
+    <%- include('add-event') %>
+  <% } %>
+  <% if (displayRegistrations === true) { %>
+    <%- include('event-registrations') %>
+  <% } %>
 </div>
 
 <script>
@@ -244,7 +243,7 @@
   });
 </script>
 
-<style>
+<!-- <style>
   .modal-overlay {
     display: none;
     position: fixed;
@@ -267,7 +266,7 @@
     color: black;
   }
 </style>
-</style>
+</style> -->
 
 </body>
 </html>

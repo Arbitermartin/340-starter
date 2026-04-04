@@ -128,10 +128,8 @@ app.use("/account", accountRoute)
 app.use("/",staticRoute)
 
 //index route
-// app.get("/", function(req, res){
-//   res.render("index", {title: "Home"})
-// })
-app.get("/",baseController.buildHome)
+
+app.get("/", utilities.handleErrors(baseController.buildHome));
 
 /* ***********************
  * Local Server Information

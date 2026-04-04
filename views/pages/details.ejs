@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= event ? event.title : 'Event Details' %> | UHWF Tanzania</title>
+</head>
+<body>
+
+  <div class="event-01-container">
+
+    <div class="event-01-card">
+
+      <!-- Green Header -->
+      <div class="event-01-header">
+        <h1 class="event-01-title"><%= event ? event.title : 'Event Not Found' %></h1>
+        <p class="event-01-date">
+          <%= event ? new Date(event.event_date).toLocaleDateString('en-GB', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+          }) : '' %>
+        </p>
+      </div>
+
+      <!-- Body -->
+      <div class="event-01-body">
+
+        <p class="event-01-description">
+          <%= event && event.description ? event.description : 'No description available for this event.' %>
+        </p>
+
+        <!-- Info Section -->
+        <div class="event-01-info">
+          <p><strong>Location:</strong> <%= event && event.location ? event.location : 'Venue to be announced' %></p>
+          <p><strong>Date & Time:</strong> 
+            <%= event ? new Date(event.event_date).toLocaleString('en-GB', {
+              day: 'numeric', 
+              month: 'long', 
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            }) : 'N/A' %>
+          </p>
+        </div>
+
+        <!-- Buttons -->
+         <!-- Replace the old Register button with this -->
+       <div class="event-01-buttons">
+        <a href="/events/register/<%= event.event_id %>" class="event-01-register">
+          Register for this Event
+        </a>
+        <a href="/" class="event-01-back">← Back to Home</a>
+   
+</div>
+        
+
+      </div>
+
+    </div>
+
+  </div>
+
+</body>
+</html>

@@ -339,24 +339,6 @@ async function addAccount(firstname, lastname, email, password, account_type) { 
     throw error;
   }
 }
-
-// Add employee
-// async function addEmployee(account_id, employee_code, phone_number, department, position, hire_date, profile_image) {
-//   try {
-//     const sql = `
-//       INSERT INTO public.employees (
-//         account_id, employee_code, phone_number, department, position, hire_date, profile_image
-//       ) VALUES ($1,$2,$3,$4,$5,$6,$7)
-//       RETURNING *;
-//     `;
-//     const values = [account_id, employee_code, phone_number, department, position, hire_date, profile_image];
-//     const result = await pool.query(sql, values);
-//     return result.rows[0];
-//   } catch (error) {
-//     console.error("addEmployee error:", error.message);
-//     throw error;
-//   }
-// }
 async function addEmployee(account_id, phone_number, department, position, hire_date, profile_image) {
   try {
     // Generate employee_code automatically: EMP-YYYY-XXXX
@@ -425,6 +407,43 @@ async function getEmployeeById(employee_id) {
   }
 }
 
+/***********************************************************
+ * *************** Deliver employee login by employee code
+ */
+async function getAccountByEmployeeCode(employee_code) {
+  try {
+    console.log(`[MODEL] Looking up employee by code: "${employee_code}"`);
+
+    const sql = `
+      SELECT 
+        a.account_id, a.account_firstname, a.account_lastname, 
+        a.account_email, a.account_type, a.account_password
+      FROM public.account a
+      INNER JOIN public.employees e ON a.account_id = e.account_id
+      WHERE e.employee_code = $1
+    `;
+
+    const result = await pool.query(sql, [employee_code.trim()]);
+
+    console.log(`[MODEL] Employee code query rows found: ${result.rowCount}`);
+
+    if (result.rowCount === 0) {
+      console.log(`[MODEL] No match for employee_code "${employee_code}"`);
+      return null;
+    }
+
+    console.log(`[MODEL] Found account: ID=${result.rows[0].account_id}, email=${result.rows[0].account_email}`);
+
+    return result.rows[0];
+  } catch (error) {
+    console.error("[MODEL getAccountByEmployeeCode ERROR]:", error.message);
+    throw error;
+  }
+}
+
+// end here
+
+
 /* ****************************************
  *   Update basic account info (firstname, lastname, email)
  * *************************************** */
@@ -472,7 +491,7 @@ async function updateEmployee(
         position = $4,
         hire_date = $5,
         status = $6,
-        updated_at = CURRENT_TIMESTAMP
+        --updated_at = CURRENT_TIMESTAMP
     `;
     let values = [employee_code, phone_number, department, position, hire_date, status];
 
@@ -491,5 +510,235 @@ async function updateEmployee(
     throw error;
   }
 }
-module.exports={registerAccount,checkExistingEmail,getAccountByEmail,addMember,updateMember,getMemberById,getAllMembers,deleteMember,getAllStudents,viewEmployees,addAccount,addEmployee,getEmployeeById,updateAccountBasic,updateEmployee,saveContactMessage}
+
+/*******************
+ * Delivery delete employee
+ */
+// Delete employee + linked account (permanent)
+async function deleteEmployee(employeeId) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    // Get account_id first
+    const emp = await client.query(
+      `SELECT account_id FROM public.employees WHERE employee_id = $1`,
+      [employeeId]
+    );
+
+    if (emp.rowCount === 0) {
+      throw new Error("Employee not found");
+    }
+
+    const accountId = emp.rows[0].account_id;
+
+    // Delete employee record
+    await client.query(
+      `DELETE FROM public.employees WHERE employee_id = $1`,
+      [employeeId]
+    );
+
+    // Delete account record
+    await client.query(
+      `DELETE FROM public.account WHERE account_id = $1`,
+      [accountId]
+    );
+
+    await client.query('COMMIT');
+    return true;
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error("Delete employee failed:", err.message);
+    return false;
+  } finally {
+    client.release();
+  }
+}
+/****************************
+ * Delivery for events
+ */
+// Get latest 5 news items for home page
+async function getLatestNews(limit = 5) {
+  try {
+    const sql = `
+      SELECT * FROM public.news 
+      WHERE is_active = true 
+      ORDER BY news_date DESC, created_at DESC 
+      LIMIT $1
+    `;
+    const result = await pool.query(sql, [limit]);
+    return result.rows;
+  } catch (err) {
+    console.error("getLatestNews error:", err);
+    return [];
+  }
+}
+
+// Get upcoming 5 events for home page
+async function getUpcomingEvents(limit = 5) {
+  try {
+    const sql = `
+      SELECT * FROM public.events 
+      WHERE is_active = true 
+        AND event_date >= CURRENT_DATE 
+      ORDER BY event_date ASC 
+      LIMIT $1
+    `;
+    const result = await pool.query(sql, [limit]);
+    return result.rows;
+  } catch (err) {
+    console.error("getUpcomingEvents error:", err);
+    return [];
+  }
+}
+// Admin: Create news.
+async function createNews({ title, description, profile_image, news_date, created_by }) {
+  try {
+    if (!title?.trim()) throw new Error("News title is required");
+    if (!description?.trim()) throw new Error("Description is required");
+
+    const sql = `
+      INSERT INTO public.news 
+        (title, description, profile_image, news_date, created_by, is_active)
+      VALUES ($1, $2, $3, $4, $5, true)
+      RETURNING *
+    `;
+
+    const result = await pool.query(sql, [
+      title.trim(),
+      description.trim(),
+      profile_image || null,
+      news_date || new Date().toISOString().split('T')[0],
+      created_by
+    ]);
+
+    return result.rows[0];
+  } catch (err) {
+    console.error("createNews ERROR:", err.message);
+    throw err;
+  }
+}
+
+// Admin: Create event
+async function createEvent({ title, description, event_date, location, profile_image, created_by }) {
+  try {
+    if (!title?.trim()) throw new Error("Event title is required");
+    if (!event_date) throw new Error("Event date is required");
+
+    const sql = `
+      INSERT INTO public.events 
+        (title, description, profile_image, event_date, location, created_by, is_active)
+      VALUES ($1, $2, $3, $4, $5, $6, true)
+      RETURNING *
+    `;
+
+    const result = await pool.query(sql, [
+      title.trim(),
+      description?.trim() || null,
+      profile_image || null,        // ← maps to image_url column
+      event_date,
+      location?.trim() || null,
+      created_by
+    ]);
+
+    return result.rows[0];
+  } catch (err) {
+    console.error("createEvent ERROR:", err.message);
+    throw err;
+  }
+}
+/* ****************************************
+ *   Get single event by ID for Read More page
+ * *************************************** */
+async function getEventById(event_id) {
+  try {
+    const sql = `
+      SELECT * FROM public.events 
+      WHERE event_id = $1 
+        AND is_active = true
+    `;
+    const result = await pool.query(sql, [event_id]);
+    return result.rows[0] || null;
+  } catch (err) {
+    console.error("getEventById error:", err);
+    throw err;
+  }
+}
+/* ****************************************
+ *   Save Event Registration
+ * *************************************** */
+async function addEventRegistration(registrationData) {
+  try {
+    const {
+      event_id,
+      full_name,
+      phone_number,
+      email,
+      course_of_study,
+      university_name,
+      date_of_birth,
+      working_experience,
+      company_name
+    } = registrationData;
+
+    const sql = `
+      INSERT INTO public.event_registrations 
+        (event_id, full_name, phone_number, email, course_of_study, 
+         university_name, date_of_birth, working_experience, company_name)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      RETURNING registration_id
+    `;
+
+    const result = await pool.query(sql, [
+      event_id,
+      full_name,
+      phone_number,
+      email,
+      course_of_study || null,
+      university_name || null,
+      date_of_birth || null,
+      working_experience || 0,
+      company_name || null
+    ]);
+
+    return result.rows[0];
+  } catch (error) {
+    console.error("addEventRegistration error:", error);
+    throw error;
+  }
+}
+/* ****************************************
+ *   Get All Event Registrations (for Admin)
+ * *************************************** */
+async function getAllEventRegistrations() {
+  try {
+    const sql = `
+      SELECT 
+        er.registration_id,
+        er.full_name,
+        er.phone_number,
+        er.email,
+        er.course_of_study,
+        er.university_name,
+        er.date_of_birth,
+        er.working_experience,
+        er.company_name,
+        er.registered_at,
+        er.status,
+        e.title AS event_title,
+        e.event_date
+      FROM public.event_registrations er
+      LEFT JOIN public.events e ON er.event_id = e.event_id
+      ORDER BY er.registered_at DESC
+    `;
+    const result = await pool.query(sql);
+    return result.rows;
+  } catch (error) {
+    console.error("getAllEventRegistrations error:", error);
+    throw error;
+  }
+}
+
+
+module.exports={registerAccount,checkExistingEmail,getAccountByEmail,addMember,updateMember,getMemberById,getAllMembers,deleteMember,getAllStudents,viewEmployees,addAccount,addEmployee,getEmployeeById,getAccountByEmployeeCode,deleteEmployee,updateAccountBasic,updateEmployee,saveContactMessage,getLatestNews,getUpcomingEvents,createNews,createEvent,getEventById,addEventRegistration,getAllEventRegistrations}
 

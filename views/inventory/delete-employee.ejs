@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirm Delete Employee - UHWF</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+  <div class="delete-page">
+    <div class="delete-card">
+      <div class="warning-icon">!</div>
+      
+      <h1>Delete Employee</h1>
+      
+      <p class="confirm-text">
+        Are you sure you want to <strong>permanently delete</strong> this employee?
+      </p>
+
+      <div class="employee-details">
+        <div class="detail-row">
+          <span class="label">Full Name:</span>
+          <span class="value"><%= employee.firstname %> <%= employee.lastname %></span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Employee Code:</span>
+          <span class="value"><%= employee.employee_code %></span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Email:</span>
+          <span class="value"><%= employee.email %></span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Department:</span>
+          <span class="value"><%= employee.department || 'Not specified' %></span>
+        </div>
+      </div>
+
+      <p class="permanent-warning">
+        <strong>Warning:</strong> This action is <u>permanent</u> and <u>cannot be undone</u>.<br>
+        The employee record and associated account will be completely removed from the database.
+      </p>
+
+      <div class="button-group">
+        <a href="/account/inventory/employees" class="btn btn-cancel">
+          Cancel
+        </a>
+
+        <form action="/account/inventory/employees/<%= employee.employee_id %>/delete" method="POST" class="delete-form">
+          <button type="submit" class="btn btn-delete">
+            Yes, Delete Permanently
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

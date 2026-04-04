@@ -1,0 +1,41 @@
+<div class="form-wrapper-01" id="addNewsForm">
+  <div class="form-header">
+    <h1>Add New News Article</h1>
+    <p>Share important updates with the UHWF community</p>
+  </div>
+
+  <% if (messages.success) { %>
+    <div class="alert success"><%= messages.success %></div>
+  <% } %>
+  <% if (messages.notice || messages.error) { %>
+    <div class="alert error"><%= messages.notice || messages.error %></div>
+  <% } %>
+
+  <form action="/account/inventory/add-new" method="POST" enctype="multipart/form-data" class="news-form">
+    <div class="form-group-01">
+      <label for="title">News Title <span class="required">*</span></label>
+      <input type="text" id="title" name="title" required placeholder="Enter news title">
+    </div>
+
+    <div class="form-group-01">
+      <label for="description">Description <span class="required">*</span></label>
+      <textarea id="description" name="description" rows="6" required placeholder="Write news details..."></textarea>
+    </div>
+
+    <div class="form-group-01">
+      <label for="news_date">News Date</label>
+      <input type="date" id="news_date" name="news_date">
+    </div>
+
+    <div class="form-group-01">
+      <label for="profile_image">News Image (optional)</label>
+      <input type="file" id="profile_image" name="profile_image" accept="image/*">
+      <small>Recommended size: 800×450 px (JPG/PNG)</small>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn-submit-01">Publish News</button>
+      <button type="button" class="btn-cancel-01" onclick="hideForms()">Cancel</button>
+    </div>
+  </form>
+</div>

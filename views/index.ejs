@@ -76,3 +76,81 @@
     </div>
   </div>
   </section>
+
+  <!-- =====================================================================
+         LATEST NEWS & EVENTS - Pure CSS, matches your screenshot exactly
+    ====================================================================== -->
+    <div class="news-events-section">
+      <div class="news-events-grid">
+
+        <!-- LEFT: LATEST NEWS -->
+        <div class="news-column">
+          <h2 class="section-heading">LATEST NEWS</h2>
+
+          <% 
+            // Safe defaults to prevent errors if variables are missing
+            let newsItems = latestNews || [];
+            let eventItems = upcomingEvents || [];
+          %>
+
+          <% if (newsItems.length > 0) { %>
+            <% newsItems.forEach(item => { %>
+              <div class="news-card">
+                <% if (item.profile_image) { %>
+                  <div class="news-image">
+                    <img src="<%= item.profile_image %>" alt="<%= item.title %>" loading="lazy">
+                  </div>
+                <% } %>
+                <div class="news-content">
+                  <h3 class="news-title"><%= item.title %></h3>
+                  <p class="news-text"><%= item.description.substring(0, 140) %>...</p>
+                  <div class="news-footer">
+                    <span class="news-date">
+                      <%= new Date(item.news_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) %>
+                    </span>
+                    <a href="/news/<%= item.news_id %>" class="news-more">Read full update →</a>
+                  </div>
+                </div>
+              </div>
+            <% }) %>
+          <% } else { %>
+            <div class="empty-message">No recent news posted yet.</div>
+          <% } %>
+        </div>
+
+        <!-- RIGHT: EVENTS -->
+        <div class="events-column">
+          <h2 class="section-heading">EVENTS</h2>
+
+          <% if (eventItems.length > 0) { %>
+            <% eventItems.forEach(item => { %>
+              <div class="event-card">
+                <div class="event-badge">
+                  <span class="event-day"><%= new Date(item.event_date).getDate() %></span>
+                  <span class="event-month"><%= new Date(item.event_date).toLocaleString('default', { month: 'short' }) %></span>
+                  <span class="event-year"><%= new Date(item.event_date).getFullYear() %></span>
+                </div>
+                <div class="event-content">
+                  <h3 class="event-title"><%= item.title %></h3>
+                  <p class="event-location">
+                    <i class="bi bi-geo-alt-fill"></i> <%= item.location || 'Venue TBA' %>
+                  </p>
+                  <p class="event-text">
+                    <%= item.description ? item.description.substring(0, 100) + '...' : 'Details coming soon' %>
+                  </p>
+                  <a href="/events/<%= item.event_id %>" class="event-link">View event →</a>
+                </div>
+              </div>
+            <% }) %>
+          <% } else { %>
+            <div class="empty-message">No upcoming events scheduled.</div>
+          <% } %>
+        </div>
+
+      </div>
+    </div>
+    <!-- End of News & Events -->
+
+  </div>
+</section>
+  

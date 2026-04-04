@@ -220,3 +220,28 @@ CREATE TABLE public.contact_messages (
 );
 
 
+-- News
+CREATE TABLE IF NOT EXISTS public.news (
+  news_id       SERIAL PRIMARY KEY,
+  title         VARCHAR(255) NOT NULL,
+  description   TEXT NOT NULL,
+  profile_image     VARCHAR(255),
+  news_date     DATE DEFAULT CURRENT_DATE,
+  created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  created_by    INTEGER REFERENCES public.account(account_id),
+  is_active     BOOLEAN DEFAULT TRUE
+);
+
+-- Events
+CREATE TABLE IF NOT EXISTS public.events (
+  event_id      SERIAL PRIMARY KEY,
+  title         VARCHAR(255) NOT NULL,
+  description   TEXT,
+  event_date    DATE NOT NULL,
+  location      VARCHAR(255),
+  image_url     VARCHAR(255),
+  created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  created_by    INTEGER REFERENCES public.account(account_id),
+  is_active     BOOLEAN DEFAULT TRUE
+);
+

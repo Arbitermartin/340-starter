@@ -1,0 +1,66 @@
+<div class="main-body-1" id="eventRegistrations">
+  <div class="page-header">
+    <h1>Event Registrations</h1>
+    <p>All registered attendees for events</p>
+  </div>
+
+  <!-- PDF Download Button -->
+  <div style="text-align: right; margin-bottom: 20px;">
+    <a href="/inventory/event-registrations/download-pdf" class="btn-submit" style="background:#d32f2f;">
+      <i class="bi bi-download"></i> Download All as PDF
+    </a>
+  </div>
+
+  <div class="table-container">
+    <table class="members-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Event Title</th>
+          <th>Date & Time</th>
+          <th>Full Name</th>
+          <th>Phone Number</th>
+          <th>Email</th>
+          <th>University</th>
+          <th>Course</th>
+          <th>Experience (Years)</th>
+          <th>Company</th>
+          <th>Registered On</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (registrations && registrations.length > 0) { %>
+          <% registrations.forEach((reg, index) => { %>
+            <tr>
+              <td><%= index + 1 %></td>
+              <td><strong><%= reg.event_title || 'N/A' %></strong></td>
+              <td>
+                <%= new Date(reg.event_date).toLocaleString('en-GB', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                }) %>
+              </td>
+              <td><strong><%= reg.full_name %></strong></td>
+              <td><%= reg.phone_number %></td>
+              <td><%= reg.email %></td>
+              <td><%= reg.university_name || 'N/A' %></td>
+              <td><%= reg.course_of_study || 'N/A' %></td>
+              <td><%= reg.working_experience || 0 %></td>
+              <td><%= reg.company_name || 'N/A' %></td>
+              <td><%= new Date(reg.registered_at).toLocaleDateString('en-GB') %></td>
+            </tr>
+          <% }) %>
+        <% } else { %>
+          <tr>
+            <td colspan="1" style="text-align:center; padding: 2rem; color: #777;">
+              No registrations found yet.
+            </td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,46 @@
+<div class="form-wrapper-01" id="addEventForm">
+    <div class="form-header">
+      <h1>Add New Event</h1>
+      <p>Announce upcoming UHWF activities and gatherings</p>
+    </div>
+  
+    <% if (messages.success) { %>
+      <div class="alert success"><%= messages.success %></div>
+    <% } %>
+    <% if (messages.notice || messages.error) { %>
+      <div class="alert error"><%= messages.notice || messages.error %></div>
+    <% } %>
+  
+    <form action="/account/inventory/add-event" method="POST" enctype="multipart/form-data" class="event-form">
+      <div class="form-group-01">
+        <label for="title">Event Title <span class="required">*</span></label>
+        <input type="text" id="title" name="title" required placeholder="Enter event title">
+      </div>
+  
+      <div class="form-group-01">
+        <label for="description">Description</label>
+        <textarea id="description" name="description" rows="5" placeholder="Event details, agenda, etc..."></textarea>
+      </div>
+  
+      <div class="form-group-01">
+        <label for="event_date">Event Date <span class="required">*</span></label>
+        <input type="date" id="event_date" name="event_date" required>
+      </div>
+  
+      <div class="form-group-01">
+        <label for="location">Location / Venue</label>
+        <input type="text" id="location" name="location" placeholder="e.g. Dar es Salaam Conference Hall">
+      </div>
+  
+      <div class="form-group-01">
+        <label for="profile_image">Event Poster/Image (optional)</label>
+        <input type="file" id="profile_image" name="profile_image" accept="image/*">
+        <small>Recommended size: 800×450 px (JPG/PNG)</small>
+      </div>
+  
+      <div class="form-actions">
+        <button type="submit" class="btn-submit-01">Create Event</button>
+        <button type="button" class="btn-cancel-01" onclick="hideForms()">Cancel</button>
+      </div>
+    </form>
+  </div>

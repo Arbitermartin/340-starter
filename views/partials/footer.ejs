@@ -30,7 +30,7 @@
         <article>
             <h2>Useful links</h2>
             <ul>
-                <li><a href="/index"><i class="fa-solid fa-angle-right"></i>Home</a></li>
+                <li><a href="/"><i class="fa-solid fa-angle-right"></i>Home</a></li>
                 <li><a href="/about"><i class="fa-solid fa-angle-right"></i>About</a></li>
                 <li><a href="/team"><i class="fa-solid fa-angle-right"></i>Team</a></li>
             </ul>
@@ -53,6 +53,9 @@
         </article>
     </div>
     <div class="bottom-footer">
-        <p class="p">Copyright &copy; Uwhf 2026 All right reserved</p>
+        <p class="p">Copyright &copy; Uwhf <span id="year"></span> All right reserved</p>
     </div>
 </footer>
+<script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+</script>

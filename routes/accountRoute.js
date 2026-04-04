@@ -49,6 +49,8 @@ router.post(
 router.get("/",utilities.handleErrors(accountController.accountManagement))
 
 
+
+
 // GET: Add member form (protected in controller)
 router.get("/add-member", utilities.handleErrors(accountController.buildAddMember))
 
@@ -116,9 +118,6 @@ router.post(
   accountController.updateEmployeeMiddleware   // ← [upload.single('profile_image'), processUpdateEmployee]
 );
 
-
-
-
 // ── Other Routes ──────────────────────────────────────────────────────────
 
 /// GET: Search member by first name
@@ -152,9 +151,66 @@ router.get("/search-member", utilities.handleErrors(async (req, res) => {
 router.get("/dashboard",utilities.handleErrors(accountController.userDashboard))
 
 // get employee dashboard
-router.get("/dashEmployee",utilities.handleErrors(accountController.employeeDashboard))
+router.get("/dashboard_01"
+  ,utilities.handleErrors(accountController.employeeDashboard))
+
+  // GET - show delete confirmation page
+router.get(
+  "/inventory/employees/:employee_id/delete-confirm",
+  utilities.handleErrors(async (req, res) => {
+    const employeeId = parseInt(req.params.employee_id);
+
+    try {
+      // Fetch employee data (you can use your existing getEmployeeById)
+      const employee = await accountModel.getEmployeeById(employeeId);
+
+      if (!employee) {
+        req.flash("notice", "Employee not found");
+        return res.redirect("/account/inventory/employees");
+      }
+
+      res.render("inventory/delete-employee", {
+        title: "Confirm Delete Employee",
+        employee,
+        messages: req.flash(),
+      });
+    } catch (err) {
+      console.error("Error loading delete confirm:", err);
+      req.flash("notice", "Error loading employee data");
+      res.redirect("/account/inventory/employees");
+    }
+  })
+);
+
+// POST - actual delete (already from previous step)
+router.post(
+  "/inventory/delete-employee/:employee_id/delete",
+  utilities.handleErrors(accountController.deleteEmployee)
+);
 
 // POST: Submit contact form
 // In accountRoute.js or new contactRoute.js
 router.post("/contact/submit", utilities.handleErrors(accountController.submitContact));
+
+
+/**********************
+ * for news and events
+ */
+
+// Admin news
+router.get("/inventory/add-new",utilities.handleErrors(accountController.buildAddNews));
+
+router.post("/inventory/add-new",(accountController.addNewMiddleware));
+
+// Admin events
+router.get("/inventory/add-event",utilities.handleErrors(accountController.buildAddEvent));
+router.post("/inventory/add-event",(accountController.addEventMiddleware));
+
+// View All Event Registrations
+router.get(
+  "/inventory/event-registrations",(accountController.viewEventRegistrations)
+);
+
+
+
 module.exports = router
