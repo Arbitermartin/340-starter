@@ -245,3 +245,26 @@ CREATE TABLE IF NOT EXISTS public.events (
   is_active     BOOLEAN DEFAULT TRUE
 );
 
+
+-- video table
+CREATE TABLE IF NOT EXISTS public.videos (
+  video_id          SERIAL PRIMARY KEY,
+  title             VARCHAR(255) NOT NULL,
+  description       TEXT,
+  youtube_url       VARCHAR(500) NOT NULL,        -- Full YouTube link or embed code
+  youtube_id        VARCHAR(20),                  -- Extracted video ID (e.g. dQw4w9wgxcq)
+  thumbnail         VARCHAR(255),                 -- Optional custom thumbnail
+  category          VARCHAR(100) DEFAULT 'General',
+  is_active         BOOLEAN DEFAULT TRUE,
+  created_by        INTEGER REFERENCES public.account(account_id),
+  created_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- password reset
+CREATE TABLE IF NOT EXISTS public.password_resets (
+  id SERIAL PRIMARY KEY,
+  email VARCHAR(255) NOT NULL,
+  token VARCHAR(255) NOT NULL UNIQUE,
+  expires_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

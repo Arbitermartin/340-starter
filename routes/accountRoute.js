@@ -184,8 +184,7 @@ router.get(
 
 // POST - actual delete (already from previous step)
 router.post(
-  "/inventory/delete-employee/:employee_id/delete",
-  utilities.handleErrors(accountController.deleteEmployee)
+  "/inventory/delete-employee/:employee_id/delete",(accountController.deleteEmployee)
 );
 
 // POST: Submit contact form
@@ -207,10 +206,23 @@ router.get("/inventory/add-event",utilities.handleErrors(accountController.build
 router.post("/inventory/add-event",(accountController.addEventMiddleware));
 
 // View All Event Registrations
+// ====================== EVENT REGISTRATIONS (Admin) ======================
 router.get(
-  "/inventory/event-registrations",(accountController.viewEventRegistrations)
+  "/inventory/event-registrations",
+ (accountController.viewEventRegistrations)
 );
 
+// ====================== DOWNLOAD EVENT REGISTRATIONS AS EXCEL ======================
+router.get(
+  "/inventory/event-registrations/download-excel",
+  utilities.handleErrors(accountController.downloadEventRegistrationsExcel)
+);
+// Forgot Password Routes
+router.get("/forgot-password", utilities.handleErrors(accountController.buildForgotPassword));
+router.post("/forgot-password", utilities.handleErrors(accountController.sendResetLink));
 
+// Reset Password Routes
+router.get("/reset-password", utilities.handleErrors(accountController.buildResetPassword));
+router.post("/reset-password", utilities.handleErrors(accountController.processResetPassword));
 
 module.exports = router

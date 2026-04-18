@@ -28,12 +28,33 @@ const staticRoute = require("./routes/staticRoute")
 // helmet for secure header and dashboard and other things in my system.
 // app.use(helmet());
 
+// app.disable('x-powered-by');
+// app.use(
+//   helmet({
+//     contentSecurityPolicy: {
+//       useDefaults: true,               // Start with Helmet's safe defaults
+//       directives: {
+//         defaultSrc: ["'self'"],        // Only allow resources from your own domain by default
+//         scriptSrc: ["'self'"],         // Add trusted CDNs if needed, e.g. ["'self'", "https://cdn.jsdelivr.net"]
+//         styleSrc: ["'self'", "https://cdnjs.cloudflare.com","https://cdn.jsdelivr.net","https://fonts.googleapis.com"], // if i use link for style i must add here link for style.
+//         imgSrc: ["'self'", "data:"],   // Allow base64 images if you use them
+//         fontSrc: ["'self'"],
+//         objectSrc: ["'none'"],         // Block dangerous plugins
+//         baseUri: ["'self'"],
+//         formAction: ["'self'"],
+//         frameAncestors: ["'none'"],    // Prevents clickjacking
+//         upgradeInsecureRequests: [],   // Force HTTPS
+//       },
+//     },
+//   })
+// );
+
 app.use(
   helmet.contentSecurityPolicy({
     directives: {
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "https://cdnjs.cloudflare.com","https://cdn.jsdelivr.net","https://fonts.googleapis.com"], // if i use link for style i must add here link for style.
-      scriptSrc: ["'self'", "'unsafe-inline'"], //for link of script if i add in my system i must add here links for script.
+      scriptSrc: ["'self'", ], //for link of script if i add in my system i must add here links for script.
       scriptSrcAttr: ["'unsafe-inline'"],
       imgSrc: ["'self'", "data:", "https:"], //if i add https link for image it can be controlled here in order to be.
     },

@@ -738,7 +738,90 @@ async function getAllEventRegistrations() {
     throw error;
   }
 }
+/* ****************************************
+ *   Create New Video (Admin)
+ * *************************************** */
+async function createVideo(videoData) {
+  try {
+    const { title, description, youtube_url, category, created_by } = videoData;
+
+    // Extract YouTube ID
+    let youtube_id = null;
+    const match = youtube_url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube.com\/embed\/)([^&\n?#]+)/);
+    if (match) youtube_id = match[1];
+
+    const sql = `
+      INSERT INTO public.videos (title, description, youtube_url, youtube_id, category, created_by)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING *
+    `;
+
+    const result = await pool.query(sql, [title, description, youtube_url, youtube_id, category || 'General', created_by]);
+    return result.rows[0];
+  } catch (err) {
+    console.error("createVideo error:", err);
+    throw err;
+  }
+}
+
+/* ****************************************
+ *   Get All Active Videos for Gallery
+ * *************************************** */
+async function getAllVideos() {
+  try {
+    const sql = `
+      SELECT * FROM public.videos 
+      WHERE is_active = true 
+      ORDER BY created_at DESC
+    `;
+    const result = await pool.query(sql);
+    return result.rows;
+  } catch (err) {
+    console.error("getAllVideos error:", err);
+    return [];
+  }
+}
+/* Save Reset Token */
+async function saveResetToken(email, token) {
+  try {
+    const sql = `
+      INSERT INTO public.password_resets (email, token, expires_at)
+      VALUES ($1, $2, NOW() + INTERVAL '1 hour')
+      ON CONFLICT (email) DO UPDATE 
+      SET token = $2, expires_at = NOW() + INTERVAL '1 hour'
+    `;
+    await pool.query(sql, [email, token]);
+  } catch (error) {
+    console.error("saveResetToken error:", error);
+    throw error;
+  }
+}
+
+/* Verify Reset Token */
+async function verifyResetToken(token) {
+  try {
+    const sql = `SELECT * FROM public.password_resets WHERE token = $1 AND expires_at > NOW()`;
+    const result = await pool.query(sql, [token]);
+    return result.rows[0];
+  } catch (error) {
+    console.error("verifyResetToken error:", error);
+    return null;
+  }
+}
+
+/* Update Password - Works for ALL user types */
+async function updatePassword(email, newHashedPassword) {
+  try {
+    const sql = `UPDATE public.account SET account_password = $1 WHERE account_email = $2`;
+    const result = await pool.query(sql, [newHashedPassword, email]);
+    return result.rowCount > 0;
+  } catch (error) {
+    console.error("updatePassword error:", error);
+    throw error;
+  }
+}
 
 
-module.exports={registerAccount,checkExistingEmail,getAccountByEmail,addMember,updateMember,getMemberById,getAllMembers,deleteMember,getAllStudents,viewEmployees,addAccount,addEmployee,getEmployeeById,getAccountByEmployeeCode,deleteEmployee,updateAccountBasic,updateEmployee,saveContactMessage,getLatestNews,getUpcomingEvents,createNews,createEvent,getEventById,addEventRegistration,getAllEventRegistrations}
+
+module.exports={registerAccount,checkExistingEmail,getAccountByEmail,addMember,updateMember,getMemberById,getAllMembers,deleteMember,getAllStudents,viewEmployees,addAccount,addEmployee,getEmployeeById,getAccountByEmployeeCode,deleteEmployee,updateAccountBasic,updateEmployee,saveContactMessage,getLatestNews,getUpcomingEvents,createNews,createEvent,getEventById,addEventRegistration,getAllEventRegistrations,createVideo,getAllVideos,saveResetToken,verifyResetToken,updatePassword}
 

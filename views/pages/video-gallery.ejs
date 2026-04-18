@@ -1,0 +1,34 @@
+<div class="video-gallery-page">
+    <div class="gallery-header">
+      <h1>Video Gallery</h1>
+      <p>Watch inspiring stories, events, and educational content from UHWF Tanzania</p>
+    </div>
+
+    <div class="videos-grid">
+      <% if (videos && videos.length > 0) { %>
+        <% videos.forEach(video => { %>
+          <div class="video-card">
+            <div class="video-thumbnail">
+              <% if (video.youtube_id) { %>
+                <iframe 
+                  src="https://www.youtube.com/embed/<%= video.youtube_id %>" 
+                  title="<%= video.title %>" 
+                  frameborder="0" 
+                  allowfullscreen>
+                </iframe>
+              <% } else { %>
+                <div class="no-video">Video not available</div>
+              <% } %>
+            </div>
+            <div class="video-info">
+              <h3><%= video.title %></h3>
+              <p><%= video.description ? video.description.substring(0, 120) + '...' : '' %></p>
+              <small><%= video.category || 'General' %></small>
+            </div>
+          </div>
+        <% }) %>
+      <% } else { %>
+        <p class="no-videos">No videos available at the moment.</p>
+      <% } %>
+    </div>
+  </div>

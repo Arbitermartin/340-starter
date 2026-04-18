@@ -20,6 +20,10 @@
   <link rel="stylesheet" href="/css/styles.css">
   <!-- js script -->
   <script src="/js/script.js" defer></script>
+
+   <!-- icon for logo of organizaion -->
+   <link rel="icon" type="image/png" href="/images/site/uhwf-logo.webp">
+
   <!-- Only Bootstrap Icons (no Bootstrap CSS/JS) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <!-- Optional: Font Awesome if you want extra icons -->
@@ -122,15 +126,6 @@
 
           <!-- Settings Dropdown (Admin features) -->
           <li class="dropdown-1">
-            <span><i class="bi bi-gear"></i> Settings</span>
-            <ul class="dropdown-menu">
-              <li><a class="dropdown-item" href="#"><i class="bi bi-pencil-square"></i> Edit Profile</a></li>
-              <li><a class="dropdown-item" href="#"><i class="bi bi-plus-circle"></i> Add Admin</a></li>
-              <li><a class="dropdown-item" href="#"><i class="bi bi-pencil-square"></i> Edit Admin Details</a></li>
-              <li><a class="dropdown-item" href="#"><i class="bi bi-trash"></i> Delete Admin</a></li>
-            </ul>
-          </li>
-          <li class="dropdown-1">
             <span><i class="bi bi-newspaper"></i>Events & News</span>
             <ul class="dropdown-menu">
               <li><a class="dropdown-item" href="/account/inventory/add-event"><i class="bi bi-calendar-event"></i>Add Events</a></li>
@@ -142,6 +137,19 @@
                 <i class="bi bi-list-check"></i> Event Registrations
               </a>
             </li>
+            <li class="dropdown-1">
+              <span><i class="bi bi-gear"></i> Settings</span>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#"><i class="bi bi-plus-circle"></i> Add Admin</a></li>
+                <li><a class="dropdown-item" href="#"><i class="bi bi-pencil-square"></i> Edit Admin Details</a></li>
+                <li><a class="dropdown-item" href="#"><i class="bi bi-trash"></i> Delete Admin</a></li>
+              </ul>
+              <li>
+                <a class="dropdown-item" href="/account/inventory/event-registrations">
+                  <i class="bi bi-person-circle"></i> My Account
+                </a>
+              </li>
+           
           </li>
         </ul>
       </aside>

@@ -6,6 +6,10 @@ const multer = require("multer")
 require("dotenv").config();
 const pool = require("../database") 
 const path = require("path");
+const Module = require("module")
+const nodemailer = require('nodemailer');
+const crypto = require('crypto');
+
 
 // Save uploaded images to public/images/members folder
 const storage = multer.diskStorage({
@@ -1045,9 +1049,7 @@ async function processEventRegistration(req, res) {
   }
 }
 
-/* ****************************************
- *   View All Event Registrations (Admin)
- * *************************************** */
+// 1. View Page
 async function viewEventRegistrations(req, res) {
   try {
     const registrations = await accountModel.getAllEventRegistrations();
@@ -1056,18 +1058,304 @@ async function viewEventRegistrations(req, res) {
       title: "Event Registrations",
       layout: false,
       registrations: registrations,
-      messages: req.flash(),
-      account_firstname: res.locals.accountData?.account_firstname,
-      account_type: res.locals.accountData?.account_type,
-      // Hide default dashboard sections
-      showAccount: false,
-      showRegistrations: true
+      showRegistrations: true,     // Important: hides default dashboard
+      showAccount: false
     });
   } catch (error) {
     console.error("View Event Registrations Error:", error.message);
-    req.flash("notice", "Failed to load event registrations");
+    req.flash("notice", "Failed to load registrations");
     res.redirect("/account/");
   }
+}
+
+// ====================== DOWNLOAD EVENT REGISTRATIONS AS EXCEL ======================
+async function downloadEventRegistrationsExcel(req, res) {
+  try {
+    const registrations = await accountModel.getAllEventRegistrations();
+
+    if (registrations.length === 0) {
+      req.flash("notice", "No registrations found.");
+      return res.redirect("/inventory/event-registrations");
+    }
+
+    const ExcelJS = require('exceljs');
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Event Registrations');
+
+    // Define Columns
+    worksheet.columns = [
+      { header: '#', key: 'no', width: 6 },
+      { header: 'Event Title', key: 'event_title', width: 35 },
+      { header: 'Full Name', key: 'full_name', width: 25 },
+      { header: 'Phone Number', key: 'phone_number', width: 15 },
+      { header: 'Email', key: 'email', width: 30 },
+      { header: 'University', key: 'university_name', width: 30 },
+      { header: 'Course', key: 'course_of_study', width: 25 },
+      { header: 'Experience (Years)', key: 'working_experience', width: 15 },
+      { header: 'Company', key: 'company_name', width: 25 },
+      { header: 'Registered On', key: 'registered_at', width: 18 }
+    ];
+
+    // Add Data
+    registrations.forEach((reg, index) => {
+      worksheet.addRow({
+        no: index + 1,
+        event_title: reg.event_title || 'N/A',
+        full_name: reg.full_name,
+        phone_number: reg.phone_number,
+        email: reg.email,
+        university_name: reg.university_name || 'N/A',
+        course_of_study: reg.course_of_study || 'N/A',
+        working_experience: reg.working_experience || 0,
+        company_name: reg.company_name || 'N/A',
+        registered_at: new Date(reg.registered_at).toLocaleDateString('en-GB')
+      });
+    });
+
+    // Style the header row
+    const headerRow = worksheet.getRow(1);
+    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    headerRow.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF2E7D32' }
+    };
+    headerRow.alignment = { horizontal: 'center' };
+
+    // Send the file
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename="UHWF_Event_Registrations.xlsx"');
+
+    await workbook.xlsx.write(res);
+    res.end();
+
+  } catch (err) {
+    console.error("Excel Download Error:", err.message);
+    req.flash("notice", "Failed to generate Excel file.");
+    res.redirect("/account/inventory/event-registrations");
+  }
+}
+
+// Build Video Gallery Page (Public)
+async function buildVideoGallery(req, res) {
+  let nav = await utilities.getNav();
+  try {
+    const videos = await accountModel.getAllVideos();
+
+    res.render("pages/video-gallery", {
+      title: "Video Gallery",
+      nav,
+      videos: videos,
+      messages: req.flash()
+    });
+  } catch (err) {
+    console.error(err);
+    res.render("pages/video-gallery", {
+      title: "Video Gallery",
+      nav,
+      videos: [],
+      messages: req.flash()
+    });
+  }
+}
+
+// Admin: Add New Video (you can create a form similar to add-event)
+async function buildAddVideo(req, res) {
+  let nav = await utilities.getNav();
+  res.render("inventory/add-video", {
+    title: "Add New Video",
+    nav,
+    messages: req.flash()
+  });
+}
+
+async function processAddVideo(req, res) {
+  try {
+    const { title, description, youtube_url, category } = req.body;
+    const created_by = res.locals.accountData.account_id;
+
+    await accountModel.createVideo({ title, description, youtube_url, category, created_by });
+
+    req.flash("success", "Video added successfully!");
+    res.redirect("/account/inventory/add-video");
+  } catch (err) {
+    req.flash("notice", "Failed to add video.");
+    res.redirect("/account/inventory/add-video");
+  }
+}
+// 1. Show Forgot Password Page
+async function buildForgotPassword(req, res) {
+  let nav = await utilities.getNav();
+  res.render("account/forgot-password", {
+    title: "Forgot Password",
+    nav,
+    messages: req.flash()
+  });
+}
+
+// 2. Send Reset Link
+// 2. Send Reset Link - Improved with better debugging
+// async function sendResetLink(req, res) {
+//   const { email } = req.body;
+
+//   if (!email) {
+//     req.flash("notice", "Please enter your email address.");
+//     return res.redirect("/account/forgot-password");
+//   }
+
+//   try {
+//     console.log("Forgot Password Request for email:", email); // For debugging
+
+//     const account = await accountModel.getAccountByEmail(email);
+
+//     if (!account) {
+//       console.log("No account found for email:", email);
+//       req.flash("notice", "No account found with this email.");
+//       return res.redirect("/account/forgot-password");
+//     }
+
+//     const token = crypto.randomBytes(32).toString('hex');
+
+//     await accountModel.saveResetToken(email, token);
+//     console.log("Reset token saved for:", email);
+
+//     await sendPasswordResetEmail(email, token);
+//     console.log("Reset email sent to:", email);
+
+//     req.flash("success", "Password reset link has been sent to your email.");
+//     res.redirect("/account/forgot-password");
+
+//   } catch (err) {
+//     console.error("SendResetLink ERROR:", err.message);   // ← This will help us see the real error
+//     req.flash("notice", "Something went wrong. Please try again.");
+//     res.redirect("/account/forgot-password");
+//   }
+// }
+// Improved sendResetLink with clear debugging
+async function sendResetLink(req, res) {
+  const { email } = req.body;
+
+  console.log("=== FORGOT PASSWORD REQUEST START ===");
+  console.log("Email submitted:", email);
+
+  if (!email) {
+    req.flash("notice", "Please enter your email address.");
+    return res.redirect("/account/forgot-password");
+  }
+
+  try {
+    // 1. Check if account exists
+    const account = await accountModel.getAccountByEmail(email);
+    console.log("Account lookup result:", account ? "FOUND" : "NOT FOUND");
+
+    if (!account) {
+      req.flash("notice", "No account found with this email address.");
+      return res.redirect("/account/forgot-password");
+    }
+
+    // 2. Generate token
+    const token = crypto.randomBytes(32).toString('hex');
+    console.log("Generated reset token:", token);
+
+    // 3. Save token
+    await accountModel.saveResetToken(email, token);
+    console.log("Reset token saved in database successfully");
+
+    // 4. Send email
+    console.log("Attempting to send email via Brevo...");
+    await sendPasswordResetEmail(email, token);
+    console.log("✅ Email sent successfully to:", email);
+
+    req.flash("success", "Password reset link has been sent to your email.");
+    res.redirect("/account/forgot-password");
+
+  } catch (err) {
+    console.error("=== ERROR in sendResetLink ===");
+    console.error("Error Message:", err.message);
+    console.error("Error Stack:", err.stack);
+
+    req.flash("notice", "Something went wrong. Please check server logs.");
+    res.redirect("/account/forgot-password");
+  }
+}
+
+// 3. Show Reset Password Page
+async function buildResetPassword(req, res) {
+  const { token } = req.query;
+  let nav = await utilities.getNav();
+
+  const resetData = await accountModel.verifyResetToken(token);
+  if (!resetData) {
+    req.flash("notice", "Invalid or expired reset link.");
+    return res.redirect("/account/forgot-password");
+  }
+
+  res.render("account/reset-password", {
+    title: "Reset Password",
+    token: token,
+    nav,
+    messages: req.flash()
+  });
+}
+
+// 4. Process New Password
+async function processResetPassword(req, res) {
+  const { token, new_password, confirm_password } = req.body;
+
+  if (new_password !== confirm_password) {
+    req.flash("notice", "Passwords do not match.");
+    return res.redirect(`/account/reset-password?token=${token}`);
+  }
+
+  try {
+    const resetData = await accountModel.verifyResetToken(token);
+    if (!resetData) {
+      req.flash("notice", "Invalid or expired token.");
+      return res.redirect("/account/forgot-password");
+    }
+
+    const hashedPassword = await bcrypt.hash(new_password, 10);
+    await accountModel.updatePassword(resetData.email, hashedPassword);
+
+    await pool.query("DELETE FROM public.password_resets WHERE token = $1", [token]);
+
+    req.flash("success", "Password changed successfully! Login with new password.");
+    res.redirect("/account/login");
+  } catch (err) {
+    req.flash("notice", "Failed to reset password.");
+    res.redirect(`/account/reset-password?token=${token}`);
+  }
+}
+
+// Helper: Send Email using Brevo
+async function sendPasswordResetEmail(email, token) {
+  const transporter = nodemailer.createTransport({
+    host: process.env.EMAIL_HOST,
+    port: process.env.EMAIL_PORT,
+    secure: false,
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
+    }
+  });
+
+  const resetLink = `${process.env.BASE_URL}/account/reset-password?token=${token}`;
+
+  await transporter.sendMail({
+    from: process.env.EMAIL_FROM,
+    to: email,
+    subject: "Reset Your UHWF Password",
+    html: `
+      <h2>Password Reset - UHWF Tanzania</h2>
+      <p>Hello,</p>
+      <p>You requested to reset your password.</p>
+      <a href="${resetLink}" style="background:#2e7d32;color:white;padding:15px 25px;text-decoration:none;border-radius:6px;font-weight:bold;">
+        Reset My Password
+      </a>
+      <p>This link expires in 1 hour.</p>
+      <p>If you did not request this, please ignore this email.</p>
+    `
+  });
 }
 
 // Export the middleware chain correctly
@@ -1129,6 +1417,14 @@ module.exports.processAddNews=processAddNews;
 module.exports.buildEventDetail=buildEventDetail;
 module.exports.processEventRegistration=processEventRegistration;
 module.exports.viewEventRegistrations=viewEventRegistrations;
+module.exports.downloadEventRegistrationsExcel = downloadEventRegistrationsExcel;
+module.exports.buildVideoGallery=buildVideoGallery;
+module.exports.buildAddVideo=buildAddVideo;
+module.exports.processAddVideo=processAddVideo;
+module.exports.buildForgotPassword=buildForgotPassword;
+module.exports.sendResetLink=sendResetLink;
+module.exports.buildResetPassword=buildResetPassword;
+module.exports.processResetPassword=processResetPassword;
 
 
 

@@ -59,6 +59,13 @@ router.get("/help", utilities.handleErrors(async (req, res) => {
     nav 
   })
 }))
+router.get("/career", utilities.handleErrors(async (req, res) => {
+  let nav = await utilities.getNav()
+  res.render("pages/Career", { 
+    title: "Career Center", 
+    nav 
+  })
+}))
 
 // ====================== EVENT READ MORE PAGE ======================
 router.get("/events/:id", 
@@ -68,6 +75,10 @@ router.get("/events/:id",
 router.get("/about", utilities.handleErrors(buildAboutUs))
 router.get("/", utilities.handleErrors(accountController.buildHome))
 
+router.get(
+  "/video-gallery",
+  utilities.handleErrors(accountController.buildVideoGallery)
+);
 // ====================== EVENT REGISTRATION FORM PAGE ======================
 router.get("/events/register/:event_id", utilities.handleErrors(async (req, res) => {
   try {
