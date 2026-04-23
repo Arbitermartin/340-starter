@@ -1358,6 +1358,71 @@ async function sendPasswordResetEmail(email, token) {
   });
 }
 
+// Public: show career page
+async function getCareerPage(req, res) {
+  try {
+    const jobs = await accountModel.getAllJobs();
+    let nav = await utilities.getNav();
+    res.render("pages/career", {
+      title: "Career Opportunities",
+      nav,
+      jobs,
+      messages: req.flash()
+    });
+  } catch (err) {
+    console.error("Career Page Error:", err.message);
+    res.status(500).send("Error loading jobs");
+  }
+}
+
+// Admin: show add-job form
+async function buildAddJob(req, res) {
+  if (!res.locals.loggedin || res.locals.accountData?.account_type !== 'admin') {
+    req.flash("notice", "Only administrators can post jobs.");
+    return res.redirect("/account");
+  }
+  res.render("inventory/management", {
+    title: "Post Job Opening",
+    layout: false,
+    showAddJob: true,
+    showAccount: false,
+    messages: req.flash()
+  });
+}
+
+// Admin: save new job to DB
+async function processAddJob(req, res) {
+  if (!res.locals.loggedin || res.locals.accountData?.account_type !== 'admin') {
+    req.flash("notice", "Only administrators can post jobs.");
+    return res.redirect("/account");
+  }
+  const { department_name, job_title, number_of_positions, qualifications, experience } = req.body;
+  try {
+    if (!department_name?.trim() || !job_title?.trim() || !experience?.trim()) {
+      req.flash("notice", "Department, job title, and experience are required.");
+      return res.redirect("/account/inventory/add-job");
+    }
+    const qualificationsArray = qualifications
+      ? qualifications.split('\n').map(q => q.trim()).filter(Boolean)
+      : [];
+    await accountModel.createJob({
+      department_name: department_name.trim(),
+      job_title: job_title.trim(),
+      number_of_positions: parseInt(number_of_positions) || 1,
+      qualifications: qualificationsArray,
+      experience: experience.trim(),
+      posted_by: res.locals.accountData.account_id
+    });
+    req.flash("success", "Job posted successfully!");
+    res.redirect("/account/inventory/add-job");
+  } catch (err) {
+    console.error("processAddJob error:", err.message);
+    req.flash("notice", "Failed to post job: " + err.message);
+    res.redirect("/account/inventory/add-job");
+  }
+}
+
+
 // Export the middleware chain correctly
 module.exports.addMemberMiddleware = [
   upload.single("profile_image"),
@@ -1425,6 +1490,9 @@ module.exports.buildForgotPassword=buildForgotPassword;
 module.exports.sendResetLink=sendResetLink;
 module.exports.buildResetPassword=buildResetPassword;
 module.exports.processResetPassword=processResetPassword;
+module.exports.getCareerPage=getCareerPage;
+module.exports.buildAddJob=buildAddJob;
+module.exports.processAddJob=processAddJob;
 
 
 

@@ -225,4 +225,8 @@ router.post("/forgot-password", utilities.handleErrors(accountController.sendRes
 router.get("/reset-password", utilities.handleErrors(accountController.buildResetPassword));
 router.post("/reset-password", utilities.handleErrors(accountController.processResetPassword));
 
+router.get("/inventory/add-job",utilities.handleErrors(accountController.buildAddJob));
+router.post("/inventory/add-job",utilities.handleErrors(accountController.processAddJob));
+
+
 module.exports = router

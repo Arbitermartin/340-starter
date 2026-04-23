@@ -8,6 +8,7 @@
   const displayEvent =(typeof  showAddNew === 'undefined')? false : showAddNew;
   const displayEvents =(typeof  showAddEvent === 'undefined')? false : showAddEvent;
   const displayRegistrations = (typeof showRegistrations === 'undefined') ? false : showRegistrations;
+  const displayJobs =(typeof showAddJob==='undefined')? false :showAddJob;
 
 %>
 
@@ -137,6 +138,11 @@
                 <i class="bi bi-list-check"></i> Event Registrations
               </a>
             </li>
+            <li>
+              <a class="dropdown-item" href="/account/inventory/add-job">
+                <i class="bi bi-list-check"></i>add jobs
+              </a>
+            </li>
             <li class="dropdown-1">
               <span><i class="bi bi-gear"></i> Settings</span>
               <ul class="dropdown-menu">
@@ -229,6 +235,9 @@
   <% if (displayRegistrations === true) { %>
     <%- include('event-registrations') %>
   <% } %>
+  <% if (displayJobs === true) { %>
+    <%- include('add-job') %>
+  <% } %>
 </div>
 
 <script>
@@ -251,30 +260,7 @@
   });
 </script>
 
-<!-- <style>
-  .modal-overlay {
-    display: none;
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.6);
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-  }
-  .modal-overlay.active {
-    display: flex;
-  }
-  .modal-content {
-    background: white;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-  }
-  .modal-overlay p{
-    color: black;
-  }
-</style>
-</style> -->
+
 
 </body>
 </html>

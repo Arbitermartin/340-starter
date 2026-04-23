@@ -1,80 +1,115 @@
 <section class="enviro">
     <div class="enviro-content">
       <h1>Welcome to our Career Center</h1>
-      <p>Career center at UHWF supports students with job readiness, internships, career guidance, skills training, employer connections, and professional development opportunities.</p>
+      <p>Career center at UHWF supports students with job readiness, <br> internships, career guidance, skills training, employer connections, <br> and professional development opportunities.</p>
     </div>
   </section>
-  <div class="container_pages">
-
-    <!-- LEFT SIDE -->
-    <div class="left">
-      <h2 class="small-title">We Are</h2>
-      <h1 class="big-title">HIRING</h1>
-      <p class="role">Career Advisors – UHWF-Dodoma</p>
-  
-      <h3>QUALIFICATIONS:</h3>
-      <ul>
-        <li>Diploma/Bachelor’s Degree in related field</li>
-        <li>Mature, honest, and reliable</li>
-        <li>Customer-centered</li>
-        <li>Flexible with working hours</li>
-        <li>Excellent communication skills</li>
-        <li>Ability to work under pressure</li>
-      </ul>
-  
-      <p class="footer-text">
-        Send CV before 20st April 2026<br/>
-        <strong>uhwf-hr@co.tz</strong>
-      </p>
+  <section>
+    <div class="career">
+      <div class="career-02">
+        <p>Universal Human-Wildlife Foundation (UHWF) is a non organization found in Tanzania fully registered as non organization in Tanzania. The NGO is located at Gongo la Mboto, Dar es Salaam, approximately 5 kilometres from Julius Nyerere International Airport.
+        </p>
+        <h3>UHWF invites suitably qualified and competent candidates to apply for the following vacant positions:</h3>
+      </div>
     </div>
+  </section>
+  <section class="career-hero">
+    <h1>Current Openings</h1>
+    <span class="underline-bar"></span>
+    <p>Join our team and make a difference. Explore open positions below.</p>
+  </section>
   
-    <!-- RIGHT SIDE -->
-    <div class="right">
-      <div class="image-wrapper">
-        <img src="/images/site/landuse.webp" alt="person">
+  <main class="career-container">
+  
+    <% if (!jobs || jobs.length === 0) { %>
+      <div class="no-jobs">
+        <h3>No openings at this time</h3>
+        <p>Check back soon — new positions are posted regularly.</p>
       </div>
   
-      <div class="content">
-        <p>
-            UHWF is dedicated to nurturing talent and empowering individuals to grow and thrive. Our team is the backbone of our mission to deliver quality ICT education and exceptional service to our clients. If you’re passionate about making a difference, we invite you to join us and be part of a forward-thinking institution that values innovation, collaboration and excellence. 
-
-            If you’re passionate about education and customer service and want to be part of a team that makes a real impact, we would love to hear from you! 
-        </p>
+    <% } else { %>
+      <div class="jobs-grid">
+        <% jobs.forEach(function(job) { %>
+          <%
+            // Parse qualifications from JSONB
+            let quals = [];
+            try {
+              quals = Array.isArray(job.qualifications)
+                ? job.qualifications
+                : JSON.parse(job.qualifications);
+            } catch(e) { quals = [job.qualifications]; }
   
-        <h2>Why work with us</h2>
+            // Roman numeral converter
+            const toRoman = (n) => {
+              const map = [[1000,'m'],[900,'cm'],[500,'d'],[400,'cd'],[100,'c'],
+                           [90,'xc'],[50,'l'],[40,'xl'],[10,'x'],[9,'ix'],
+                           [5,'v'],[4,'iv'],[1,'i']];
+              let r = '';
+              for (const [v,s] of map) { while(n>=v){r+=s;n-=v;} }
+              return r;
+            };
   
-        <div class="accordion accordion-flush" id="accordionFlushExample">
-            <div class="accordion-item">
-              <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
-                  Accordion Item #1
-                </button>
-              </h2>
-              <div id="flush-collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
-                <div class="accordion-body">Placeholder content for this accordion, which is intended to demonstrate the <code>.accordion-flush</code> class. This is the first item’s accordion body.</div>
-              </div>
+            // Format date
+            const postedDate = job.posted_at
+              ? new Date(job.posted_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})
+              : '';
+          %>
+  
+          <article class="job-card">
+  
+            <span class="dept-badge"><%= job.department_name %></span>
+  
+            <h2 class="job-title"><%= job.job_title %></h2>
+  
+            <div class="positions-row">
+              <span class="dot"></span>
+              <span>Number of Positions: <strong><%= job.number_of_positions %></strong></span>
             </div>
-            <div class="accordion-item">
-              <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseTwo" aria-expanded="false" aria-controls="flush-collapseTwo">
-                  Accordion Item #2
-                </button>
-              </h2>
-              <div id="flush-collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
-                <div class="accordion-body">Placeholder content for this accordion, which is intended to demonstrate the <code>.accordion-flush</code> class. This is the second item’s accordion body. Let’s imagine this being filled with some actual content.</div>
-              </div>
-            </div>
-            <div class="accordion-item">
-              <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseThree" aria-expanded="false" aria-controls="flush-collapseThree">
-                  Accordion Item #3
-                </button>
-              </h2>
-              <div id="flush-collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
-                <div class="accordion-body">Placeholder content for this accordion, which is intended to demonstrate the <code>.accordion-flush</code> class. This is the third item’s accordion body. Nothing more exciting happening here in terms of content, but just filling up the space to make it look, at least at first glance, a bit more representative of how this would look in a real-world application.</div>
-              </div>
-            </div>
-          </div>
   
-  </div>
+            <hr class="card-divider"/>
   
+            <div class="qual-header">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <polyline points="22 4 12 14.01 9 11.01"/>
+              </svg>
+              Qualifications and Experience
+            </div>
+  
+            <% if (quals.length > 0) { %>
+              <ul class="qual-list">
+                <% quals.forEach(function(q, idx) { %>
+                  <li>
+                    <span class="roman"><%= toRoman(idx + 1) %>.</span>
+                    <span><%= q %></span>
+                  </li>
+                <% }) %>
+              </ul>
+            <% } %>
+  
+            <% if (job.experience) { %>
+              <div class="experience-block">
+                <strong>Experience Required</strong>
+                <%= job.experience %>
+              </div>
+            <% } %>
+  
+            <div class="card-footer">
+              <div class="posted-meta">
+                Posted by <span><%= job.posted_by_name || 'Admin' %></span>
+                <% if (postedDate) { %>&nbsp;·&nbsp;<%= postedDate %><% } %>
+              </div>
+              <a href="/career/apply/<%= job.id %>" class="apply-btn">
+                Apply Now
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                  <polyline points="12 5 19 12 12 19"/>
+                </svg>
+              </a>
+            </div>
+  
+          </article>
+        <% }) %>
+      </div>
+    <% } %>
+</main>

@@ -820,8 +820,55 @@ async function updatePassword(email, newHashedPassword) {
     throw error;
   }
 }
+async function getAllJobs() {
+  try {
+    const sql = `
+      SELECT 
+        j.id,
+        j.department_name,
+        j.job_title,
+        j.number_of_positions,
+        j.qualifications,
+        j.experience,
+        j.status,
+        j.posted_at,
+        a.account_firstname AS posted_by_name
+      FROM public.job_openings j
+      LEFT JOIN public.account a ON j.posted_by = a.account_id
+      WHERE j.status = 'active'
+      ORDER BY j.posted_at DESC
+    `;
+    const result = await pool.query(sql);
+    return result.rows;
+  } catch (error) {
+    console.error("getAllJobs error:", error);
+    throw error;
+  }
+}
+
+async function createJob({ department_name, job_title, number_of_positions, qualifications, experience, posted_by }) {
+  try {
+    const sql = `
+      INSERT INTO public.job_openings 
+        (department_name, job_title, number_of_positions, qualifications, experience, posted_by)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING *
+    `;
+    const result = await pool.query(sql, [
+      department_name,
+      job_title,
+      number_of_positions,
+      JSON.stringify(qualifications),
+      experience,
+      posted_by
+    ]);
+    return result.rows[0];
+  } catch (error) {
+    console.error("createJob error:", error);
+    throw error;
+  }
+}
 
 
-
-module.exports={registerAccount,checkExistingEmail,getAccountByEmail,addMember,updateMember,getMemberById,getAllMembers,deleteMember,getAllStudents,viewEmployees,addAccount,addEmployee,getEmployeeById,getAccountByEmployeeCode,deleteEmployee,updateAccountBasic,updateEmployee,saveContactMessage,getLatestNews,getUpcomingEvents,createNews,createEvent,getEventById,addEventRegistration,getAllEventRegistrations,createVideo,getAllVideos,saveResetToken,verifyResetToken,updatePassword}
+module.exports={registerAccount,checkExistingEmail,getAccountByEmail,addMember,updateMember,getMemberById,getAllMembers,deleteMember,getAllStudents,viewEmployees,addAccount,addEmployee,getEmployeeById,getAccountByEmployeeCode,deleteEmployee,updateAccountBasic,updateEmployee,saveContactMessage,getLatestNews,getUpcomingEvents,createNews,createEvent,getEventById,addEventRegistration,getAllEventRegistrations,createVideo,getAllVideos,saveResetToken,verifyResetToken,updatePassword,getAllJobs,createJob}
 

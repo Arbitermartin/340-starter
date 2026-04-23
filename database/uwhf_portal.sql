@@ -268,3 +268,18 @@ CREATE TABLE IF NOT EXISTS public.password_resets (
   expires_at TIMESTAMP NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+ 
+--  job opening table
+CREATE TABLE public.job_openings (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    department_name VARCHAR(255) NOT NULL,
+    job_title VARCHAR(255) NOT NULL,
+    number_of_positions INT NOT NULL DEFAULT 1,
+    qualifications JSONB NOT NULL,
+    experience TEXT NOT NULL,
+    posted_by INT NOT NULL,
+    posted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status TEXT CHECK (status IN ('active', 'inactive')) DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

@@ -59,13 +59,28 @@ router.get("/help", utilities.handleErrors(async (req, res) => {
     nav 
   })
 }))
-router.get("/career", utilities.handleErrors(async (req, res) => {
-  let nav = await utilities.getNav()
-  res.render("pages/Career", { 
-    title: "Career Center", 
-    nav 
-  })
-}))
+router.get("/career", async (req, res) => {
+  try {
+    const jobs = await accountModel.getAllJobs()
+    let nav = await utilities.getNav()
+    res.render("pages/career", {
+      title: "Career Opportunities",
+      nav,
+      jobs,
+      messages: req.flash()
+    })
+  } catch (err) {
+    console.error(err)
+    res.render("pages/career", { title: "Career Opportunities", nav: await utilities.getNav(), jobs: [], messages: req.flash() })
+  }
+})
+// router.get("/career", utilities.handleErrors(async (req, res) => {
+//   let nav = await utilities.getNav()
+//   res.render("pages/Career", { 
+//     title: "Career Center", 
+//     nav 
+//   })
+// }))
 
 // ====================== EVENT READ MORE PAGE ======================
 router.get("/events/:id", 

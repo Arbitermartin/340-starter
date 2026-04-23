@@ -1747,84 +1747,247 @@ h1 {
 
 /* end here reset password form */
 
-/* career page style */
-.container_pages{
-  display: flex;
-  min-height: 100vh;
+/* form style for jobs */
+.admin-section h2{
+  color: var(--color-button-text);
+
 }
-.left{
-  flex: 1;
-  background: #ffffff;
-  padding: 40px;
-}
-.small-title{
-  font-size: 24px;
-  color: #555;
-}
-.big-title{
-  font-size: 60px;
-  color: #8b0000;
-  font-weight: bold;
-}
-.role{
-  margin: 10px 0px 20px;
-}
-.left ul{
-  margin: 20px 0px;
-  padding-left: 20px;
-}
-.left ul li{
-  margin-bottom: 10px;
-  color: var(--dark);
-}
-footer-text {
-  margin-top: 20px;
-  color: teal;
+.sub{
+  background-color: var(--color-bg);
 }
 
-/* RIGHT */
-.right {
-  flex: 1;
-  background: #f0f0f0;
-  padding: 40px;
+/* career page style */
+.career{
+  padding: 0 16px;
+ 
+}
+.career-02{
+  border-radius: 0.5rem;
+  border-left: 6px solid var(--primary-green);
+  width: 100%;
+  background-color: var(--card-bg);
+  padding: 20px;
+  margin: 20px 0px;
+}
+.career-hero {
+   background: #fff; 
+   width: 100%;
+   padding: 56px 24px 40px; 
+   text-align: center; 
+   border-bottom: 1px solid #e8ecf0; 
+  }
+.career-hero h1 { 
+  font-size: 2.4rem; 
+  font-weight: 800; 
+  color: #0d1b2a; 
+  margin-bottom: 14px; 
+}
+    
+.underline-bar { 
+  display: block; 
+  width: 64px; 
+  height: 4px; 
+  background: #1a7a4a; 
+  border-radius: 2px; 
+  margin: 0 auto 16px; }
+.career-hero p { 
+  color: #5a6a7a; 
+  font-size: 1rem; 
+}
+
+/* Container */
+.career-container {
+   max-width: 1200px; 
+   margin: 0 auto; 
+   padding: 40px 24px 64px; 
+  }
+
+/* Empty */
+.no-jobs { 
+  text-align:center; 
+  padding:80px 24px; 
+  color:#7a8a9a; 
+}
+.no-jobs h3 { 
+  font-size:1.2rem; 
+  font-weight:600; 
+  color:#4a5a6a; 
+  margin-top:12px; }
+
+/* Grid */
+.jobs-grid { 
+  display: grid; 
+  grid-template-columns: repeat(auto-fill, minmax(460px, 1fr)); 
+  gap: 24px; 
+}
+/* Card */
+.job-card {
+  background: #fff;
+  border: 1.5px solid #d0e8da;
+  border-top: 3px solid var(--color-bg);
+  border-radius: 12px;
+  padding: 28px 30px 26px;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  margin: 20px 0px;
+  gap: 0;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.job-card:hover { 
+  box-shadow: 0 8px 32px rgba(26,122,74,0.10); 
+  transform: translateY(-2px); 
 }
 
-.image-wrapper {
-  width: 250px;
-  height: 250px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 8px solid teal;
-  margin-bottom: 20px;
+/* Department badge */
+.dept-badge {
+  display: inline-block;
+  background: #e8f5ee;
+  color: #1a7a4a;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border-radius: 20px;
+  margin-bottom: 14px;
+  width: fit-content;
 }
 
-.image-wrapper img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+/* Title */
+.job-title { 
+  font-size: 1.22rem; 
+  font-weight: 800; 
+  color: #0d1b2a; 
+  line-height: 1.35; 
+  margin-bottom: 14px; 
 }
 
-.content {
-  max-width: 400px;
-  text-align: center;
+/* Positions */
+.positions-row { 
+  display:flex; 
+  align-items:center; 
+  gap:8px; 
+  font-size:0.93rem; 
+  color:#3a4a5a; 
+  margin-bottom:18px;
+}
+.positions-row .dot {
+   width:10px; 
+   height:10px; 
+   border-radius:50%; 
+   background:#1a7a4a; 
+   flex-shrink:0; 
+  }
+.positions-row strong { 
+  color:#1a7a4a; 
+  font-weight:700; 
 }
 
-.content h2 {
-  margin: 20px 0;
+/* Divider */
+.card-divider { 
+  border:none; 
+  border-top:1px 
+  solid #e8ecf0; 
+  margin:4px 0 18px; 
 }
 
-.accordion .item {
-  background: teal;
-  color: white;
-  padding: 15px;
-  margin-bottom: 10px;
-  cursor: pointer;
-  border-radius: 5px;
+/* Qual header */
+.qual-header { 
+  display:flex; 
+  align-items:center; 
+  gap:8px; 
+  font-size:0.97rem; 
+  font-weight:700; 
+  color:#0d1b2a; 
+  margin-bottom:14px; 
 }
+.qual-header svg { 
+  color:#1a7a4a; 
+  flex-shrink:0; }
+
+/* Roman list */
+.qual-list { 
+  list-style:none; 
+  padding:0; 
+  display:flex; 
+  flex-direction:column; 
+  gap:10px; 
+  margin-bottom:18px; 
+}
+.qual-list li { 
+  display:flex; 
+  gap:10px; 
+  font-size:0.90rem; 
+  color:#3a4a5a; 
+  line-height:1.6; 
+}
+.qual-list li .roman {
+   font-size:0.82rem; 
+   font-weight:700; 
+   color:#1a7a4a; 
+   min-width:22px; 
+   font-style:italic; 
+   flex-shrink:0; 
+   padding-top:1px; 
+  }
+
+/* Experience */
+.experience-block { 
+  background:#f4faf6; 
+  border-left:3px solid #1a7a4a; 
+  border-radius:0 6px 6px 0; 
+  padding:10px 14px; 
+  font-size:0.88rem; 
+  color:#3a4a5a; 
+  line-height:1.6; 
+  margin-bottom:20px; 
+}
+.experience-block strong { 
+  display:block; 
+  font-size:0.78rem; 
+  text-transform:uppercase; 
+  letter-spacing:0.05em; 
+  color:#1a7a4a; 
+  font-weight:700; 
+  margin-bottom:4px; 
+}
+
+/* Footer */
+.card-footer { 
+  display:flex; 
+  align-items:center; 
+  justify-content:space-between; 
+  padding-top:16px; 
+  border-top:1px solid #e8ecf0; 
+  gap:12px; flex-wrap:wrap; 
+  margin-top:auto; 
+}
+.posted-meta { 
+  font-size:0.80rem; 
+  color:#8a9aaa; 
+}
+.posted-meta span { 
+  color:#5a6a7a; 
+  font-weight:500; 
+}
+.apply-btn { 
+  display:inline-flex; 
+  align-items:center; 
+  gap:6px; 
+  background:#1a7a4a; 
+  color:#fff; 
+  font-size:0.86rem; 
+  font-weight:600; 
+  padding:9px 20px; 
+  border-radius:6px; 
+  text-decoration:none; 
+  transition:background 0.18s; 
+}
+.apply-btn:hover {
+   background:#155f3a; 
+  }
 /* end here career center style */
+
 /* delete employee */
 .delete-page {
   width: 100%;
@@ -2596,6 +2759,7 @@ h1 {
   text-align: center;
   padding: 0 20px;
 }
+
 .overview{
   display: flex;
   margin: 20px 40px;
@@ -2921,6 +3085,7 @@ h1 {
    padding: 2rem;
    flex: 1;
    transition: margin-left 0.3s ease;
+   
 }
 .modal-content-08{
   display: none;
@@ -3499,15 +3664,23 @@ select:focus {
 }
 
 /* Page header */
+.page-header{
+  background-image: url('/images/site/landuse.webp');
+  background-repeat: no-repeat;
+  background-size: cover;
+  height: 300px;
+}
 .page-header h1 {
+  padding: 20px;
   font-size: 1.8rem;
   margin-bottom: 0.3rem;
   color: var(--color-white);
 }
 
 .page-header p {
-  color: var(--color-header-title);
+  color: var(--color-bg);
   margin-bottom: 1.5rem;
+  text-align: center;
 }
 /* end here employee dashboard stylee */
 
@@ -3997,11 +4170,22 @@ input, select {
       .form-grid { 
         grid-template-columns: 1fr; 
       }
+      /* Carrer page */
       .overview{
         display: block;
         width: 85%;
         text-align: center;
       }
+      .career{
+        padding: 0.9rem;
+     
+      }
+      .career-02{
+        max-width: 700px;
+        margin: 20px 0px;
+        
+      }
+
       /* land use style */
       .land-page-header {
         padding: 80px 15px 60px;
