@@ -1,0 +1,79 @@
+ <!-- ===== MANAGE VIDEOS PANEL ===== -->
+ <div class="main-body-1" id="employeeManagement">
+    <div class="page-header">
+      <h1>Videos Management</h1>
+      <p>All uploaded Videos</p>
+    </div>
+    <div class="panel">
+      <div>
+        <h2>Manage Videos</h2>
+        <a href="/account/inventory/add-video" class="btn-submit-01">+ Add Video</a>
+      </div>
+    
+      <% if (messages.success) { %>
+        <div class="alert success"><%= messages.success %></div>
+      <% } %>
+      <% if (messages.notice || messages.error) { %>
+        <div class="alert error"><%= messages.notice || messages.error %></div>
+      <% } %>
+    
+      <% if (videos && videos.length > 0) { %>
+        <div class="table-container">
+        
+        <table class="members-table">
+          <thead>
+            <tr>
+              <th>Thumbnail</th>
+              <th>Title</th>
+              <th>Category</th>
+              <th>Date</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% videos.forEach(video => { %>
+              <tr>
+                <td>
+                  <% if (video.youtube_id) { %>
+                    <img 
+                      src="https://img.youtube.com/vi/<%= video.youtube_id %>/mqdefault.jpg"
+                      alt="<%= video.title %>"
+                      style="width:90px;height:54px;object-fit:cover;border-radius:6px;"
+                    />
+                  <% } else { %>
+                    <div style="width:90px;height:54px;background:#eee;border-radius:6px;
+                                display:flex;align-items:center;justify-content:center;
+                                font-size:0.7rem;color:#999;">No ID</div>
+                  <% } %>
+                </td>
+                <td>
+                  <strong><%= video.title %></strong><br/>
+                  <small style="color:#999;">
+                    <%= video.description ? video.description.substring(0, 60) + '...' : '—' %>
+                  </small>
+                </td>
+                <td><%= video.category || 'General' %></td>
+                <td>
+                  <%= new Date(video.created_at).toLocaleDateString('en-GB', {
+                    day:'2-digit', month:'short', year:'numeric'
+                  }) %>
+                </td>
+                <td>
+                  <form method="POST" 
+                        action="/account/inventory/videos/<%= video.video_id %>/delete"
+                        onsubmit="return confirm('Delete \'<%= video.title %>\'?')">
+                    <button type="submit" class="btn btn-danger btn-sm">🗑 Delete</button>
+                  </form>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } else { %>
+        <p style="color:#999;text-align:center;padding:2rem;">
+          No videos yet. <a href="/account/inventory/add-video">Add one?</a>
+        </p>
+      <% } %>
+    </div>
+</div>
+ 

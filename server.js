@@ -54,9 +54,12 @@ app.use(
     directives: {
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "https://cdnjs.cloudflare.com","https://cdn.jsdelivr.net","https://fonts.googleapis.com"], // if i use link for style i must add here link for style.
-      scriptSrc: ["'self'", ], //for link of script if i add in my system i must add here links for script.
+      // scriptSrc: ["'self'", ], //for link of script if i add in my system i must add here links for script.
       scriptSrcAttr: ["'unsafe-inline'"],
-      imgSrc: ["'self'", "data:", "https:"], //if i add https link for image it can be controlled here in order to be.
+      // imgSrc: ["'self'", "data:", "https:"], //if i add https link for image it can be controlled here in order to be.
+      frameSrc: ["'self'", "https://www.youtube.com", "https://www.youtube-nocookie.com"],
+      imgSrc: ["'self'", "data:", "https://img.youtube.com", "https://i.ytimg.com","https"],
+      scriptSrc: ["'self'", "https://www.youtube.com"],
     },
   })
 );

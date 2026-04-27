@@ -1,0 +1,76 @@
+<div class="main-body">
+    <div style="padding:1.5rem;">
+  
+      <div class="t-panel">
+        <div class="t-panel-hd" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
+          <h2><i class="bi bi-list-check"></i> All Assigned Tasks</h2>
+          <a href="/account/inventory/assign-task" class="t-btn t-btn-green">
+            <i class="bi bi-plus-lg"></i> Assign New Task
+          </a>
+        </div>
+        <div class="t-panel-bd" style="padding:0;">
+  
+          <% if (messages?.notice) { %>
+            <div class="t-flash t-warn" style="margin:1rem;"><%= messages.notice %></div>
+          <% } %>
+  
+          <% if (tasks && tasks.length > 0) { %>
+            <div style="overflow-x:auto;">
+              <table class="t-table">
+                <thead>
+                  <tr>
+                    <th>Task</th>
+                    <th>Employee</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Due Date</th>
+                    <th>Assigned</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% tasks.forEach(task => { %>
+                    <tr>
+                      <td>
+                        <strong><%= task.title %></strong>
+                        <% if (task.description) { %>
+                          <br/><small style="color:#888;"><%= task.description.substring(0,55) %>...</small>
+                        <% } %>
+                      </td>
+                      <td>
+                        <%= task.employee_name %>
+                        <br/><small style="color:#888;"><%= task.employee_email %></small>
+                      </td>
+                      <td><span class="t-badge t-badge-<%= task.priority %>"><%= task.priority %></span></td>
+                      <td><span class="t-badge t-badge-<%= task.status %>"><%= task.status.replace('_',' ') %></span></td>
+                      <td style="font-size:0.82rem;white-space:nowrap;">
+                        <%= task.due_date ? new Date(task.due_date).toLocaleDateString('en-GB') : '—' %>
+                      </td>
+                      <td style="font-size:0.82rem;white-space:nowrap;">
+                        <%= new Date(task.created_at).toLocaleDateString('en-GB') %>
+                      </td>
+                      <td>
+                        <form method="POST"
+                              action="/account/inventory/all-tasks/<%= task.task_id %>/delete"
+                              onsubmit="return confirm('Delete this task?')">
+                          <button type="submit" class="t-btn t-btn-danger t-btn-sm">
+                            <i class="bi bi-trash3"></i> Delete
+                          </button>
+                        </form>
+                      </td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          <% } else { %>
+            <div class="t-empty">
+              <i class="bi bi-inbox-fill"></i>
+              <p>No tasks assigned yet. <a href="/account/inventory/assign-task">Assign one.</a></p>
+            </div>
+          <% } %>
+        </div>
+      </div>
+  
+    </div>
+  </div>

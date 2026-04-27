@@ -283,3 +283,44 @@ CREATE TABLE public.job_openings (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Tasks table
+CREATE TABLE IF NOT EXISTS public.tasks (
+  task_id        SERIAL PRIMARY KEY,
+  title          VARCHAR(255) NOT NULL,
+  description    TEXT,
+  assigned_to    INTEGER REFERENCES public.account(account_id) ON DELETE CASCADE,
+  assigned_by    INTEGER REFERENCES public.account(account_id),
+  priority       VARCHAR(20)  DEFAULT 'medium',
+  status         VARCHAR(30)  DEFAULT 'pending',
+  due_date       DATE,
+  created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Task Reports
+CREATE TABLE IF NOT EXISTS public.task_reports (
+  report_id      SERIAL PRIMARY KEY,
+  task_id        INTEGER REFERENCES public.tasks(task_id) ON DELETE CASCADE,
+  submitted_by   INTEGER REFERENCES public.account(account_id),
+  report_text    TEXT NOT NULL,
+  submitted_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Admin Comments on Reports
+CREATE TABLE IF NOT EXISTS public.report_comments (
+  comment_id     SERIAL PRIMARY KEY,
+  report_id      INTEGER REFERENCES public.task_reports(report_id) ON DELETE CASCADE,
+  commented_by   INTEGER REFERENCES public.account(account_id),
+  comment_text   TEXT NOT NULL,
+  created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Notifications for employees
+CREATE TABLE IF NOT EXISTS public.notifications (
+  notification_id SERIAL PRIMARY KEY,
+  user_id         INTEGER REFERENCES public.account(account_id) ON DELETE CASCADE,
+  message         TEXT NOT NULL,
+  link            VARCHAR(500),
+  is_read         BOOLEAN   DEFAULT FALSE,
+  created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

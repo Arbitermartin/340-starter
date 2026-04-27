@@ -228,5 +228,35 @@ router.post("/reset-password", utilities.handleErrors(accountController.processR
 router.get("/inventory/add-job",utilities.handleErrors(accountController.buildAddJob));
 router.post("/inventory/add-job",utilities.handleErrors(accountController.processAddJob));
 
+// Admin only
+router.get("/inventory/add-video",utilities.handleErrors (accountController.buildAddVideo))
+
+router.post("/inventory/add-video",utilities.handleErrors (accountController.processAddVideo));
+
+router.get("/inventory/videos", utilities.handleErrors (accountController.viewVideos));
+
+router.post("/inventory/videos/:video_id/delete", utilities.handleErrors(accountController.deleteVideo));
+
+
+// ─── ADMIN ──────────────────────────────────────────────
+router.get( "/inventory/assign-task",utilities.handleErrors(accountController.buildAssignTask));
+router.post("/inventory/assign-task",utilities.handleErrors (accountController.processAssignTask));
+router.get( "/inventory/all-tasks",utilities.handleErrors (accountController.viewAllTasks));
+router.post("/inventory/tasks/:task_id/delete",utilities.handleErrors(accountController.deleteTask));
+// router.get( "/inventory/reports",                    utilities.checkLogin, taskController.viewAllReports);
+// router.get( "/inventory/reports/:report_id",         utilities.checkLogin, taskController.viewReportDetail);
+// router.post("/inventory/reports/:report_id/comment", utilities.checkLogin, taskController.processAddComment);
+// router.get( "/inventory/reports/:report_id/pdf",     utilities.checkLogin, taskController.downloadReportPDF);
+
+// // ─── EMPLOYEE ────────────────────────────────────────────
+// router.get( "/tasks/my-tasks",                   utilities.checkLogin, taskController.employeeTaskList);
+// router.get( "/tasks/submit-report/:task_id",     utilities.checkLogin, taskController.buildSubmitReport);
+// router.post("/tasks/submit-report/:task_id",     utilities.checkLogin, taskController.processSubmitReport);
+// router.get( "/tasks/my-report/:report_id",       utilities.checkLogin, taskController.viewMyReport);
+// router.get( "/tasks/notifications",              utilities.checkLogin, taskController.viewNotifications);
+// router.get( "/tasks/edit-profile",               utilities.checkLogin, taskController.buildEditProfile);
+// router.post("/tasks/edit-profile",               utilities.checkLogin, taskController.editProfileMiddleware);
+
+
 
 module.exports = router

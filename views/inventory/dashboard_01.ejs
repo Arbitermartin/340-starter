@@ -1,3 +1,6 @@
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,88 +8,737 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EMPLOYEE DASHBOARD | UHWF-TANZANIA 2025</title>
   <link rel="stylesheet" href="/css/styles.css">
-  
-  
-   <!-- icon for logo of organizaion -->
-   <link rel="icon" type="image/png" href="/images/site/uhwf-logo.webp">
-   
+  <link rel="icon" type="image/png" href="/images/site/uhwf-logo.webp">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ── NEW PANEL STYLES (do not affect existing CSS) ── */
+    .panel-section {
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid #e0e0e0;
+      overflow: hidden;
+      margin: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .panel-section-header {
+      background: #1b5e20;
+      color: white;
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .panel-section-header h2 {
+      font-size: 1rem;
+      font-family: 'Merriweather', serif;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .panel-section-body { padding: 1.5rem; }
+
+    /* Flash messages */
+    .flash-msg {
+      padding: 0.8rem 1rem;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 500;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .flash-success { background: #e8f5e9; color: #1b5e20; border: 1px solid #a5d6a7; }
+    .flash-warn    { background: #fff8e1; color: #e65100; border: 1px solid #ffe082; }
+
+    /* Task cards */
+    .task-list { display: flex; flex-direction: column; gap: 1rem; }
+
+    .task-card {
+      border: 1px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 1.1rem 1.25rem;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      transition: box-shadow 0.2s;
+      background: #fafafa;
+    }
+    .task-card:hover { box-shadow: 0 3px 12px rgba(0,0,0,0.08); }
+
+    .task-card-left { flex: 1; min-width: 200px; }
+    .task-card-right { flex-shrink: 0; }
+
+    .task-card h3 { font-size: 0.98rem; font-weight: 700; color: #1a1a2e; margin-bottom: 0.3rem; }
+    .task-card p  { font-size: 0.83rem; color: #666; margin-bottom: 0.6rem; }
+
+    .task-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .tbadge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 99px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .tbadge-high        { background: #fce4ec; color: #b71c1c; }
+    .tbadge-medium      { background: #fff3e0; color: #e65100; }
+    .tbadge-low         { background: #e8f5e9; color: #1b5e20; }
+    .tbadge-pending     { background: #e3f2fd; color: #01579b; }
+    .tbadge-in_progress { background: #fff8e1; color: #e65100; }
+    .tbadge-submitted   { background: #ede7f6; color: #4527a0; }
+    .tbadge-completed   { background: #e8f5e9; color: #1b5e20; }
+
+    .task-due {
+      font-size: 0.75rem;
+      color: #888;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    /* Buttons */
+    .ebtn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 1.1rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.83rem;
+      font-weight: 600;
+      font-family: 'Roboto', sans-serif;
+      cursor: pointer;
+      text-decoration: none;
+      transition: opacity 0.18s, transform 0.15s;
+      white-space: nowrap;
+    }
+    .ebtn:hover { opacity: 0.85; transform: translateY(-1px); }
+    .ebtn-green  { background: #2e7d32; color: white; }
+    .ebtn-gray   { background: #eeeeee; color: #444; }
+    .ebtn-outline { background: transparent; border: 1.5px solid #2e7d32; color: #2e7d32; }
+    .ebtn-sm     { padding: 0.35rem 0.8rem; font-size: 0.78rem; }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: #9e9e9e;
+    }
+    .empty-state i    { font-size: 3rem; display: block; margin-bottom: 0.75rem; opacity: 0.35; }
+    .empty-state p    { font-size: 0.9rem; }
+
+    /* Report box */
+    .report-box {
+      background: #f8faf8;
+      border: 1px solid #d8e4d9;
+      border-radius: 10px;
+      padding: 1.1rem 1.25rem;
+      font-size: 0.9rem;
+      line-height: 1.85;
+      white-space: pre-wrap;
+      color: #1a2420;
+      margin-bottom: 1.25rem;
+    }
+
+    .task-summary-box {
+      background: #f1f8e9;
+      border: 1px solid #c8e6c9;
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      font-size: 0.88rem;
+      line-height: 1.9;
+      margin-bottom: 1.25rem;
+    }
+    .task-summary-box strong { color: #1b5e20; }
+
+    /* Comments */
+    .comment-list { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.25rem; }
+    .comment-item {
+      background: #f1f8e9;
+      border-left: 4px solid #2e7d32;
+      border-radius: 0 10px 10px 0;
+      padding: 0.85rem 1rem;
+    }
+    .comment-item .comment-by { font-size: 0.8rem; font-weight: 700; color: #2e7d32; margin-bottom: 0.35rem; }
+    .comment-item .comment-text { font-size: 0.88rem; line-height: 1.7; }
+    .comment-item .comment-time { font-size: 0.73rem; color: #888; margin-top: 4px; }
+
+    /* Notifications */
+    .notif-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    .notif-item {
+      padding: 0.9rem 1.1rem;
+      border-radius: 10px;
+      border-left: 4px solid #a5d6a7;
+      background: #f9fbe7;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .notif-item.unread { border-left-color: #ef5350; background: #fff5f5; }
+    .notif-item .notif-msg  { font-size: 0.88rem; font-weight: 500; margin-bottom: 3px; }
+    .notif-item .notif-time { font-size: 0.75rem; color: #888; }
+
+    /* Notification bell */
+    .notif-bell-wrap {
+      position: relative;
+      display: inline-block;
+    }
+    .notif-bell-wrap .bell-count {
+      position: absolute;
+      top: -6px; right: -8px;
+      background: #ef5350;
+      color: white;
+      font-size: 0.6rem;
+      font-weight: 700;
+      min-width: 17px; height: 17px;
+      border-radius: 99px;
+      display: flex; align-items: center; justify-content: center;
+      padding: 0 3px;
+    }
+
+    /* Form styles */
+    .eform .fg { margin-bottom: 1rem; }
+    .eform label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #5a7060;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.4rem;
+    }
+    .eform input,
+    .eform textarea {
+      width: 100%;
+      padding: 0.65rem 0.9rem;
+      border: 1.5px solid #d8e4d9;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-family: 'Roboto', sans-serif;
+      color: #1a2420;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .eform input:focus,
+    .eform textarea:focus { border-color: #2e7d32; }
+    .eform textarea { resize: vertical; min-height: 130px; line-height: 1.7; }
+
+    .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 600px) { .form-row-2 { grid-template-columns: 1fr; } }
+
+    .form-actions { display: flex; gap: 0.75rem; margin-top: 1.25rem; flex-wrap: wrap; }
+
+    /* Profile hero */
+    .profile-hero {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      margin-bottom: 1.75rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid #e0e0e0;
+      flex-wrap: wrap;
+    }
+    .profile-avatar {
+      width: 90px; height: 90px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #a5d6a7;
+      flex-shrink: 0;
+    }
+    .profile-avatar-placeholder {
+      width: 90px; height: 90px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #2e7d32, #43a047);
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 2.2rem; flex-shrink: 0;
+    }
+    .profile-hero-info h3 {
+      font-family: 'Merriweather', serif;
+      font-size: 1.15rem;
+      color: #1a2420;
+    }
+    .profile-hero-info p { font-size: 0.85rem; color: #666; margin-top: 3px; }
+
+    .readonly-chips {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      background: #f0f4f1;
+      border-radius: 8px;
+      padding: 0.85rem 1rem;
+      font-size: 0.84rem;
+      color: #5a7060;
+      margin-bottom: 1.25rem;
+    }
+    .readonly-chips span strong { color: #1a2420; }
+
+    /* Section sub-title */
+    .sub-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #2e7d32;
+      margin-bottom: 0.6rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    /* Sidebar active link */
+    #sidebar ul li a.active {
+      background: rgba(255,255,255,0.18);
+      border-radius: 6px;
+      color: white;
+    }
+
+    /* Notification count on sidebar */
+    .sidebar-notif-count {
+      margin-left: auto;
+      background: #ef5350;
+      color: white;
+      font-size: 0.62rem;
+      font-weight: 700;
+      min-width: 18px; height: 18px;
+      border-radius: 99px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 4px;
+    }
+  </style>
 </head>
+
 <body>
   <div class="overlay" id="overlay"></div>
   <div class="dashboard">
-    <!-- Header -->
+
+    <!-- ── HEADER ── -->
     <header class="header">
       <div class="menu-toggle" id="menuToggle">
         <i class="bi bi-list" style="color: black;"></i>
       </div>
       <h3>Employee Dashboard</h3>
       <div class="user">
-        <span class="welcome-link">Welcome back, <%= locals.accountData?.account_firstname || 'Student' %></span>
+        <!-- Notification bell -->
+        <a href="/account/tasks/notifications" style="color:inherit;text-decoration:none;margin-right:0.5rem;">
+          <div class="notif-bell-wrap">
+            <i class="bi bi-bell-fill" style="font-size:1.2rem;"></i>
+            <% if (typeof unreadCount !== 'undefined' && unreadCount > 0) { %>
+              <span class="bell-count"><%= unreadCount %></span>
+            <% } %>
+          </div>
+        </a>
+
+        <span class="welcome-link">
+          Welcome back, <%= locals.accountData?.account_firstname || 'Employee' %>
+        </span>
         <a href="/account/logout" class="logout-link">
           <button>Logout <i class="bi bi-box-arrow-right"></i></button>
         </a>
       </div>
     </header>
 
-    <!-- Sidebar (Left) -->
+    <!-- ── SIDEBAR ── -->
     <aside id="sidebar">
-      <h2 style="text-align:center; margin-bottom:30px; border-bottom: 2px solid white; margin-top: 1rem;">EMPLOYEE PORTAL</h2>
+      <h2 style="text-align:center; margin-bottom:30px; border-bottom: 2px solid white; margin-top: 1rem;">
+        EMPLOYEE PORTAL
+      </h2>
       <ul>
-        <li><a href="#"><i class="bi bi-house-door"></i> Dashboard</a></li>
+        <li>
+          <a href="/account/dashboard_01/"
+             class="<%= (!locals.showTasks && !locals.showNotifications && !locals.showEditProfile && !locals.showSubmitReport && !locals.showMyReport) ? 'active' : '' %>">
+            <i class="bi bi-house-door"></i> Dashboard
+          </a>
+        </li>
+        <li>
+          <a href="/account/tasks/my-tasks"
+             class="<%= locals.showTasks ? 'active' : '' %>">
+            <i class="bi bi-list-check"></i> My Tasks
+          </a>
+        </li>
+        <li>
+          <a href="/account/tasks/notifications"
+             class="<%= locals.showNotifications ? 'active' : '' %>">
+            <i class="bi bi-bell"></i> Notifications
+            <% if (typeof unreadCount !== 'undefined' && unreadCount > 0) { %>
+              <span class="sidebar-notif-count"><%= unreadCount %></span>
+            <% } %>
+          </a>
+        </li>
+        <li>
+          <a href="/account/tasks/edit-profile"
+             class="<%= locals.showEditProfile ? 'active' : '' %>">
+            <i class="bi bi-person-circle"></i> Edit Profile
+          </a>
+        </li>
         <li><a href="#"><i class="bi bi-book"></i> Projects</a></li>
         <li><a href="#"><i class="bi bi-calendar-check"></i> Upcoming Events</a></li>
-        <li><a href="#"><i class="bi bi-file-earmark-text"></i>Task</a></li>
         <li><a href="#"><i class="bi bi-question-circle"></i> Help & Support</a></li>
       </ul>
     </aside>
 
-    <!-- Main Content -->
+    <!-- ── MAIN BODY ── -->
     <div class="main-body">
-      <div class="cards">
-        <div class="card">
-          <h4>Membership Status</h4>
-          <p>Active</p>
-        </div>
-        <div class="card">
-          <h4>Events Attended</h4>
-          <p>12</p>
-        </div>
-        <div class="card">
-          <h4>Upcoming Events</h4>
-          <p>3</p>
-        </div>
-        <div class="card">
-          <h4>Points Earned</h4>
-          <p>450</p>
-        </div>
-        <div class="card">
-          <h4>Feedback</h4>
-          <p>89%</p>
-        </div>
-        <div class="card">
-          <h4>Growth</h4>
-          <p>92%</p>
-        </div>
-      </div>
 
+      <!-- Flash messages -->
+      <% if (messages?.success) { %>
+        <div class="flash-msg flash-success" style="margin:1rem 1.5rem 0;">
+          <i class="bi bi-check-circle-fill"></i> <%= messages.success %>
+        </div>
+      <% } %>
+      <% if (messages?.notice) { %>
+        <div class="flash-msg flash-warn" style="margin:1rem 1.5rem 0;">
+          <i class="bi bi-exclamation-triangle-fill"></i> <%= messages.notice %>
+        </div>
+      <% } %>
+
+      <!-- ════════════════════════════════════════════ -->
+      <!--  DEFAULT DASHBOARD                          -->
+      <!-- ════════════════════════════════════════════ -->
+      <% if (!locals.showTasks && !locals.showSubmitReport && !locals.showNotifications && !locals.showEditProfile && !locals.showMyReport) { %>
+        <div class="cards">
+          <div class="card"><h4>Membership Status</h4><p>Active</p></div>
+          <div class="card"><h4>Events Attended</h4><p>12</p></div>
+          <div class="card"><h4>Upcoming Events</h4><p>3</p></div>
+          <div class="card"><h4>Points Earned</h4><p>450</p></div>
+          <div class="card"><h4>Feedback</h4><p>89%</p></div>
+          <div class="card"><h4>Growth</h4><p>92%</p></div>
+        </div>
+      <% } %>
+
+      <!-- ════════════════════════════════════════════ -->
+      <!--  MY TASKS                                   -->
+      <!-- ════════════════════════════════════════════ -->
+      <% if (locals.showTasks) { %>
+        <div class="panel-section">
+          <div class="panel-section-header">
+            <h2><i class="bi bi-list-check"></i> My Assigned Tasks</h2>
+          </div>
+          <div class="panel-section-body">
+            <% if (tasks && tasks.length > 0) { %>
+              <div class="task-list">
+                <% tasks.forEach(task => { %>
+                  <div class="task-card">
+                    <div class="task-card-left">
+                      <h3><%= task.title %></h3>
+                      <p><%= task.description || 'No description provided.' %></p>
+                      <div class="task-meta">
+                        <span class="tbadge tbadge-<%= task.priority %>"><%= task.priority %></span>
+                        <span class="tbadge tbadge-<%= task.status %>"><%= task.status.replace('_',' ') %></span>
+                        <% if (task.due_date) { %>
+                          <span class="task-due">
+                            <i class="bi bi-calendar3"></i>
+                            Due: <%= new Date(task.due_date).toLocaleDateString('en-GB') %>
+                          </span>
+                        <% } %>
+                        <span class="task-due">
+                          <i class="bi bi-person"></i>
+                          From: <strong><%= task.assigned_by_name %></strong>
+                        </span>
+                      </div>
+                    </div>
+                    <div class="task-card-right">
+                      <% if (task.status === 'pending' || task.status === 'in_progress') { %>
+                        <a href="/account/tasks/submit-report/<%= task.task_id %>" class="ebtn ebtn-green">
+                          <i class="bi bi-send-fill"></i> Submit Report
+                        </a>
+                      <% } else if (task.status === 'submitted') { %>
+                        <span class="ebtn ebtn-gray" style="cursor:default;">
+                          <i class="bi bi-hourglass-split"></i> Awaiting Review
+                        </span>
+                      <% } else if (task.status === 'completed') { %>
+                        <span class="ebtn ebtn-outline" style="cursor:default;">
+                          <i class="bi bi-check2-circle"></i> Completed
+                        </span>
+                      <% } %>
+                    </div>
+                  </div>
+                <% }) %>
+              </div>
+            <% } else { %>
+              <div class="empty-state">
+                <i class="bi bi-inbox-fill"></i>
+                <p>No tasks assigned to you yet.</p>
+              </div>
+            <% } %>
+          </div>
+        </div>
+      <% } %>
+
+      <!-- ════════════════════════════════════════════ -->
+      <!--  SUBMIT REPORT                              -->
+      <!-- ════════════════════════════════════════════ -->
+      <% if (locals.showSubmitReport && locals.task) { %>
+        <div class="panel-section">
+          <div class="panel-section-header" style="justify-content:space-between;">
+            <h2><i class="bi bi-file-earmark-text-fill"></i> Submit Report</h2>
+            <a href="/account/tasks/my-tasks" class="ebtn ebtn-gray ebtn-sm">
+              <i class="bi bi-arrow-left"></i> Back
+            </a>
+          </div>
+          <div class="panel-section-body">
+
+            <!-- Task summary -->
+            <div class="task-summary-box">
+              <strong>Task:</strong> <%= task.title %><br/>
+              <strong>Description:</strong> <%= task.description || '—' %><br/>
+              <strong>Priority:</strong>
+              <span class="tbadge tbadge-<%= task.priority %>"><%= task.priority %></span>
+              <% if (task.due_date) { %>
+                &nbsp; <strong>Due:</strong> <%= new Date(task.due_date).toLocaleDateString('en-GB') %>
+              <% } %><br/>
+              <strong>Assigned by:</strong> <%= task.assigned_by_name %>
+            </div>
+
+            <% if (existingReport) { %>
+              <div class="flash-msg flash-success">
+                <i class="bi bi-check-circle-fill"></i>
+                Report already submitted on
+                <%= new Date(existingReport.submitted_at).toLocaleString('en-GB') %>.
+                Waiting for admin review.
+              </div>
+            <% } else { %>
+              <form action="/account/tasks/submit-report/<%= task.task_id %>"
+                    method="POST" class="eform">
+                <div class="fg">
+                  <label>Your Report <span style="color:red;">*</span></label>
+                  <textarea name="report_text" rows="9"
+                    placeholder="Describe what you accomplished, challenges faced, results achieved..."
+                    required></textarea>
+                </div>
+                <div class="form-actions">
+                  <a href="/account/tasks/my-tasks" class="ebtn ebtn-gray">Cancel</a>
+                  <button type="submit" class="ebtn ebtn-green">
+                    <i class="bi bi-send-fill"></i> Submit Report
+                  </button>
+                </div>
+              </form>
+            <% } %>
+          </div>
+        </div>
+      <% } %>
+
+      <!-- ════════════════════════════════════════════ -->
+      <!--  MY REPORT + ADMIN COMMENTS                 -->
+      <!-- ════════════════════════════════════════════ -->
+      <% if (locals.showMyReport && locals.report) { %>
+        <div class="panel-section">
+          <div class="panel-section-header" style="justify-content:space-between;">
+            <h2><i class="bi bi-file-earmark-check-fill"></i> <%= report.task_title %></h2>
+            <a href="/account/tasks/my-tasks" class="ebtn ebtn-gray ebtn-sm">
+              <i class="bi bi-arrow-left"></i> Back
+            </a>
+          </div>
+          <div class="panel-section-body">
+
+            <p style="font-size:0.8rem;color:#888;margin-bottom:1rem;">
+              <i class="bi bi-clock"></i>
+              Submitted: <%= new Date(report.submitted_at).toLocaleString('en-GB') %>
+            </p>
+
+            <div class="sub-title"><i class="bi bi-file-text"></i> Report Content</div>
+            <div class="report-box"><%= report.report_text %></div>
+
+            <div class="sub-title">
+              <i class="bi bi-chat-left-dots-fill"></i>
+              Admin Comments (<%= comments?.length || 0 %>)
+            </div>
+
+            <% if (comments && comments.length > 0) { %>
+              <div class="comment-list">
+                <% comments.forEach(c => { %>
+                  <div class="comment-item">
+                    <div class="comment-by">
+                      <i class="bi bi-person-badge-fill"></i>
+                      <%= c.commenter_name %> — Admin
+                    </div>
+                    <div class="comment-text"><%= c.comment_text %></div>
+                    <div class="comment-time">
+                      <i class="bi bi-clock"></i>
+                      <%= new Date(c.created_at).toLocaleString('en-GB') %>
+                    </div>
+                  </div>
+                <% }) %>
+              </div>
+            <% } else { %>
+              <div class="empty-state" style="padding:1.5rem 0;">
+                <i class="bi bi-chat-dots"></i>
+                <p>No admin comments yet. Check back later.</p>
+              </div>
+            <% } %>
+
+          </div>
+        </div>
+      <% } %>
+
+      <!-- ════════════════════════════════════════════ -->
+      <!--  NOTIFICATIONS                              -->
+      <!-- ════════════════════════════════════════════ -->
+      <% if (locals.showNotifications) { %>
+        <div class="panel-section">
+          <div class="panel-section-header">
+            <h2><i class="bi bi-bell-fill"></i> Notifications</h2>
+          </div>
+          <div class="panel-section-body">
+            <% if (notifications && notifications.length > 0) { %>
+              <div class="notif-list">
+                <% notifications.forEach(n => { %>
+                  <div class="notif-item <%= n.is_read ? '' : 'unread' %>">
+                    <div style="flex:1;">
+                      <div class="notif-msg">
+                        <% if (!n.is_read) { %>
+                          <i class="bi bi-circle-fill"
+                             style="color:#ef5350;font-size:0.45rem;vertical-align:middle;margin-right:4px;"></i>
+                        <% } %>
+                        <%= n.message %>
+                      </div>
+                      <div class="notif-time">
+                        <i class="bi bi-clock"></i>
+                        <%= new Date(n.created_at).toLocaleString('en-GB') %>
+                      </div>
+                    </div>
+                    <% if (n.link) { %>
+                      <a href="<%= n.link %>" class="ebtn ebtn-outline ebtn-sm">
+                        View <i class="bi bi-arrow-right"></i>
+                      </a>
+                    <% } %>
+                  </div>
+                <% }) %>
+              </div>
+            <% } else { %>
+              <div class="empty-state">
+                <i class="bi bi-bell-slash-fill"></i>
+                <p>No notifications yet.</p>
+              </div>
+            <% } %>
+          </div>
+        </div>
+      <% } %>
+
+      <!-- ════════════════════════════════════════════ -->
+      <!--  EDIT PROFILE                               -->
+      <!-- ════════════════════════════════════════════ -->
+      <% if (locals.showEditProfile && locals.profile) { %>
+        <div class="panel-section">
+          <div class="panel-section-header">
+            <h2><i class="bi bi-person-circle"></i> Edit My Profile</h2>
+          </div>
+          <div class="panel-section-body">
+
+            <!-- Profile hero -->
+            <div class="profile-hero">
+              <% if (profile.profile_image) { %>
+                <img src="<%= profile.profile_image %>"
+                     alt="Profile Photo" class="profile-avatar"/>
+              <% } else { %>
+                <div class="profile-avatar-placeholder">
+                  <i class="bi bi-person-fill"></i>
+                </div>
+              <% } %>
+              <div class="profile-hero-info">
+                <h3><%= profile.account_firstname %> <%= profile.account_lastname %></h3>
+                <p><%= profile.position || 'Employee' %> &middot; <%= profile.department || 'UHWF Tanzania' %></p>
+                <p><%= profile.account_email %></p>
+              </div>
+            </div>
+
+            <!-- Read-only info chips -->
+            <div class="readonly-chips">
+              <span><strong>Employee Code:</strong> <%= profile.employee_code || 'N/A' %></span>
+              <span><strong>Department:</strong>    <%= profile.department    || 'N/A' %></span>
+              <span><strong>Position:</strong>      <%= profile.position      || 'N/A' %></span>
+              <span><strong>Hired:</strong>
+                <%= profile.hire_date
+                    ? new Date(profile.hire_date).toLocaleDateString('en-GB')
+                    : 'N/A' %>
+              </span>
+            </div>
+
+            <!-- Edit form -->
+            <form action="/account/tasks/edit-profile"
+                  method="POST"
+                  enctype="multipart/form-data"
+                  class="eform">
+
+              <div class="form-row-2">
+                <div class="fg">
+                  <label>First Name</label>
+                  <input type="text" name="firstname"
+                         value="<%= profile.account_firstname %>" required/>
+                </div>
+                <div class="fg">
+                  <label>Last Name</label>
+                  <input type="text" name="lastname"
+                         value="<%= profile.account_lastname %>" required/>
+                </div>
+              </div>
+
+              <div class="fg">
+                <label>Phone Number</label>
+                <input type="text" name="phone_number"
+                       value="<%= profile.phone_number || '' %>"
+                       placeholder="+255 700 000 000"/>
+              </div>
+
+              <div class="fg">
+                <label>Profile Photo</label>
+                <input type="file" name="profile_image" accept="image/*"/>
+                <small style="color:#888;font-size:0.75rem;display:block;margin-top:4px;">
+                  Leave blank to keep current photo. JPG, PNG, WebP — max 5MB.
+                </small>
+              </div>
+
+              <div class="form-actions">
+                <a href="/account/dashboard_01/" class="ebtn ebtn-gray">
+                  <i class="bi bi-arrow-left"></i> Back
+                </a>
+                <button type="submit" class="ebtn ebtn-green">
+                  <i class="bi bi-save-fill"></i> Save Changes
+                </button>
+              </div>
+            </form>
+
+          </div>
+        </div>
+      <% } %>
+
+      <!-- ── FOOTER ── -->
       <div class="dashboard-footer">
         <div class="version" style="margin-top: 1.9rem;"><p>Version: 1.0.0.0</p></div>
         <ul id="footer">
-          <li><a href="">Home |</a></li>
-          <li><a href="">About |</a></li>
-          <li><a href="">Contact</a></li>
+          <li><a href="/">Home |</a></li>
+          <li><a href="/about">About |</a></li>
+          <li><a href="/contact">Contact</a></li>
         </ul>
       </div>
-    </div>
-  </div>
+
+    </div><!-- end main-body -->
+  </div><!-- end dashboard -->
 
   <script>
     // Sidebar toggle
     const menuToggle = document.getElementById('menuToggle');
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('overlay');
+    const sidebar    = document.getElementById('sidebar');
+    const overlay    = document.getElementById('overlay');
 
     menuToggle.addEventListener('click', () => {
       sidebar.classList.toggle('active');
@@ -100,7 +752,7 @@
 
     // Dropdown toggle
     document.querySelectorAll('.dropdown-1 > span').forEach(item => {
-      item.addEventListener('click', function() {
+      item.addEventListener('click', function () {
         this.parentElement.classList.toggle('active');
       });
     });

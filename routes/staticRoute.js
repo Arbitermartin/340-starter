@@ -74,13 +74,6 @@ router.get("/career", async (req, res) => {
     res.render("pages/career", { title: "Career Opportunities", nav: await utilities.getNav(), jobs: [], messages: req.flash() })
   }
 })
-// router.get("/career", utilities.handleErrors(async (req, res) => {
-//   let nav = await utilities.getNav()
-//   res.render("pages/Career", { 
-//     title: "Career Center", 
-//     nav 
-//   })
-// }))
 
 // ====================== EVENT READ MORE PAGE ======================
 router.get("/events/:id", 

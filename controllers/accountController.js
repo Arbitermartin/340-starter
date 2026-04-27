@@ -645,73 +645,8 @@ async function buildEditEmployee(req, res) {
  *  Process Update Employee (POST)
  *  Uses multer middleware for optional new image
  * *************************************** */
-// async function processUpdateEmployee(req, res) {
-//   // const employee = parseInt(req.params.employee_id);
-//   const employee = await accountModel.getEmployeeById(id);
-
-//   console.log("UPDATE EMPLOYEE - Body:", req.body);
-//   console.log("UPDATE EMPLOYEE - File:", req.file ? req.file.originalname : "No new file");
-
-//   const {
-//     firstname,
-//     lastname,
-//     email,
-//     employee_code,
-//     phone_number,
-//     department,
-//     position,
-//     hire_date,
-//     status,           // optional: allow changing status (active/inactive)
-//   } = req.body;
-
-//   let profile_image = null;
-
-//   if (req.file) {
-//     profile_image = `/images/site/${req.file.filename}`;   // match your multer folder
-//   }
-//   // If no new file → keep existing (null = don't update image column)
-
-//   try {
-//     // 1. Update account table (name + email)
-//     await accountModel.updateAccountBasic(
-//       employee.account_id,   // we get this from getEmployeeById
-//       firstname?.trim() || "",
-//       lastname?.trim() || "",
-//       email?.trim() || ""
-//     );
-
-//     // 2. Update employee table
-//     const updated = await accountModel.updateEmployee(
-//       employee,
-//       employee_code?.trim() || "",
-//       phone_number?.trim() || null,
-//       department?.trim() || null,
-//       position?.trim() || null,
-//       hire_date || null,
-//       profile_image,          // null = keep old
-//       status || "active"
-//     );
-
-//     if (updated) {
-//       req.flash("notice", `Employee ${firstname} ${lastname} updated successfully!`);
-//       return res.redirect("/account/");   // or "/account/inventory/employees"
-//     } else {
-//       req.flash("notice", "No changes made or employee not found.");
-//       return res.redirect(`/account/inventory/edit-employee/${employeeId}`);
-//     }
-//   } catch (error) {
-//     console.error("Update employee failed:", error);
-//     req.flash("notice", `Error: ${error.message || "Update failed"}`);
-//     return res.redirect(`/account/inventory/edit-employee/${employee}`);
-//   }
-// }
 async function processUpdateEmployee(req, res) {
   const employeeId = parseInt(req.params.employee_id);
-
-  console.log("UPDATE EMPLOYEE - ID:", employeeId);
-  console.log("UPDATE EMPLOYEE - Body:", req.body);
-  console.log("UPDATE EMPLOYEE - File:", req.file ? req.file.originalname : "No new file");
-
   let employee;
   try {
     employee = await accountModel.getEmployeeById(employeeId);
@@ -1159,28 +1094,100 @@ async function buildVideoGallery(req, res) {
   }
 }
 
-// Admin: Add New Video (you can create a form similar to add-event)
 async function buildAddVideo(req, res) {
-  let nav = await utilities.getNav();
-  res.render("inventory/add-video", {
+  if (!res.locals.loggedin || res.locals.accountData?.account_type !== 'admin') {
+    req.flash("notice", "Only administrators can add videos.");
+    return res.redirect("/account");
+  }
+
+  res.render("inventory/management", {
     title: "Add New Video",
-    nav,
+    layout: false,
+    showAccount: false,
+    showAddVideo: true,       // ← controls which panel shows in management.ejs
     messages: req.flash()
   });
 }
 
+// Admin: Process Add Video
 async function processAddVideo(req, res) {
-  try {
-    const { title, description, youtube_url, category } = req.body;
-    const created_by = res.locals.accountData.account_id;
+  if (!res.locals.loggedin || res.locals.accountData?.account_type !== 'admin') {
+    req.flash("notice", "Only administrators can add videos.");
+    return res.redirect("/account");
+  }
 
-    await accountModel.createVideo({ title, description, youtube_url, category, created_by });
+  const { title, description, youtube_url, category } = req.body;
+
+  if (!title?.trim() || !youtube_url?.trim()) {
+    req.flash("notice", "Title and YouTube URL are required.");
+    return res.redirect("/account/inventory/add-video");
+  }
+
+  try {
+    await accountModel.createVideo({
+      title: title.trim(),
+      description: description?.trim() || null,
+      youtube_url: youtube_url.trim(),
+      category: category?.trim() || 'General',
+      created_by: res.locals.accountData.account_id
+    });
 
     req.flash("success", "Video added successfully!");
     res.redirect("/account/inventory/add-video");
   } catch (err) {
-    req.flash("notice", "Failed to add video.");
+    console.error("processAddVideo Error:", err.message);
+    req.flash("notice", "Failed to add video: " + err.message);
     res.redirect("/account/inventory/add-video");
+  }
+}
+
+// Admin: List all videos in management panel
+async function viewVideos(req, res) {
+  if (!res.locals.loggedin || res.locals.accountData?.account_type !== 'admin') {
+    req.flash("notice", "Access denied.");
+    return res.redirect("/account");
+  }
+
+  try {
+    const videos = await accountModel.getAllVideos();
+    res.render("inventory/management", {
+      title: "Manage Videos",
+      layout: false,
+      showAccount: false,
+      showVideos: true,       // ← new panel flag
+      videos,
+      messages: req.flash()
+    });
+  } catch (err) {
+    console.error("viewVideos Error:", err.message);
+    req.flash("notice", "Failed to load videos.");
+    res.redirect("/account/");
+  }
+}
+
+// Admin: Delete (soft delete) a video
+async function deleteVideo(req, res) {
+  if (!res.locals.loggedin || res.locals.accountData?.account_type !== 'admin') {
+    req.flash("notice", "Only administrators can delete videos.");
+    return res.redirect("/account");
+  }
+
+  try {
+    const videoId = parseInt(req.params.video_id);
+
+    if (!videoId || isNaN(videoId)) {
+      req.flash("notice", "Invalid video ID.");
+      return res.redirect("/account/inventory/videos");
+    }
+
+    await accountModel.softDeleteVideo(videoId);
+
+    req.flash("notice", "Video deleted successfully.");
+    res.redirect("/account/inventory/videos");
+  } catch (err) {
+    console.error("deleteVideo Error:", err.message);
+    req.flash("notice", "Failed to delete video.");
+    res.redirect("/account/inventory/videos");
   }
 }
 // 1. Show Forgot Password Page
@@ -1194,44 +1201,7 @@ async function buildForgotPassword(req, res) {
 }
 
 // 2. Send Reset Link
-// 2. Send Reset Link - Improved with better debugging
-// async function sendResetLink(req, res) {
-//   const { email } = req.body;
-
-//   if (!email) {
-//     req.flash("notice", "Please enter your email address.");
-//     return res.redirect("/account/forgot-password");
-//   }
-
-//   try {
-//     console.log("Forgot Password Request for email:", email); // For debugging
-
-//     const account = await accountModel.getAccountByEmail(email);
-
-//     if (!account) {
-//       console.log("No account found for email:", email);
-//       req.flash("notice", "No account found with this email.");
-//       return res.redirect("/account/forgot-password");
-//     }
-
-//     const token = crypto.randomBytes(32).toString('hex');
-
-//     await accountModel.saveResetToken(email, token);
-//     console.log("Reset token saved for:", email);
-
-//     await sendPasswordResetEmail(email, token);
-//     console.log("Reset email sent to:", email);
-
-//     req.flash("success", "Password reset link has been sent to your email.");
-//     res.redirect("/account/forgot-password");
-
-//   } catch (err) {
-//     console.error("SendResetLink ERROR:", err.message);   // ← This will help us see the real error
-//     req.flash("notice", "Something went wrong. Please try again.");
-//     res.redirect("/account/forgot-password");
-//   }
-// }
-// Improved sendResetLink with clear debugging
+// 2. Send Reset Link -
 async function sendResetLink(req, res) {
   const { email } = req.body;
 
@@ -1422,6 +1392,443 @@ async function processAddJob(req, res) {
   }
 }
 
+// ═══════════════════════════════════════════════════════
+//  ADMIN — ASSIGN TASK
+// ═══════════════════════════════════════════════════════
+
+async function buildAssignTask(req, res) {
+  try {
+    const employees = await accountModel.getAllEmployees();
+    res.render("inventory/management", {
+      title: "Assign Task",
+      layout: false,
+      showAccount: false,
+      showAssignTask: true,
+      employees,
+      messages: req.flash()
+    });
+  } catch (err) {
+    console.error("buildAssignTask:", err.message);
+    req.flash("notice", "Failed to load form.");
+    res.redirect("/account/");
+  }
+}
+
+async function processAssignTask(req, res) {
+  try {
+    const { title, description, assigned_to, priority, due_date } = req.body;
+    if (!title?.trim() || !assigned_to) {
+      req.flash("notice", "Title and employee are required.");
+      return res.redirect("/account/inventory/assign-task");
+    }
+    await accountModel.createTask({
+      title:       title.trim(),
+      description: description?.trim() || null,
+      assigned_to: parseInt(assigned_to),
+      assigned_by: res.locals.accountData.account_id,
+      priority:    priority || "medium",
+      due_date:    due_date || null
+    });
+    req.flash("success", "Task assigned successfully!");
+    res.redirect("/account/inventory/assign-task");
+  } catch (err) {
+    console.error("processAssignTask:", err.message);
+    req.flash("notice", "Failed to assign task: " + err.message);
+    res.redirect("/account/inventory/assign-task");
+  }
+}
+
+async function viewAllTasks(req, res) {
+  try {
+    const tasks = await taskModel.getAllTasks();
+    res.render("inventory/management", {
+      title: "All Tasks",
+      layout: false,
+      showAllTasks: true,
+      showAccount: false,
+      tasks,
+      messages: req.flash()
+    });
+  } catch (err) {
+    console.error("viewAllTasks:", err.message);
+    req.flash("notice", "Failed to load tasks.");
+    res.redirect("/account/");
+  }
+}
+
+async function deleteTask(req, res) {
+  try {
+    await taskModel.deleteTask(parseInt(req.params.task_id));
+    req.flash("notice", "Task deleted.");
+    res.redirect("/account/inventory/tasks");
+  } catch (err) {
+    console.error("deleteTask:", err.message);
+    req.flash("notice", "Failed to delete task.");
+    res.redirect("/account/inventory/tasks");
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  ADMIN — REPORTS & COMMENTS
+// ═══════════════════════════════════════════════════════
+
+async function viewAllReports(req, res) {
+  try {
+    const reports = await taskModel.getAllReports();
+    res.render("inventory/management", {
+      title: "Submitted Reports",
+      layout: false,
+      showAllReports: true,
+      showAccount: false,
+      reports,
+      messages: req.flash()
+    });
+  } catch (err) {
+    console.error("viewAllReports:", err.message);
+    req.flash("notice", "Failed to load reports.");
+    res.redirect("/account/");
+  }
+}
+
+async function viewReportDetail(req, res) {
+  try {
+    const report_id = parseInt(req.params.report_id);
+    const report    = await taskModel.getReportById(report_id);
+    const comments  = await taskModel.getCommentsByReportId(report_id);
+    if (!report) {
+      req.flash("notice", "Report not found.");
+      return res.redirect("/account/inventory/reports");
+    }
+    res.render("inventory/management", {
+      title: "Report Detail",
+      layout: false,
+      showReportDetail: true,
+      showAccount: false,
+      report,
+      comments,
+      messages: req.flash()
+    });
+  } catch (err) {
+    console.error("viewReportDetail:", err.message);
+    req.flash("notice", "Failed to load report.");
+    res.redirect("/account/inventory/reports");
+  }
+}
+
+async function processAddComment(req, res) {
+  try {
+    const report_id        = parseInt(req.params.report_id);
+    const { comment_text } = req.body;
+    const admin_id         = res.locals.accountData.account_id;
+    const admin_name       = res.locals.accountData.account_firstname;
+
+    if (!comment_text?.trim()) {
+      req.flash("notice", "Comment cannot be empty.");
+      return res.redirect(`/account/inventory/reports/${report_id}`);
+    }
+
+    await taskModel.addComment({
+      report_id,
+      commented_by: admin_id,
+      comment_text: comment_text.trim()
+    });
+
+    const report = await taskModel.getReportById(report_id);
+
+    // Notify employee
+    await taskModel.createNotification({
+      user_id: report.employee_account_id,
+      message: `Admin ${admin_name} commented on your report for task: "${report.task_title}"`,
+      link:    `/account/tasks/my-report/${report_id}`
+    });
+
+    // Mark task completed
+    await taskModel.updateTaskStatus(report.task_id, "completed");
+
+    req.flash("success", "Comment posted and employee notified!");
+    res.redirect(`/account/inventory/reports/${report_id}`);
+  } catch (err) {
+    console.error("processAddComment:", err.message);
+    req.flash("notice", "Failed to add comment: " + err.message);
+    res.redirect(`/account/inventory/reports/${req.params.report_id}`);
+  }
+}
+
+async function downloadReportPDF(req, res) {
+  try {
+    const report_id = parseInt(req.params.report_id);
+    const report    = await taskModel.getReportById(report_id);
+    const comments  = await taskModel.getCommentsByReportId(report_id);
+
+    if (!report) {
+      req.flash("notice", "Report not found.");
+      return res.redirect("/account/inventory/reports");
+    }
+
+    const doc = new PDFDocument({ margin: 50, size: "A4" });
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition",
+      `attachment; filename="UHWF_Report_${report_id}.pdf"`);
+    doc.pipe(res);
+
+    // Green header bar
+    doc.rect(0, 0, 595, 80).fill("#2e7d32");
+    doc.fillColor("white").fontSize(22).font("Helvetica-Bold")
+       .text("UHWF Tanzania", 50, 22);
+    doc.fontSize(11).font("Helvetica").text("Task Report", 50, 50);
+    doc.moveDown(4);
+
+    // Info rows
+    const rows = [
+      ["Task",      report.task_title],
+      ["Employee",  report.employee_name],
+      ["Email",     report.employee_email],
+      ["Priority",  (report.priority || "N/A").toUpperCase()],
+      ["Due Date",  report.due_date
+                      ? new Date(report.due_date).toLocaleDateString("en-GB")
+                      : "N/A"],
+      ["Submitted", new Date(report.submitted_at).toLocaleString("en-GB")],
+    ];
+    rows.forEach(([label, value]) => {
+      doc.fontSize(10).font("Helvetica-Bold").fillColor("#555")
+         .text(`${label}:  `, { continued: true });
+      doc.font("Helvetica").fillColor("#1a1a2e").text(value || "N/A");
+    });
+
+    doc.moveDown();
+    doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor("#e0e0e0").stroke();
+    doc.moveDown();
+
+    doc.fontSize(13).font("Helvetica-Bold").fillColor("#2e7d32").text("Report Content");
+    doc.moveDown(0.3);
+    doc.fontSize(10).font("Helvetica").fillColor("#333")
+       .text(report.report_text, { lineGap: 5 });
+
+    if (comments && comments.length > 0) {
+      doc.moveDown();
+      doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor("#e0e0e0").stroke();
+      doc.moveDown();
+      doc.fontSize(13).font("Helvetica-Bold").fillColor("#2e7d32").text("Admin Comments");
+      doc.moveDown(0.3);
+      comments.forEach((c, i) => {
+        doc.fontSize(10).font("Helvetica-Bold").fillColor("#2e7d32")
+           .text(`[${i+1}] ${c.commenter_name} — ${new Date(c.created_at).toLocaleString("en-GB")}`);
+        doc.fontSize(10).font("Helvetica").fillColor("#333")
+           .text(c.comment_text, { indent: 12, lineGap: 4 });
+        doc.moveDown(0.4);
+      });
+    }
+
+    doc.moveDown(2);
+    doc.fontSize(8).fillColor("#aaa").font("Helvetica")
+       .text(`Generated by UHWF Tanzania Portal · ${new Date().toLocaleString("en-GB")}`,
+             { align: "center" });
+    doc.end();
+
+  } catch (err) {
+    console.error("downloadReportPDF:", err.message);
+    req.flash("notice", "Failed to generate PDF.");
+    res.redirect("/account/inventory/reports");
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  EMPLOYEE — TASKS
+// ═══════════════════════════════════════════════════════
+
+async function employeeTaskList(req, res) {
+  try {
+    const account_id  = res.locals.accountData.account_id;
+    const tasks       = await taskModel.getTasksByEmployee(account_id);
+    const unreadCount = await taskModel.countUnreadNotifications(account_id);
+    res.render("inventory/dashboard_01", {
+      title: "My Tasks",
+      layout: false,
+      showTasks: true,
+      tasks,
+      unreadCount,
+      messages: req.flash(),
+      account_firstname: res.locals.accountData.account_firstname,
+      account_email:     res.locals.accountData.account_email,
+      account_type:      res.locals.accountData.account_type,
+    });
+  } catch (err) {
+    console.error("employeeTaskList:", err.message);
+    req.flash("notice", "Failed to load tasks.");
+    res.redirect("/account/dashboard_01/");
+  }
+}
+
+async function buildSubmitReport(req, res) {
+  try {
+    const task_id    = parseInt(req.params.task_id);
+    const account_id = res.locals.accountData.account_id;
+    const task       = await taskModel.getTaskById(task_id);
+
+    if (!task || task.assigned_to !== account_id) {
+      req.flash("notice", "Task not found.");
+      return res.redirect("/account/tasks/my-tasks");
+    }
+
+    const existingReport = await taskModel.getReportByTaskId(task_id);
+    const unreadCount    = await taskModel.countUnreadNotifications(account_id);
+
+    res.render("inventory/dashboard_01", {
+      title: "Submit Report",
+      layout: false,
+      showSubmitReport: true,
+      task,
+      existingReport: existingReport || null,
+      unreadCount,
+      messages: req.flash(),
+      account_firstname: res.locals.accountData.account_firstname,
+      account_email:     res.locals.accountData.account_email,
+      account_type:      res.locals.accountData.account_type,
+    });
+  } catch (err) {
+    console.error("buildSubmitReport:", err.message);
+    req.flash("notice", "Error loading task.");
+    res.redirect("/account/tasks/my-tasks");
+  }
+}
+
+async function processSubmitReport(req, res) {
+  try {
+    const task_id         = parseInt(req.params.task_id);
+    const { report_text } = req.body;
+    const account_id      = res.locals.accountData.account_id;
+
+    if (!report_text?.trim()) {
+      req.flash("notice", "Report content is required.");
+      return res.redirect(`/account/tasks/submit-report/${task_id}`);
+    }
+    await taskModel.submitReport({
+      task_id,
+      submitted_by: account_id,
+      report_text:  report_text.trim()
+    });
+    req.flash("success", "Report submitted successfully!");
+    res.redirect("/account/tasks/my-tasks");
+  } catch (err) {
+    console.error("processSubmitReport:", err.message);
+    req.flash("notice", "Failed to submit: " + err.message);
+    res.redirect(`/account/tasks/submit-report/${req.params.task_id}`);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  EMPLOYEE — NOTIFICATIONS
+// ═══════════════════════════════════════════════════════
+
+async function viewNotifications(req, res) {
+  try {
+    const account_id    = res.locals.accountData.account_id;
+    const notifications = await taskModel.getNotificationsByUser(account_id);
+    await taskModel.markNotificationsRead(account_id);
+    res.render("inventory/dashboard_01", {
+      title: "Notifications",
+      layout: false,
+      showNotifications: true,
+      notifications,
+      unreadCount: 0,
+      messages: req.flash(),
+      account_firstname: res.locals.accountData.account_firstname,
+      account_email:     res.locals.accountData.account_email,
+      account_type:      res.locals.accountData.account_type,
+    });
+  } catch (err) {
+    console.error("viewNotifications:", err.message);
+    req.flash("notice", "Failed to load notifications.");
+    res.redirect("/account/dashboard_01/");
+  }
+}
+
+async function viewMyReport(req, res) {
+  try {
+    const report_id   = parseInt(req.params.report_id);
+    const report      = await taskModel.getReportById(report_id);
+    const comments    = await taskModel.getCommentsByReportId(report_id);
+    const unreadCount = await taskModel.countUnreadNotifications(
+                          res.locals.accountData.account_id);
+    res.render("inventory/dashboard_01", {
+      title: "My Report",
+      layout: false,
+      showMyReport: true,
+      report,
+      comments,
+      unreadCount,
+      messages: req.flash(),
+      account_firstname: res.locals.accountData.account_firstname,
+      account_email:     res.locals.accountData.account_email,
+      account_type:      res.locals.accountData.account_type,
+    });
+  } catch (err) {
+    console.error("viewMyReport:", err.message);
+    req.flash("notice", "Failed to load report.");
+    res.redirect("/account/tasks/my-tasks");
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  EMPLOYEE — EDIT PROFILE
+// ═══════════════════════════════════════════════════════
+
+async function buildEditProfile(req, res) {
+  try {
+    const account_id  = res.locals.accountData.account_id;
+    const profile     = await taskModel.getEmployeeProfile(account_id);
+    const unreadCount = await taskModel.countUnreadNotifications(account_id);
+    res.render("inventory/dashboard_01", {
+      title: "Edit Profile",
+      layout: false,
+      showEditProfile: true,
+      profile,
+      unreadCount,
+      messages: req.flash(),
+      account_firstname: res.locals.accountData.account_firstname,
+      account_email:     res.locals.accountData.account_email,
+      account_type:      res.locals.accountData.account_type,
+    });
+  } catch (err) {
+    console.error("buildEditProfile:", err.message);
+    req.flash("notice", "Failed to load profile.");
+    res.redirect("/account/dashboard_01/");
+  }
+}
+
+async function processEditProfile(req, res) {
+  try {
+    const account_id    = res.locals.accountData.account_id;
+    const { firstname, lastname, phone_number } = req.body;
+    const profile_image = req.file ? `/images/site/${req.file.filename}` : null;
+    await taskModel.updateEmployeeProfile({
+      account_id,
+      firstname:    firstname?.trim()    || "",
+      lastname:     lastname?.trim()     || "",
+      phone_number: phone_number?.trim() || null,
+      profile_image
+    });
+    req.flash("success", "Profile updated successfully!");
+    res.redirect("/account/tasks/edit-profile");
+  } catch (err) {
+    console.error("processEditProfile:", err.message);
+    req.flash("notice", "Failed to update: " + err.message);
+    res.redirect("/account/tasks/edit-profile");
+  }
+}
+
+const editProfileMiddleware = [upload.single("profile_image"), processEditProfile];
+
+// module.exports = {
+//   buildAssignTask, processAssignTask,
+//   viewAllTasks, deleteTask,
+//   viewAllReports, viewReportDetail,
+//   processAddComment, downloadReportPDF,
+//   employeeTaskList, buildSubmitReport, processSubmitReport,
+//   viewNotifications, viewMyReport,
+//   buildEditProfile, editProfileMiddleware,
+// };
+
 
 // Export the middleware chain correctly
 module.exports.addMemberMiddleware = [
@@ -1493,6 +1900,11 @@ module.exports.processResetPassword=processResetPassword;
 module.exports.getCareerPage=getCareerPage;
 module.exports.buildAddJob=buildAddJob;
 module.exports.processAddJob=processAddJob;
+module.exports.viewVideos=viewVideos;
+module.exports.deleteVideo=deleteVideo;
+module.exports.buildAssignTask=buildAssignTask;
+module.exports.processAssignTask=processAssignTask;
+module.exports.viewAllTasks=viewAllTasks;
 
 
 

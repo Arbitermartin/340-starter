@@ -9,8 +9,12 @@
   const displayEvents =(typeof  showAddEvent === 'undefined')? false : showAddEvent;
   const displayRegistrations = (typeof showRegistrations === 'undefined') ? false : showRegistrations;
   const displayJobs =(typeof showAddJob==='undefined')? false :showAddJob;
-
+  const displayVideo =(typeof showVideos==='undefined')? false :showVideos;
+  const displayVideos =(typeof showAddVideo==='undefined')? false :showAddVideo;
+  const displayAssignTask = (typeof showAssignTask  === 'undefined') ? false : showAssignTask;
+  const displayAllTasks  =(typeof showAllTasks  === 'undefined') ? false : showAllTasks;
 %>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -66,7 +70,7 @@
               <a href="/account/" class="welcome-link">
                 <%= greeting %>, <%= locals.accountData?.account_firstname || 'User' %>
               </a>
-              <a href="/account/logout" class="logout-link"><button>Logout <i class="bi bi-box-arrow-right"></i></button></a>
+              <a href="/account/logout" class="logout-link"><button><i class="bi bi-box-arrow-right"></i>Logout </button></a>
             <%} else{%>
               <a title="Click to log in" href="/account/login">My Account</a>
             <%}%>
@@ -95,14 +99,27 @@
           </li>
           <!-- Citizen Dropdown -->
           <li class="dropdown-1">
-            <span><i class="bi bi-people"></i> Citizen</span>
+            <span><i class="bi bi-people"></i>Videos Page</span>
             <ul class="dropdown-menu">
-              <li><a class="dropdown-item" href="#"><i class="bi bi-plus-circle"></i> Add Citizen</a></li>
-              <li><a class="dropdown-item" href="#"><i class="bi bi-pencil-square"></i> Edit Citizen</a></li>
-              <li><a class="dropdown-item" href="#"><i class="bi bi-eye"></i> View Citizen</a></li>
-              <li><a class="dropdown-item" href="#"><i class="bi bi-trash"></i> Delete Citizen</a></li>
+              <li><a class="dropdown-item" href="/account/inventory/add-video"><i class="bi bi-plus-circle"></i> Add video</a></li>
+              <li><a class="dropdown-item" href="/account/inventory/videos"><i class="bi bi-pencil-square"></i>View Allvideos</a></li>
             </ul>
           </li>
+          <li class="dropdown-1">
+            <span><i class="bi bi-list-check"></i> Tasks</span>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="/account/inventory/assign-task">
+                <i class="bi bi-plus-circle"></i> Assign Task
+              </a></li>
+              <li><a class="dropdown-item" href="/account/inventory/all-tasks">
+                <i class="bi bi-list-ul"></i> All Tasks
+              </a></li>
+              <li><a class="dropdown-item" href="/account/inventory/reports">
+                <i class="bi bi-file-earmark-text"></i> Reports
+              </a></li>
+            </ul>
+          </li>
+
 
           <!-- Employee Dropdown -->
           <li class="dropdown-1">
@@ -123,8 +140,6 @@
             </ul>
           </li>
 
-          <li><i class="bi bi-file-earmark-richtext"></i> Reports</li>
-
           <!-- Settings Dropdown (Admin features) -->
           <li class="dropdown-1">
             <span><i class="bi bi-newspaper"></i>Events & News</span>
@@ -140,7 +155,7 @@
             </li>
             <li>
               <a class="dropdown-item" href="/account/inventory/add-job">
-                <i class="bi bi-list-check"></i>add jobs
+                <i class="bi bi-briefcase"></i>Add jobs
               </a>
             </li>
             <li class="dropdown-1">
@@ -238,6 +253,19 @@
   <% if (displayJobs === true) { %>
     <%- include('add-job') %>
   <% } %>
+  <% if (displayVideo === true) { %>
+    <%- include('videos') %>
+  <% } %>
+  <% if (displayVideos === true) { %>
+    <%- include('add-video') %>
+  <% } %>
+  <% if (displayAssignTask === true) { %>
+    <%- include('assign-task') %>
+  <% } %>
+  <% if (displayAllTasks === true) { %>
+    <%- include('all-tasks') %>
+  <% } %>
+ 
 </div>
 
 <script>

@@ -1753,10 +1753,28 @@ h1 {
 
 }
 .sub{
+  background-color: var(--dark-green);
+}
+.sub:hover{
   background-color: var(--color-bg);
 }
+/* EMployee dashboard */
+
 
 /* career page style */
+.enviro-01{
+  position: relative;
+  min-height: 480px;
+  height: 60vh;
+  background: linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.75)),
+                url('../images/site/career.webp') center/cover no-repeat;
+  color: var(--color-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 20px;
+}
 .career{
   padding: 0 16px;
  
@@ -3665,7 +3683,7 @@ select:focus {
 
 /* Page header */
 .page-header{
-  background-image: url('/images/site/landuse.webp');
+  background-image: url('/images/site/uhwf_image.webp');
   background-repeat: no-repeat;
   background-size: cover;
   height: 300px;
@@ -3674,11 +3692,11 @@ select:focus {
   padding: 20px;
   font-size: 1.8rem;
   margin-bottom: 0.3rem;
-  color: var(--color-white);
+  color: var(--color-bg);
 }
 
 .page-header p {
-  color: var(--color-bg);
+  color: var(--color-button-text);
   margin-bottom: 1.5rem;
   text-align: center;
 }
@@ -4184,6 +4202,12 @@ input, select {
         max-width: 700px;
         margin: 20px 0px;
         
+      }
+      .career-container{
+        padding: 20px;
+      }
+      .job-card {
+        width: 80%;
       }
 
       /* land use style */

@@ -767,19 +767,50 @@ async function createVideo(videoData) {
 /* ****************************************
  *   Get All Active Videos for Gallery
  * *************************************** */
-async function getAllVideos() {
-  try {
-    const sql = `
-      SELECT * FROM public.videos 
-      WHERE is_active = true 
-      ORDER BY created_at DESC
-    `;
-    const result = await pool.query(sql);
-    return result.rows;
-  } catch (err) {
-    console.error("getAllVideos error:", err);
-    return [];
+
+// Extract YouTube ID from any URL format
+function extractYoutubeId(url) {
+  if (!url) return null;
+  const patterns = [
+    /youtu\.be\/([^?&\s]{11})/,
+    /youtube\.com\/watch\?v=([^?&\s]{11})/,
+    /youtube\.com\/embed\/([^?&\s]{11})/,
+  ];
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match) return match[1];
   }
+  return null;
+}
+
+// Get all active videos
+async function getAllVideos() {
+  const result = await pool.query(
+    `SELECT * FROM public.videos WHERE is_active = TRUE ORDER BY created_at DESC`
+  );
+  return result.rows;
+}
+
+// Create new video (auto-extracts youtube_id)
+async function createVideo({ title, description, youtube_url, category, created_by }) {
+  const youtube_id = extractYoutubeId(youtube_url);
+  const result = await pool.query(
+    `INSERT INTO public.videos 
+      (title, description, youtube_url, youtube_id, category, created_by)
+     VALUES ($1, $2, $3, $4, $5, $6)
+     RETURNING *`,
+    [title, description, youtube_url, youtube_id, category || 'General', created_by]
+  );
+  return result.rows[0];
+}
+
+// Soft delete video (sets is_active = FALSE)
+async function softDeleteVideo(video_id) {
+  const result = await pool.query(
+    `UPDATE public.videos SET is_active = FALSE WHERE video_id = $1 RETURNING *`,
+    [video_id]
+  );
+  return result.rows[0];
 }
 /* Save Reset Token */
 async function saveResetToken(email, token) {
@@ -870,5 +901,234 @@ async function createJob({ department_name, job_title, number_of_positions, qual
 }
 
 
-module.exports={registerAccount,checkExistingEmail,getAccountByEmail,addMember,updateMember,getMemberById,getAllMembers,deleteMember,getAllStudents,viewEmployees,addAccount,addEmployee,getEmployeeById,getAccountByEmployeeCode,deleteEmployee,updateAccountBasic,updateEmployee,saveContactMessage,getLatestNews,getUpcomingEvents,createNews,createEvent,getEventById,addEventRegistration,getAllEventRegistrations,createVideo,getAllVideos,saveResetToken,verifyResetToken,updatePassword,getAllJobs,createJob}
+// ─── TASKS ──────────────────────────────────────────────
+
+async function createTask({ title, description, assigned_to, assigned_by, priority, due_date }) {
+  const result = await pool.query(
+    `INSERT INTO public.tasks (title, description, assigned_to, assigned_by, priority, due_date)
+     VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
+    [title, description, assigned_to, assigned_by, priority || 'medium', due_date || null]
+  );
+  return result.rows[0];
+}
+
+async function getAllTasks() {
+  const result = await pool.query(
+    `SELECT t.*,
+            ae.account_firstname||' '||ae.account_lastname AS employee_name,
+            ae.account_email AS employee_email,
+            ab.account_firstname||' '||ab.account_lastname AS assigned_by_name
+     FROM public.tasks t
+     JOIN public.account ae ON t.assigned_to = ae.account_id
+     JOIN public.account ab ON t.assigned_by = ab.account_id
+     ORDER BY t.created_at DESC`
+  );
+  return result.rows;
+}
+
+async function getTasksByEmployee(account_id) {
+  const result = await pool.query(
+    `SELECT t.*,
+            ab.account_firstname||' '||ab.account_lastname AS assigned_by_name
+     FROM public.tasks t
+     JOIN public.account ab ON t.assigned_by = ab.account_id
+     WHERE t.assigned_to = $1
+     ORDER BY t.created_at DESC`,
+    [account_id]
+  );
+  return result.rows;
+}
+
+async function getTaskById(task_id) {
+  const result = await pool.query(
+    `SELECT t.*,
+            ae.account_firstname||' '||ae.account_lastname AS employee_name,
+            ab.account_firstname||' '||ab.account_lastname AS assigned_by_name
+     FROM public.tasks t
+     JOIN public.account ae ON t.assigned_to = ae.account_id
+     JOIN public.account ab ON t.assigned_by = ab.account_id
+     WHERE t.task_id = $1`,
+    [task_id]
+  );
+  return result.rows[0] || null;
+}
+
+async function updateTaskStatus(task_id, status) {
+  const result = await pool.query(
+    `UPDATE public.tasks SET status=$1 WHERE task_id=$2 RETURNING *`,
+    [status, task_id]
+  );
+  return result.rows[0];
+}
+
+async function deleteTask(task_id) {
+  const result = await pool.query(
+    `DELETE FROM public.tasks WHERE task_id=$1 RETURNING *`,
+    [task_id]
+  );
+  return result.rows[0];
+}
+
+// ─── REPORTS ────────────────────────────────────────────
+
+async function submitReport({ task_id, submitted_by, report_text }) {
+  const result = await pool.query(
+    `INSERT INTO public.task_reports (task_id, submitted_by, report_text)
+     VALUES ($1,$2,$3) RETURNING *`,
+    [task_id, submitted_by, report_text]
+  );
+  await pool.query(
+    `UPDATE public.tasks SET status='submitted' WHERE task_id=$1`,
+    [task_id]
+  );
+  return result.rows[0];
+}
+
+async function getReportByTaskId(task_id) {
+  const result = await pool.query(
+    `SELECT r.*, a.account_firstname||' '||a.account_lastname AS submitted_by_name
+     FROM public.task_reports r
+     JOIN public.account a ON r.submitted_by = a.account_id
+     WHERE r.task_id=$1 ORDER BY r.submitted_at DESC LIMIT 1`,
+    [task_id]
+  );
+  return result.rows[0] || null;
+}
+
+async function getAllReports() {
+  const result = await pool.query(
+    `SELECT r.*,
+            t.title AS task_title, t.priority, t.due_date,
+            a.account_firstname||' '||a.account_lastname AS employee_name,
+            a.account_email AS employee_email
+     FROM public.task_reports r
+     JOIN public.tasks t ON r.task_id = t.task_id
+     JOIN public.account a ON r.submitted_by = a.account_id
+     ORDER BY r.submitted_at DESC`
+  );
+  return result.rows;
+}
+
+async function getReportById(report_id) {
+  const result = await pool.query(
+    `SELECT r.*,
+            t.title AS task_title, t.description AS task_description,
+            t.due_date, t.priority, t.task_id,
+            a.account_firstname||' '||a.account_lastname AS employee_name,
+            a.account_email AS employee_email,
+            a.account_id AS employee_account_id
+     FROM public.task_reports r
+     JOIN public.tasks t ON r.task_id = t.task_id
+     JOIN public.account a ON r.submitted_by = a.account_id
+     WHERE r.report_id=$1`,
+    [report_id]
+  );
+  return result.rows[0] || null;
+}
+
+// ─── COMMENTS ───────────────────────────────────────────
+
+async function addComment({ report_id, commented_by, comment_text }) {
+  const result = await pool.query(
+    `INSERT INTO public.report_comments (report_id, commented_by, comment_text)
+     VALUES ($1,$2,$3) RETURNING *`,
+    [report_id, commented_by, comment_text]
+  );
+  return result.rows[0];
+}
+
+async function getCommentsByReportId(report_id) {
+  const result = await pool.query(
+    `SELECT c.*, a.account_firstname||' '||a.account_lastname AS commenter_name, a.account_type
+     FROM public.report_comments c
+     JOIN public.account a ON c.commented_by = a.account_id
+     WHERE c.report_id=$1 ORDER BY c.created_at ASC`,
+    [report_id]
+  );
+  return result.rows;
+}
+
+// ─── NOTIFICATIONS ──────────────────────────────────────
+
+async function createNotification({ user_id, message, link }) {
+  const result = await pool.query(
+    `INSERT INTO public.notifications (user_id, message, link)
+     VALUES ($1,$2,$3) RETURNING *`,
+    [user_id, message, link || null]
+  );
+  return result.rows[0];
+}
+
+async function getNotificationsByUser(user_id) {
+  const result = await pool.query(
+    `SELECT * FROM public.notifications WHERE user_id=$1
+     ORDER BY is_read ASC, created_at DESC`,
+    [user_id]
+  );
+  return result.rows;
+}
+
+async function countUnreadNotifications(user_id) {
+  const result = await pool.query(
+    `SELECT COUNT(*) AS count FROM public.notifications
+     WHERE user_id=$1 AND is_read=FALSE`,
+    [user_id]
+  );
+  return parseInt(result.rows[0].count);
+}
+
+async function markNotificationsRead(user_id) {
+  await pool.query(
+    `UPDATE public.notifications SET is_read=TRUE WHERE user_id=$1`,
+    [user_id]
+  );
+}
+
+// ─── PROFILE ────────────────────────────────────────────
+
+async function getEmployeeProfile(account_id) {
+  const result = await pool.query(
+    `SELECT a.account_id, a.account_firstname, a.account_lastname,
+            a.account_email, a.account_type,
+            e.employee_id, e.employee_code, e.phone_number,
+            e.department, e.position, e.hire_date, e.profile_image, e.status
+     FROM public.account a
+     LEFT JOIN public.employee e ON a.account_id = e.account_id
+     WHERE a.account_id=$1`,
+    [account_id]
+  );
+  return result.rows[0] || null;
+}
+
+async function updateEmployeeProfile({ account_id, firstname, lastname, phone_number, profile_image }) {
+  await pool.query(
+    `UPDATE public.account SET account_firstname=$1, account_lastname=$2 WHERE account_id=$3`,
+    [firstname, lastname, account_id]
+  );
+  if (profile_image) {
+    await pool.query(
+      `UPDATE public.employee SET phone_number=$1, profile_image=$2 WHERE account_id=$3`,
+      [phone_number, profile_image, account_id]
+    );
+  } else {
+    await pool.query(
+      `UPDATE public.employee SET phone_number=$1 WHERE account_id=$2`,
+      [phone_number, account_id]
+    );
+  }
+}
+
+async function getAllEmployees() {
+  const result = await pool.query(
+    `SELECT a.account_id, a.account_firstname, a.account_lastname, a.account_email,
+            e.department, e.position
+     FROM public.account a
+     JOIN public.employees e ON a.account_id = e.account_id
+     WHERE LOWER(TRIM(a.account_type)) = 'employee'
+     ORDER BY a.account_firstname ASC`
+  );
+  return result.rows;
+}
+module.exports={registerAccount,checkExistingEmail,getAccountByEmail,addMember,updateMember,getMemberById,getAllMembers,deleteMember,getAllStudents,viewEmployees,addAccount,addEmployee,getEmployeeById,getAccountByEmployeeCode,deleteEmployee,updateAccountBasic,updateEmployee,saveContactMessage,getLatestNews,getUpcomingEvents,createNews,createEvent,getEventById,addEventRegistration,getAllEventRegistrations,createVideo,getAllVideos,saveResetToken,verifyResetToken,updatePassword,getAllJobs,createJob,softDeleteVideo,createTask, getAllTasks, getTasksByEmployee, getTaskById,updateTaskStatus, deleteTask,submitReport, getReportByTaskId, getAllReports, getReportById,addComment, getCommentsByReportId,createNotification, getNotificationsByUser,countUnreadNotifications, markNotificationsRead,
+  getEmployeeProfile, updateEmployeeProfile, getAllEmployees,}
 

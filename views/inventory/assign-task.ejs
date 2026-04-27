@@ -1,0 +1,67 @@
+<div class="form-wrapper-01" id="addNewsForm">
+  <div class="form-header">
+    <h1>Add Task For Employee</h1>
+    <p>Share important updates  for Tasks with the UHWF community</p>
+  </div>
+
+  <% if (messages.success) { %>
+    <div class="alert success"><%= messages.success %></div>
+  <% } %>
+  <% if (messages.notice || messages.error) { %>
+    <div class="alert error"><%= messages.notice || messages.error %></div>
+  <% } %>
+  
+          <form action="/account/inventory/assign-task" method="POST" class="form-group">
+  
+            <div class="form-group">
+              <label>Assign To (Employee) <span class="req">*</span></label>
+              <select name="assigned_to" required>
+                <option value="">-- Select Employee --</option>
+                <% employees.forEach(emp => { %>
+                  <option value="<%= emp.account_id %>">
+                    <%= emp.account_firstname %> <%= emp.account_lastname %>
+                    — <%= emp.position || emp.department || emp.account_email %>
+                  </option>
+                <% }) %>
+              </select>
+            </div>
+  
+            <div class="form-group">
+              <label>Task Title <span class="req">*</span></label>
+              <input type="text" name="title" placeholder="e.g. Prepare Monthly Report" required/>
+            </div>
+  
+            <div class="form-group">
+              <label>Description</label>
+              <textarea name="description" rows="4"
+                placeholder="What should the employee do?"></textarea>
+            </div>
+  
+            <div class="t-row2">
+              <div class="form-group">
+                <label>Priority</label>
+                <select name="priority">
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                  <option value="low">Low</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Due Date</label>
+                <input type="date" name="due_date"/>
+              </div>
+            </div>
+  
+            <div class="form-group">
+              <button type="submit" class="t-btn t-btn-green">
+                <i class="bi bi-send-fill"></i> Assign Task
+              </button>
+            </div>
+          </form>
+  
+        </div>
+      </div>
+  
+    </div>
+   
+  </div>
