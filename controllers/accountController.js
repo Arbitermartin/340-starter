@@ -215,50 +215,66 @@ async function employeeDashboard(req, res) {
 /* ****************************************
 *  Deliver account management view
 * *************************************** */
+// 
 async function accountManagement(req, res) {
-  const accountData = res.locals.accountData || {};
-  const members = await accountModel.getAllMembers();  // ← Fetch all members
-  const studentCountResult = await pool.query(
-    "SELECT COUNT(*) AS count FROM public.account WHERE account_type = 'student'"
-  );
-  const studentCount = studentCountResult.rows[0].count;
+  console.log("=== ADMIN DASHBOARD HIT ===");
+  console.log("accountData:", res.locals.accountData);
+  console.log("loggedin:", res.locals.loggedin);
   
-  const memberCountResult = await pool.query(
-    "SELECT COUNT(*) AS count FROM public.member WHERE account_type = 'member'"
-  );
-  const memberCount = memberCountResult.rows[0].count;
-  // In your accountManagement controller function
-const activeTotalResult = await pool.query(`
-  SELECT (
-    -- Students from account table
-    (SELECT COUNT(*) 
-     FROM public.account 
-     WHERE LOWER(TRIM(account_type)) = 'student'
-       -- AND is_active = true   <-- Uncomment if you have is_active column in account table
-    ) +
-    -- Members from member table
-    (SELECT COUNT(*) 
-     FROM public.member
-       -- AND is_active = true   <-- Uncomment if you have is_active column in member table
-    )
-  ) AS total_active
-`);
+  try {
+    const accountData = res.locals.accountData || {};
+    
+    const members = await accountModel.getAllMembers();
+    console.log("Members fetched:", members.length);
+    
+    const studentCountResult = await pool.query(
+      "SELECT COUNT(*) AS count FROM public.account WHERE account_type = 'student'"
+    );
+    const studentCount = studentCountResult.rows[0].count;
+    
+    const memberCountResult = await pool.query(
+      "SELECT COUNT(*) AS count FROM public.member WHERE account_type = 'member'"
+    );
+    const memberCount = memberCountResult.rows[0].count;
 
-const activeCount = parseInt(activeTotalResult.rows[0].total_active, 10);
-  res.render("inventory/management", {
-    title: "UHWF Portal",
-    layout: false,
-    messages: req.flash(),
-    account_firstname: accountData.account_firstname,
-    account_email: accountData.account_email,
-    account_type: accountData.account_type,
-    showAccount: true,   // default dashboard view
-    showMembers: false,
-    members,  // ← Pass members to the view
-    studentCount,
-    memberCount,
-    activeCount
-  });
+    const activeTotalResult = await pool.query(`
+      SELECT (
+        (SELECT COUNT(*) FROM public.account WHERE LOWER(TRIM(account_type)) = 'student') +
+        (SELECT COUNT(*) FROM public.member)
+      ) AS total_active
+    `);
+    const activeCount = parseInt(activeTotalResult.rows[0].total_active, 10);
+
+    console.log("Rendering management view...");
+
+    res.render("inventory/management", {
+      title: "UHWF Portal",
+      layout: false,
+      messages: req.flash(),
+      account_firstname: accountData.account_firstname,
+      account_email: accountData.account_email,
+      account_type: accountData.account_type,
+      showAccount: true,
+      showMembers: false,
+      members,
+      studentCount,
+      memberCount,
+      activeCount
+    });
+
+    console.log("Management view rendered successfully");
+
+  } catch (err) {
+    console.error("=== ADMIN DASHBOARD ERROR ===");
+    console.error("Message:", err.message);
+    console.error("Stack:", err.stack);
+    // Instead of crashing, send a readable error
+    res.status(500).send(`
+      <h2>Dashboard Error</h2>
+      <pre>${err.message}</pre>
+      <pre>${err.stack}</pre>
+    `);
+  }
 }
 /* ***************************
  *  Process Logout
