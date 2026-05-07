@@ -118,140 +118,247 @@ async function userDashboard(req, res) {
 /* ****************************************
  *  Process login request
  * ************************************ */
+// async function accountLogin(req, res) {
+//   let nav = await utilities.getNav();
+//   const { login_id, account_password } = req.body;
+//   let accountData = await accountModel.getAccountByEmail(login_id);
+
+//   // If not found → try employee code
+//   if (!accountData) {
+//     accountData = await accountModel.getAccountByEmployeeCode(login_id);
+//   }
+//   if (!accountData) {
+//     req.flash("note", "Warning!! Invalid Employee ID / Email or password.");
+//     return res.status(400).render("account/login", {
+//       title: "Login",
+//       nav,
+//       errors: null,
+//       login_id: req.body.login_id || "",
+//     });
+//   }
+//   try {
+//     const passwordMatch = await bcrypt.compare(account_password, accountData.account_password);
+//     if (passwordMatch) {
+//       delete accountData.account_password;
+
+//       const accessToken = jwt.sign(accountData, process.env.ACCESS_TOKEN_SECRET, { expiresIn: 3600 * 1000 });
+
+//       res.cookie("jwt", accessToken, {
+//         httpOnly: true,
+//         secure: process.env.NODE_ENV !== 'production',
+//         maxAge: 3600 * 1000,
+//       });
+//       const accountType = (accountData.account_type || '').trim().toLowerCase();
+//       const rawType = accountData.account_type || '(missing)';
+//       if (accountType === 'admin') {
+//         req.flash("notice", "Welcome Admin!");
+//         return res.redirect("/account/");
+//       } 
+//       else if (accountType === 'employee') {
+//         req.flash("notice", "Welcome back");
+//         return res.redirect("/account/dashboard_01/");
+//       } 
+//       else if (['citizen', 'student', 'member'].includes(accountType)) {
+//         req.flash("notice", "Welcome back!");
+//         return res.redirect("/account/dashboard/");
+//       } 
+//       else {
+//         req.flash("notice", `Unknown account type: "${rawType}" (contact support)`);
+//         return res.redirect("/account/login");
+//       }
+//     } 
+//     else {
+//       req.flash("note", "Warning!! Invalid Employee ID / Email or password.");
+//       return res.status(400).render("account/login", {
+//         title: "Login",
+//         nav,
+//         errors: null,
+//         login_id: req.body.login_id || "",
+//       });
+//     }
+//   } catch (error) {
+//     req.flash("notice", "Access error. Please try again.");
+//     return res.redirect("/account/login");
+//   }
+// }
+
+// async function employeeDashboard(req, res) {
+//   console.log("EMPLOYEE DASHBOARD CONTROLLER REACHED");
+//   console.log("User:", res.locals.accountData?.account_email || "unknown");
+//   console.log("Account type:", res.locals.accountData?.account_type);
+
+//   try {
+//     const accountData = res.locals.accountData || {};
+
+//     res.render("inventory/dashboard_01", {   // ← confirm this view file exists!
+//       title: "Employee Dashboard",
+//       layout: false,
+//       messages: req.flash(),
+//       account_firstname: accountData.account_firstname || "Employee",
+//       account_email: accountData.account_email || "",
+//       account_type: accountData.account_type || "employee",
+//       // ... your stats object if any
+//     });
+//   } catch (err) {
+//     console.error("EMPLOYEE DASHBOARD CRASH:", err.message);
+//     console.error(err.stack);
+//     res.status(500).send("Error loading employee dashboard – check server logs");
+//   }
+// }
 async function accountLogin(req, res) {
-  let nav = await utilities.getNav();
-  const { login_id, account_password } = req.body;
-  let accountData = await accountModel.getAccountByEmail(login_id);
-
-  // If not found → try employee code
-  if (!accountData) {
-    accountData = await accountModel.getAccountByEmployeeCode(login_id);
-  }
-  if (!accountData) {
-    req.flash("note", "Warning!! Invalid Employee ID / Email or password.");
-    return res.status(400).render("account/login", {
-      title: "Login",
-      nav,
-      errors: null,
-      login_id: req.body.login_id || "",
-    });
-  }
   try {
-    const passwordMatch = await bcrypt.compare(account_password, accountData.account_password);
-    if (passwordMatch) {
-      delete accountData.account_password;
+    let nav = await utilities.getNav();
+    const { login_id, account_password } = req.body;
 
-      const accessToken = jwt.sign(accountData, process.env.ACCESS_TOKEN_SECRET, { expiresIn: 3600 * 1000 });
+    let accountData = await accountModel.getAccountByEmail(login_id);
 
-      res.cookie("jwt", accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV !== 'production',
-        maxAge: 3600 * 1000,
-      });
-      const accountType = (accountData.account_type || '').trim().toLowerCase();
-      const rawType = accountData.account_type || '(missing)';
-      if (accountType === 'admin') {
-        req.flash("notice", "Welcome Admin!");
-        return res.redirect("/account/");
-      } 
-      else if (accountType === 'employee') {
-        req.flash("notice", "Welcome back");
-        return res.redirect("/account/dashboard_01/");
-      } 
-      else if (['citizen', 'student', 'member'].includes(accountType)) {
-        req.flash("notice", "Welcome back!");
-        return res.redirect("/account/dashboard/");
-      } 
-      else {
-        req.flash("notice", `Unknown account type: "${rawType}" (contact support)`);
-        return res.redirect("/account/login");
-      }
-    } 
-    else {
-      req.flash("note", "Warning!! Invalid Employee ID / Email or password.");
-      return res.status(400).render("account/login", {
+    if (!accountData) {
+      accountData = await accountModel.getAccountByEmployeeCode(login_id);
+    }
+
+    if (!accountData) {
+      req.flash("notice", "Invalid Email / Employee Code or password.");
+      return res.render("account/login", {
         title: "Login",
         nav,
-        errors: null,
-        login_id: req.body.login_id || "",
+        login_id
       });
     }
-  } catch (error) {
-    req.flash("notice", "Access error. Please try again.");
-    return res.redirect("/account/login");
-  }
-}
 
-async function employeeDashboard(req, res) {
-  console.log("EMPLOYEE DASHBOARD CONTROLLER REACHED");
-  console.log("User:", res.locals.accountData?.account_email || "unknown");
-  console.log("Account type:", res.locals.accountData?.account_type);
+    const passwordMatch = await bcrypt.compare(
+      account_password,
+      accountData.account_password
+    );
 
-  try {
-    const accountData = res.locals.accountData || {};
+    if (!passwordMatch) {
+      req.flash("notice", "Invalid Email / Employee Code or password.");
+      return res.render("account/login", {
+        title: "Login",
+        nav,
+        login_id
+      });
+    }
 
-    res.render("inventory/dashboard_01", {   // ← confirm this view file exists!
-      title: "Employee Dashboard",
-      layout: false,
-      messages: req.flash(),
-      account_firstname: accountData.account_firstname || "Employee",
-      account_email: accountData.account_email || "",
-      account_type: accountData.account_type || "employee",
-      // ... your stats object if any
+    delete accountData.account_password;
+
+    const token = jwt.sign(accountData, process.env.ACCESS_TOKEN_SECRET, {
+      expiresIn: "1h"   // ✅ FIXED
     });
+
+    res.cookie("jwt", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production"
+    });
+
+    const type = accountData.account_type?.trim().toLowerCase();
+
+    if (type === "admin") {
+      return res.redirect("/account/");
+    } else if (type === "employee") {
+      return res.redirect("/account/dashboard_01/");
+    } else {
+      return res.redirect("/account/dashboard/");
+    }
+
   } catch (err) {
-    console.error("EMPLOYEE DASHBOARD CRASH:", err.message);
-    console.error(err.stack);
-    res.status(500).send("Error loading employee dashboard – check server logs");
+    console.error("LOGIN ERROR:", err);
+    res.status(500).send("Login failed");
   }
 }
+
 /* ****************************************
 *  Deliver account management view
 * *************************************** */
-async function accountManagement(req, res) {
-  const accountData = res.locals.accountData || {};
-  const members = await accountModel.getAllMembers();  // ← Fetch all members
-  const studentCountResult = await pool.query(
-    "SELECT COUNT(*) AS count FROM public.account WHERE account_type = 'student'"
-  );
-  const studentCount = studentCountResult.rows[0].count;
+// async function accountManagement(req, res) {
+//   const accountData = res.locals.accountData || {};
+//   const members = await accountModel.getAllMembers();  // ← Fetch all members
+//   const studentCountResult = await pool.query(
+//     "SELECT COUNT(*) AS count FROM public.account WHERE account_type = 'student'"
+//   );
+//   const studentCount = studentCountResult.rows[0].count;
   
-  const memberCountResult = await pool.query(
-    "SELECT COUNT(*) AS count FROM public.member WHERE account_type = 'member'"
-  );
-  const memberCount = memberCountResult.rows[0].count;
-  // In your accountManagement controller function
-const activeTotalResult = await pool.query(`
-  SELECT (
-    -- Students from account table
-    (SELECT COUNT(*) 
-     FROM public.account 
-     WHERE LOWER(TRIM(account_type)) = 'student'
-       -- AND is_active = true   <-- Uncomment if you have is_active column in account table
-    ) +
-    -- Members from member table
-    (SELECT COUNT(*) 
-     FROM public.member
-       -- AND is_active = true   <-- Uncomment if you have is_active column in member table
-    )
-  ) AS total_active
-`);
+//   const memberCountResult = await pool.query(
+//     // "SELECT COUNT(*) AS count FROM public.member WHERE account_type = 'member'"
+//     SELECT COUNT(*) AS count FROM public.member WHERE account
+//   );
+//   const memberCount = memberCountResult.rows[0].count;
+//   // In your accountManagement controller function
+// const activeTotalResult = await pool.query(`
+//   SELECT (
+//     -- Students from account table
+//     (SELECT COUNT(*) 
+//      FROM public.account 
+//      WHERE LOWER(TRIM(account_type)) = 'student'
+//        -- AND is_active = true   <-- Uncomment if you have is_active column in account table
+//     ) +
+//     -- Members from member table
+//     (SELECT COUNT(*) 
+//      FROM public.member
+//        -- AND is_active = true   <-- Uncomment if you have is_active column in member table
+//     )
+//   ) AS total_active
+// `);
 
-const activeCount = parseInt(activeTotalResult.rows[0].total_active, 10);
-  res.render("inventory/management", {
-    title: "UHWF Portal",
-    layout: false,
-    messages: req.flash(),
-    account_firstname: accountData.account_firstname,
-    account_email: accountData.account_email,
-    account_type: accountData.account_type,
-    showAccount: true,   // default dashboard view
-    showMembers: false,
-    members,  // ← Pass members to the view
-    studentCount,
-    memberCount,
-    activeCount
-  });
+// const activeCount = parseInt(activeTotalResult.rows[0].total_active, 10);
+//   res.render("inventory/management", {
+//     title: "UHWF Portal",
+//     layout: false,
+//     messages: req.flash(),
+//     account_firstname: accountData.account_firstname,
+//     account_email: accountData.account_email,
+//     account_type: accountData.account_type,
+//     showAccount: true,   // default dashboard view
+//     showMembers: false,
+//     members,  // ← Pass members to the view
+//     studentCount,
+//     memberCount,
+//     activeCount
+//   });
+// }
+async function accountManagement(req, res) {
+  try {
+    const accountData = res.locals.accountData || {};
+
+    // ✅ SAFE FETCH
+    let members = [];
+    try {
+      members = await accountModel.getAllMembers();
+    } catch (e) {
+      console.error("Members fetch failed:", e.message);
+    }
+
+    // ✅ FIXED QUERY
+    const studentCountResult = await pool.query(
+      "SELECT COUNT(*) FROM public.account WHERE account_type='student'"
+    );
+    const studentCount = studentCountResult.rows[0].count;
+
+    const memberCountResult = await pool.query(
+      "SELECT COUNT(*) FROM public.member"  // ✅ FIXED
+    );
+    const memberCount = memberCountResult.rows[0].count;
+
+    const activeCount = parseInt(studentCount) + parseInt(memberCount);
+
+    res.render("inventory/management", {
+      title: "Admin Dashboard",
+      layout: false,
+      account_firstname: accountData.account_firstname,
+      account_email: accountData.account_email,
+      account_type: accountData.account_type,
+      members,
+      studentCount,
+      memberCount,
+      activeCount,
+      messages: req.flash()
+    });
+
+  } catch (error) {
+    console.error("🔥 DASHBOARD ERROR:", error.message);
+    console.error(error.stack);
+
+    res.status(500).send("Dashboard crashed – check server logs");
+  }
 }
 /* ***************************
  *  Process Logout
