@@ -152,7 +152,7 @@ async function accountLogin(req, res) {
       const rawType = accountData.account_type || '(missing)';
       if (accountType === 'admin') {
         req.flash("notice", "Welcome Admin!");
-        return res.redirect("/account/");
+        return res.redirect("/account/management/");
       } 
       else if (accountType === 'employee') {
         req.flash("notice", "Welcome back");
