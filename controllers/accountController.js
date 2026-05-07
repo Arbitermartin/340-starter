@@ -148,12 +148,12 @@ async function accountLogin(req, res) {
       //   secure: process.env.NODE_ENV !== 'development',
       //   maxAge: 3600 * 1000,
     // });
-      res.cookie("jwt", accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',  // true only in production
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',  // ← ADD THIS
-        maxAge: 3600 * 1000,
-      });
+    res.cookie("jwt", accessToken, {
+      httpOnly: true,
+      secure: true,        // Render uses HTTPS always
+      sameSite: 'none',   // Required for cross-site cookies on Render
+      maxAge: 3600 * 1000,
+    });
       
       const accountType = (accountData.account_type || '').trim().toLowerCase();
       const rawType = accountData.account_type || '(missing)';
@@ -262,16 +262,29 @@ const activeCount = parseInt(activeTotalResult.rows[0].total_active, 10);
 }
 /* ***************************
  *  Process Logout
- * ************************** */
-async function  logoutaccount  (req, res, next) {
-  console.log("Logging out user:", res.locals.accountData?.account_email)
-  res.clearCookie("jwt")
-  res.locals.loggedin = 0
-  res.locals.accountData = null
-  req.flash("notice", "You have been logged out Successfully.")
-  res.redirect("/account/login")
+//  * ************************** */
+// async function  logoutaccount  (req, res, next) {
+//   console.log("Logging out user:", res.locals.accountData?.account_email)
+//   res.clearCookie("jwt")
+//   res.locals.loggedin = 0
+//   res.locals.accountData = null
+//   req.flash("notice", "You have been logged out Successfully.")
+//   res.redirect("/account/login")
+// }
+async function logoutaccount(req, res, next) {
+  console.log("Logging out user:", res.locals.accountData?.account_email);
+  
+  res.clearCookie("jwt", {
+    httpOnly: true,
+    secure: true,        // ← required for HTTPS on Render
+    sameSite: 'none'     // ← required for Render
+  });
+  
+  res.locals.loggedin = 0;
+  res.locals.accountData = null;
+  req.flash("notice", "You have been logged out Successfully.");
+  res.redirect("/account/login");
 }
-
 
 /* ****************************************
  *  Deliver Add Member form view
