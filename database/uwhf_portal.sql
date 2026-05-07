@@ -351,6 +351,8 @@ INSERT INTO public.team_members
   (full_name, position, description, display_order)
 VALUES 
   
-  
+  ('Rogasian C Simon','CEO & Co-Founder','Leading UHWF Tanzania with vision and dedication.',1)
+  ('Huberti Rogasian Paschal','Co-Founder & Board Vice President','Driving strategic growth and partnerships.',2)
   ('Sarah A Katunzi',         'Co-Founder & Board Secretary',  'Ensuring governance and organizational excellence.',3);
+   ('Martin Arexander Kasike',         'Full Stack Developer & Technical Support Engineer',  'To Ensure the whole system work Effectively.',4);
 
