@@ -260,6 +260,7 @@ CREATE TABLE IF NOT EXISTS public.videos (
   created_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+
 -- password reset
 CREATE TABLE IF NOT EXISTS public.password_resets (
   id SERIAL PRIMARY KEY,
