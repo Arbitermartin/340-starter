@@ -149,7 +149,6 @@ router.get("/search-member", utilities.handleErrors(async (req, res) => {
 
 // GET: User dashboard (citizen/student/member)
 router.get("/dashboard",utilities.handleErrors(accountController.userDashboard))
-router.get("/management",utilities.handleErrors(accountController.adminDashboard))
 
 // get employee dashboard
 router.get("/dashboard_01"

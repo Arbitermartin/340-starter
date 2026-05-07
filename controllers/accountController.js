@@ -115,17 +115,6 @@ async function userDashboard(req, res) {
     account_type: accountData.account_type,
   });
 }
-async function adminDashboard(req, res) {
-  const accountData = res.locals.accountData || {};
-  res.render("inventory/management", {
-    title: "UHWF Portal",
-    layout: false,
-    messages: req.flash(),
-    account_firstname: accountData.account_firstname,
-    account_email: accountData.account_email,
-    account_type: accountData.account_type,
-  });
-}
 /* ****************************************
  *  Process login request
  * ************************************ */
@@ -163,7 +152,7 @@ async function accountLogin(req, res) {
       const rawType = accountData.account_type || '(missing)';
       if (accountType === 'admin') {
         req.flash("notice", "Welcome Admin!");
-        return res.redirect("/account/management/");
+        return res.redirect("/account/");
       } 
       else if (accountType === 'employee') {
         req.flash("notice", "Welcome back");
@@ -2144,7 +2133,6 @@ module.exports.buildAddMember = buildAddMember;
 module.exports.addMember =addMember;
 module.exports.buildEditMember =buildEditMember;
 module.exports.userDashboard=userDashboard;
-module.exports.adminDashboard=adminDashboard;
 module.exports.submitContact=submitContact;
 module.exports.viewMembers=viewMembers;
 module.exports.getAllMembers=getMemberDetail;
