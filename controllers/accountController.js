@@ -1,3 +1,2216 @@
+// const utilities = require("../utilities")
+// const jwt = require("jsonwebtoken")
+// const accountModel =require("../models/account-model")
+// const bcrypt = require("bcryptjs")
+// const multer = require("multer")
+// require("dotenv").config();
+// const pool = require("../database") 
+// const path = require("path");
+// const Module = require("module")
+// const nodemailer = require('nodemailer');
+// const crypto = require('crypto');
+
+
+// // Save uploaded images to public/images/members folder
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     cb(null, "public/images/site/");  // Create this folder if not exists
+//   },
+//   filename: (req, file, cb) => {
+//     const uniqueName = Date.now() + "-" + Math.round(Math.random() * 1E9) + path.extname(file.originalname);
+//     cb(null, uniqueName);
+//   }
+// });
+
+// const upload = multer({
+//   storage: storage,
+//   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+//   fileFilter: (req, file, cb) => {
+//     const allowed = /jpeg|jpg|png|gif|webp/;
+//     const extOk = allowed.test(path.extname(file.originalname).toLowerCase());
+//     const mimeOk = allowed.test(file.mimetype);
+//     if (extOk && mimeOk) return cb(null, true);
+//     cb(new Error("Only image files allowed!"));
+//   }
+// });
+// /*************************
+//  * Deliver login view
+//  * Deliver login view Activity
+//  *********************************/
+// async function buildLogin(req,res,next) {
+//   let nav =await utilities.getNav()
+//   res.render("account/login",{
+//       title: "Login",
+//       nav,
+//       errors: null,
+//       login_id: ""
+//   })
+  
+// }
+
+// /**********************************
+//  * Deliver registration view
+//  * Deliver registration view Activity
+//  */
+// async function buildRegister(req,res,next) {
+//   let nav =await utilities.getNav()
+//   res.render("account/register",{
+//       title: "Register",
+//       nav,
+//       errors: null,
+//   })    
+// }
+// /* ****************************************
+// *  Process Registration
+// * *************************************** */
+// async function registerAccount(req, res) {
+//   let nav = await utilities.getNav();
+//   const { 
+//     account_firstname, 
+//     account_lastname, 
+//     account_email, 
+//     account_password,
+//     account_type   // ← NEW: from form
+//   } = req.body;
+
+//   // Validate allowed types (security!)
+//   const allowedTypes = ['student', 'citizen', 'member'];
+//   if (!allowedTypes.includes(account_type)) {
+//     req.flash("notice", "Invalid account type selected.");
+//     return res.render("account/register", { title: "Register", nav, errors: null });
+//   }
+
+//   // Hash password
+//   const hashedPassword = await bcrypt.hash(account_password, 10);
+
+//   try {
+//     const regResult = await accountModel.registerAccount(
+//       account_firstname,
+//       account_lastname,
+//       account_email,
+//       hashedPassword,
+//       account_type   // ← Pass the selected type
+//     );
+
+//     if (regResult) {
+//       req.flash("notice", `Congratulations, you're registered as ${account_type}! Please log in.`);
+//       return res.redirect("/account/login");
+//     } else {
+//       req.flash("notice", "Registration failed.");
+//       return res.render("account/register", { title: "Register", nav, errors: null });
+//     }
+//   } catch (error) {
+//     req.flash("notice", error.message || "Registration failed.");
+//     return res.render("account/register", { title: "Register", nav, errors: null });
+//   }
+// }
+// async function userDashboard(req, res) {
+//   const accountData = res.locals.accountData || {};
+//   res.render("inventory/dashboard", {
+//     title: "UHWF Portal",
+//     layout: false,
+//     messages: req.flash(),
+//     account_firstname: accountData.account_firstname,
+//     account_email: accountData.account_email,
+//     account_type: accountData.account_type,
+//   });
+// }
+// /* ****************************************
+//  *  Process login request
+//  * ************************************ */
+// async function accountLogin(req, res) {
+//   let nav = await utilities.getNav();
+//   const { login_id, account_password } = req.body;
+//   let accountData = await accountModel.getAccountByEmail(login_id);
+
+//   // If not found → try employee code
+//   if (!accountData) {
+//     accountData = await accountModel.getAccountByEmployeeCode(login_id);
+//   }
+//   if (!accountData) {
+//     req.flash("note", "Warning!! Invalid Employee ID / Email or password.");
+//     return res.status(400).render("account/login", {
+//       title: "Login",
+//       nav,
+//       errors: null,
+//       login_id: req.body.login_id || "",
+//     });
+//   }
+//   try {
+//     const passwordMatch = await bcrypt.compare(account_password, accountData.account_password);
+//     if (passwordMatch) {
+//       delete accountData.account_password;
+
+//       const accessToken = jwt.sign(accountData, process.env.ACCESS_TOKEN_SECRET, { expiresIn: 3600 * 1000 });
+
+//       // res.cookie("jwt", accessToken, {
+//       //   httpOnly: true,
+//       //   secure: process.env.NODE_ENV !== 'development',
+//       //   maxAge: 3600 * 1000,
+//     // });
+//     res.cookie("jwt", accessToken, {
+//       httpOnly: true,
+//       secure: true,        // Render uses HTTPS always
+//       sameSite: 'none',   // Required for cross-site cookies on Render
+//       maxAge: 3600 * 1000,
+//     });
+      
+//       const accountType = (accountData.account_type || '').trim().toLowerCase();
+//       const rawType = accountData.account_type || '(missing)';
+//       if (accountType === 'admin') {
+//         req.flash("notice", "Welcome Admin!");
+//         return res.redirect("/account/");
+//       } 
+//       else if (accountType === 'employee') {
+//         req.flash("notice", "Welcome back");
+//         return res.redirect("/account/dashboard_01/");
+//       } 
+//       else if (['citizen', 'student', 'member'].includes(accountType)) {
+//         req.flash("notice", "Welcome back!");
+//         return res.redirect("/account/dashboard/");
+//       } 
+//       else {
+//         req.flash("notice", `Unknown account type: "${rawType}" (contact support)`);
+//         return res.redirect("/account/login");
+//       }
+//     } 
+//     else {
+//       req.flash("note", "Warning!! Invalid Employee ID / Email or password.");
+//       return res.status(400).render("account/login", {
+//         title: "Login",
+//         nav,
+//         errors: null,
+//         login_id: req.body.login_id || "",
+//       });
+//     }
+//   } catch (error) {
+//     req.flash("notice", "Access error. Please try again.");
+//     return res.redirect("/account/login");
+//   }
+// }
+
+// async function employeeDashboard(req, res) {
+//   console.log("EMPLOYEE DASHBOARD CONTROLLER REACHED");
+//   console.log("User:", res.locals.accountData?.account_email || "unknown");
+//   console.log("Account type:", res.locals.accountData?.account_type);
+
+//   try {
+//     const accountData = res.locals.accountData || {};
+
+//     res.render("inventory/dashboard_01", {   // ← confirm this view file exists!
+//       title: "Employee Dashboard",
+//       layout: false,
+//       messages: req.flash(),
+//       account_firstname: accountData.account_firstname || "Employee",
+//       account_email: accountData.account_email || "",
+//       account_type: accountData.account_type || "employee",
+//       // ... your stats object if any
+//     });
+//   } catch (err) {
+//     console.error("EMPLOYEE DASHBOARD CRASH:", err.message);
+//     console.error(err.stack);
+//     res.status(500).send("Error loading employee dashboard – check server logs");
+//   }
+// }
+// /* ****************************************
+// *  Deliver account management view
+// * *************************************** */
+// // 
+// async function accountManagement(req, res) {
+//   console.log("=== ADMIN DASHBOARD HIT ===");
+//   console.log("accountData:", res.locals.accountData);
+//   console.log("loggedin:", res.locals.loggedin);
+  
+//   try {
+//     const accountData = res.locals.accountData || {};
+    
+//     const members = await accountModel.getAllMembers();
+//     console.log("Members fetched:", members.length);
+    
+//     const studentCountResult = await pool.query(
+//       "SELECT COUNT(*) AS count FROM public.account WHERE account_type = 'student'"
+//     );
+//     const studentCount = studentCountResult.rows[0].count;
+    
+//     const memberCountResult = await pool.query(
+//       "SELECT COUNT(*) AS count FROM public.member WHERE account_type = 'member'"
+//     );
+//     const memberCount = memberCountResult.rows[0].count;
+
+//     const activeTotalResult = await pool.query(`
+//       SELECT (
+//         (SELECT COUNT(*) FROM public.account WHERE LOWER(TRIM(account_type)) = 'student') +
+//         (SELECT COUNT(*) FROM public.member)
+//       ) AS total_active
+//     `);
+//     const activeCount = parseInt(activeTotalResult.rows[0].total_active, 10);
+
+//     console.log("Rendering management view...");
+
+//     res.render("inventory/management", {
+//       title: "UHWF Portal",
+//       layout: false,
+//       messages: req.flash(),
+//       account_firstname: accountData.account_firstname,
+//       account_email: accountData.account_email,
+//       account_type: accountData.account_type,
+//       showAccount: true,
+//       showMembers: false,
+//       members,
+//       studentCount,
+//       memberCount,
+//       activeCount
+//     });
+
+//     console.log("Management view rendered successfully");
+
+//   } catch (err) {
+//     console.error("=== ADMIN DASHBOARD ERROR ===");
+//     console.error("Message:", err.message);
+//     console.error("Stack:", err.stack);
+//     // Instead of crashing, send a readable error
+//     res.status(500).send(`
+//       <h2>Dashboard Error</h2>
+//       <pre>${err.message}</pre>
+//       <pre>${err.stack}</pre>
+//     `);
+//   }
+// }
+// /* ***************************
+//  *  Process Logout
+// //  * ************************** */
+// // async function  logoutaccount  (req, res, next) {
+// //   console.log("Logging out user:", res.locals.accountData?.account_email)
+// //   res.clearCookie("jwt")
+// //   res.locals.loggedin = 0
+// //   res.locals.accountData = null
+// //   req.flash("notice", "You have been logged out Successfully.")
+// //   res.redirect("/account/login")
+// // }
+// async function logoutaccount(req, res, next) {
+//   console.log("Logging out user:", res.locals.accountData?.account_email);
+  
+//   res.clearCookie("jwt", {
+//     httpOnly: true,
+//     secure: true,        // ← required for HTTPS on Render
+//     sameSite: 'none'     // ← required for Render
+//   });
+  
+//   res.locals.loggedin = 0;
+//   res.locals.accountData = null;
+//   req.flash("notice", "You have been logged out Successfully.");
+//   res.redirect("/account/login");
+// }
+
+// /* ****************************************
+//  *  Deliver Add Member form view
+//  * *************************************** */
+// async function buildAddMember(req, res, next) {
+//   res.render("inventory/add-member", {
+//     title: "Add New Member",
+//     layout:false,
+//     errors: null,
+//     messages: req.flash()
+//   })
+// }
+
+// async function addMember(req, res) {
+//   // Security check
+//   if (!res.locals.loggedin || res.locals.accountData?.account_type !== 'citizen') {
+//     req.flash("notice", "Access denied.")
+//     return res.redirect("/account/login")
+//   }
+
+//   // SAFETY: Check if req.body exists
+//   if (!req.body || Object.keys(req.body).length === 0) {
+//     console.error("req.body is empty or undefined - likely missing enctype='multipart/form-data'")
+//     req.flash("notice", "Form submission failed. Please try again.")
+//     return res.redirect("/account")
+//   }
+
+//   const { first_name, last_name, email, phone, address, membership_number } = req.body
+//   let profile_image = null
+
+//   if (req.file) {
+//     // Save the image file and store only the URL path in DB
+//     profile_image = `/images/site/${req.file.filename}`;  // e.g., /images/members/123456789.jpg
+//     console.log("Image uploaded and saved:", profile_image);
+//   } else {
+//     profile_image = null;
+//   }
+
+//   try {
+//     const newMember = await accountModel.addMember(
+//       first_name?.trim(),
+//       last_name?.trim(),
+//       email?.trim(),
+//       phone?.trim() || null,
+//       address?.trim() || null,
+//       profile_image,
+//       membership_number?.trim() || null
+//     )
+
+//     req.flash("notice", `Member "${first_name} ${last_name}" added successfully!`)
+//     return res.redirect("/account/")
+//   } catch (error) {
+//     console.error("Add member error:", error)
+//     req.flash("notice", `Error: ${error.message || "Could not add member"}`)
+//     return res.redirect("/account/add-member")
+//   }
+// }
+
+// /* -------------------------------------------------
+//    Process Add Member - Save to database with image as URL
+//    ------------------------------------------------- */
+//    async function processAddMember(req, res) {
+//     // Log for debugging
+//     console.log("Add Member - Body:", req.body);
+//     console.log("Add Member - File:", req.file ? req.file.originalname : "No file");
+  
+//     const { first_name, last_name, email, phone, address } = req.body;
+  
+//     // Image path (URL) - null if no file uploaded
+//     const profile_image_path = req.file 
+//       ? `/images/site/${req.file.filename}` 
+//       : null;
+  
+//     try {
+//       const newMember = await accountModel.addMember(
+//         first_name?.trim() || "",
+//         last_name?.trim() || "",
+//         email?.trim() || "",
+//         phone?.trim() || null,
+//         address?.trim() || null,
+//         profile_image_path  // ← Now a string URL (or null), safe for VARCHAR
+//       );
+  
+//       req.flash("notice", `Member "${first_name} ${last_name}" added successfully!`);
+//       return res.redirect("/account/");
+//     } catch (error) {
+//       console.error("Add member failed:", error);
+//       req.flash("notice", `Error: ${error.message || "Could not add member"}`);
+//       return res.redirect("/account/"); // or back to form if you have one
+//     }
+//   }
+
+// /* ****************************************
+//  *  Deliver Edit Member view (with data)
+//  * *************************************** */
+// async function buildEditMember(req, res) {
+//   const member_id = parseInt(req.params.id);
+//   const nav = await utilities.getNav();
+
+//   try {
+//     const member = await accountModel.getMemberById(member_id);
+//     if (!member) {
+//       req.flash("notice", "Member not found");
+//       return res.redirect("/account/");
+//     }
+
+//     res.render("inventory/edit-member", {
+//       title: "Edit Member",
+//       nav,
+//       member,  // ← data passed to view
+//       messages: req.flash()
+//     });
+//   } catch (error) {
+//     req.flash("notice", "Error loading member");
+//     res.redirect("/account/");
+//   }
+// }
+// /* ****************************************
+//  *  Process Edit Member update
+//  * *************************************** */
+// async function processUpdateMember(req, res) {
+//   const member_id = parseInt(req.params.id);
+
+//   console.log("UPDATE MEMBER - Body:", req.body);
+//   console.log("UPDATE MEMBER - File:", req.file ? "Yes" : "No");
+
+//   const { first_name, last_name, email, phone, address } = req.body;
+//   const profile_image = req.file ? req.file.buffer : null; // null = keep old
+
+//   try {
+//     const updatedMember = await accountModel.updateMember(
+//       member_id,
+//       first_name?.trim() || "",
+//       last_name?.trim() || "",
+//       email?.trim() || "",
+//       phone?.trim() || null,
+//       address?.trim() || null,
+//       profile_image
+//     );
+
+//     if (updatedMember) {
+//       req.flash("notice", `Member "${first_name} ${last_name}" updated successfully!`);
+//       return res.redirect("/account/?updated=true");
+//     } else {
+//       req.flash("notice", "Member not found or no changes made.");
+//     }
+
+//     return res.redirect("/account/");
+//   } catch (error) {
+//     console.error("Update member failed:", error);
+//     req.flash("notice", `Error: ${error.message}`);
+//     return res.redirect(`/account/edit-member/${member_id}`);
+//   }
+// }
+
+// // contact
+// async function submitContact(req, res) {
+//   const { firstname, lastname, email, message } = req.body;
+
+//   // Basic validation
+//   if (!firstname || !lastname || !email || !message) {
+//     req.flash("error", "All fields are required.");
+//     return res.redirect("/contact");
+//   }
+
+//   try {
+//     await accountModel.saveContactMessage(firstname, lastname, email, message);
+
+//     req.flash("success", "Your message has been sent successfully! We will get back to you within 24 hours.");
+//     res.redirect("/contact");
+//   } catch (error) {
+//     req.flash("error", "Sorry, there was an error sending your message. Please try again.");
+//     res.redirect("/contact");
+//   }
+// }
+// // member page to be getted in admin dashboard.
+// async function viewMembers(req, res) {
+//   try {
+//     const members = await accountModel.getAllMembers(); // Use your existing model method
+//     res.render("inventory/management", {
+//       title: "View All Members",
+//       layout: false, // or your dashboard layout
+//        members,
+//        showMembers: true,
+//        showAccount: false,
+//       messages: req.flash()
+//     });
+//   } catch (error) {
+//     console.error("View members error:", error);
+//     req.flash("error", "Failed to load members");
+//     res.redirect("/account/");
+//   }
+// }
+
+// /**
+//  * Get single member details (JSON for AJAX modal)
+//  */
+// async function getMemberDetail(req, res) {
+//   try {
+//     const memberId = parseInt(req.params.id);
+//     const member = await accountModel.getMemberById(memberId); // Assume this exists in model
+
+//     if (!member) {
+//       return res.status(404).json({ error: "Member not found" });
+//     }
+
+//     res.json(member);
+//   } catch (error) {
+//     console.error("Get member detail error:", error);
+//     res.status(500).json({ error: "Server error" });
+//   }
+// }
+
+// /**
+//  * Delete member
+//  */
+// async function deleteMember(req, res) {
+//   try {
+//     const memberId = parseInt(req.params.id);
+//     const deleted = await accountModel.deleteMember(memberId); // Assume model has this
+
+//     if (!deleted) {
+//       return res.status(404).json({ error: "Member not found" });
+//     }
+
+//     req.flash("notice", "Member deleted successfully");
+//     res.json({ success: true });
+//   } catch (error) {
+//     console.error("Delete member error:", error);
+//     res.status(500).json({ error: "Failed to delete member" });
+//   }
+// }
+// // for get student in management view.
+// async function getAllStudents(req, res) {
+//   try {
+//     const students = await accountModel.getAllStudents(); // fetch from model
+
+//     res.render("inventory/management", {
+//       title: "Manage Students",
+//       layout: false,
+//       showAccount: false,
+//       showMembers: false,
+//       showStudents: true,
+//       students,
+//       messages: req.flash(),
+//     });
+//   } catch (error) {
+//     console.error("Error fetching students:", error);
+//     req.flash("notice", "Failed to load students");
+//     res.redirect("/account/");
+//   }
+// }
+//  /****************************
+//   * Delivery employee view in admin dashboard
+//   */
+//  async function viewEmployees(req, res) {
+//   try {
+//     const  employees = await accountModel.viewEmployees(); // fetch from model
+
+//     res.render("inventory/management", {
+//       title: "Manage Employees",
+//       layout: false,
+//       showAccount: false,
+//       showMembers: false,
+//       showEmployees: true,
+//       employees,
+//       messages: req.flash(),
+//     });
+//   } catch (error) {
+//     console.error("Error fetching employees:", error);
+//     req.flash("notice", "Failed to load employees");
+//     res.redirect("/account/");
+//   }
+// }
+// // end here employee views
+
+// // GET: Show add employee form
+// async function buildaddEmployee(req, res) {
+//   try {
+//     res.render("inventory/management", {
+//       title: "Add Employee",
+//       layout: false,
+//       showAccount: false,
+//       showEmployee: true,
+//       messages: req.flash(),
+//     });
+//   } catch (error) {
+//     console.error("Error loading add employee form:", error);
+//     req.flash("notice", "Failed to load form: " + error.message);
+//     res.redirect("/account/");
+//   }
+// }
+
+// // POST: Create account + employee with full checks
+// async function processAddEmployee(req, res) {
+//   try {
+//     const { 
+//       firstname, lastname, email, password, account_type, 
+//       phone_number, department, position, hire_date 
+//     } = req.body;
+
+//     const profile_image = req.file
+//       ? `/images/site/${req.file.filename}`
+//       : null;
+
+//     // Validate required fields
+//     if (!firstname || !lastname || !email || !password || !phone_number) {
+//       req.flash("notice", "Missing required fields.");
+//       return res.redirect("/account/inventory/add-employees");
+//     }
+
+//     // Check email uniqueness
+//     const existing = await accountModel.checkExistingEmail(email);
+//     if (existing > 0) {
+//       req.flash("notice", "Email already in use.");
+//       return res.redirect("/account/inventory/add-employees");
+//     }
+
+//     // Hash password
+//     const hashedPassword = await bcrypt.hash(password, 10);
+
+//     // Create account
+//     const account = await accountModel.addAccount(
+//       firstname, lastname, email, hashedPassword, account_type
+//     );
+
+//     // Create employee (no employee_code — model generates it)
+//     await accountModel.addEmployee(
+//       account.account_id,
+//       phone_number, department, position, hire_date, profile_image
+//     );
+
+//     req.flash("notice", "Employee added successfully!");
+//     res.redirect("/account/");
+//   } catch (error) {
+//     console.error("Add employee error:", error.message);
+//     req.flash("notice", "Failed to add employee: " + error.message);
+//     res.redirect("/account/inventory/add-employees");
+//   }
+// }
+
+
+// /* ****************************************
+//  *  Delivering Build Edit Employee Form (GET)
+//  * *************************************** */
+// async function buildEditEmployee(req, res) {
+//   const employeeId = parseInt(req.params.employee_id);
+//   const accountData = res.locals.accountData || {};
+
+//   try {
+//     // Fetch full employee data (joined with account)
+//     const employee = await accountModel.getEmployeeById(employeeId);
+
+//     if (!employee) {
+//       req.flash("notice", "Employee not found");
+//       return res.redirect("/account/");
+//     }
+
+//     res.render("inventory/management", {
+//       title: "Edit Employee",
+//       layout: false,
+//       showAccount : false,
+//       showEditEmployee: true,
+//       messages: req.flash(),
+//       account_firstname: accountData.account_firstname,
+//       account_email: accountData.account_email,
+//       account_type: accountData.account_type,
+//       employee,           // ← pass the full employee object to pre-fill form
+//     });
+//   } catch (error) {
+//     console.error("Error loading edit employee form:", error);
+//     req.flash("notice", "Failed to load employee data");
+//     res.redirect("/account/");
+//   }
+// }
+
+// /* ****************************************
+//  *  Process Update Employee (POST)
+//  *  Uses multer middleware for optional new image
+//  * *************************************** */
+// // async function processUpdateEmployee(req, res) {
+// //   const employeeId = parseInt(req.params.employee_id);
+// //   let employee;
+// //   try {
+// //     employee = await accountModel.getEmployeeById(employeeId);
+// //     if (!employee) {
+// //       req.flash("notice", "Employee not found");
+// //       return res.redirect("/account/inventory/employees");
+// //     }
+// //   } catch (err) {
+// //     console.error("Failed to fetch employee:", err);
+// //     req.flash("error", "Could not load employee data");
+// //     return res.redirect("/account/inventory/employees");
+// //   }
+
+// //   const {
+// //     firstname,
+// //     lastname,
+// //     email,
+// //     employee_code,
+// //     phone_number,
+// //     department,
+// //     position,
+// //     hire_date,
+// //     status
+// //   } = req.body;
+
+// //   let profile_image = null;
+// //   if (req.file) {
+// //     profile_image = `/images/site/${req.file.filename}`;
+// //   }
+
+// //   try {
+// //     // 1. Update account table (name + email)
+// //     await accountModel.updateAccountBasic(
+// //       employee.account_id,
+// //       firstname?.trim() || "",
+// //       lastname?.trim() || "",
+// //       email?.trim().toLowerCase() || ""
+// //     );
+
+// //     // 2. Update employee table
+// //     const updated = await accountModel.updateEmployee({
+// //       employee_id: employee.employee_id,          // ← FIXED: use the real ID
+// //       employee_code: employee_code?.trim() || employee.employee_code || "",
+// //       phone_number: phone_number?.trim() || null,
+// //       department: department?.trim() || null,
+// //       position: position?.trim() || null,
+// //       hire_date: hire_date && hire_date.trim() !== '' ? hire_date.trim() : null,
+// //       profile_image,                              // null = keep old
+// //       status: status || employee.status || "active"
+// //     });
+
+// //     if (updated) {
+// //       req.flash("notice", `Employee ${firstname} ${lastname} updated successfully!`);
+// //       return res.redirect("/account/inventory/employees");  // better redirect
+// //     } else {
+// //       req.flash("notice", "No changes made or update failed.");
+// //       return res.redirect(`/account/inventory/edit-employee/${employee.employee_id}`);
+// //     }
+// //   } catch (error) {
+// //     console.error("Update employee failed:", error.message);
+// //     console.error(error.stack);  // ← helps see full error
+// //     req.flash("notice", `Error: ${error.message || "Update failed"}`);
+// //     return res.redirect(`/account/inventory/edit-employee/${employee.employee_id}`);
+// //   }
+// // }
+
+// async function processUpdateEmployee(req, res) {
+//   const employeeId = parseInt(req.params.employee_id);
+
+//   let employee;
+//   try {
+//     employee = await accountModel.getEmployeeById(employeeId);
+//     if (!employee) {
+//       req.flash("notice", "Employee not found");
+//       return res.redirect("/account/inventory/employees");
+//     }
+//   } catch (err) {
+//     console.error("Failed to fetch employee:", err);
+//     return res.redirect("/account/inventory/employees");
+//   }
+
+//   const {
+//     firstname, lastname, email,
+//     employee_code, phone_number,
+//     department, position, hire_date, status
+//   } = req.body;
+
+//   // Log to confirm body is received
+//   console.log("UPDATE BODY:", req.body);
+//   console.log("UPDATE FILE:", req.file ? req.file.filename : "no file");
+
+//   const profile_image = req.file
+//     ? `/images/site/${req.file.filename}`
+//     : null;
+
+//   try {
+//     // 1. Update account table
+//     await accountModel.updateAccountBasic(
+//       employee.account_id,
+//       firstname?.trim()          || "",
+//       lastname?.trim()           || "",
+//       email?.trim().toLowerCase() || ""
+//     );
+
+//     // 2. Update employee table
+//     const updated = await accountModel.updateEmployee({
+//       employee_id:   employeeId,
+//       employee_code: employee_code?.trim() || employee.employee_code || "",
+//       phone_number:  phone_number?.trim()  || null,
+//       department:    department?.trim()    || null,
+//       position:      position?.trim()      || null,
+//       hire_date:     hire_date?.trim()     || null,
+//       profile_image: profile_image,
+//       status:        status                || employee.status || "active"
+//     });
+
+//     if (updated) {
+//       req.flash("notice", `Employee ${firstname} ${lastname} updated successfully!`);
+//       return res.redirect("/account/inventory/employees");
+//     } else {
+//       req.flash("notice", "No changes made.");
+//       return res.redirect(`/account/inventory/edit-employee/${employeeId}`);
+//     }
+
+//   } catch (error) {
+//     console.error("Update employee failed:", error.message);
+//     console.error(error.stack);
+//     req.flash("notice", `Error: ${error.message}`);
+//     return res.redirect(`/account/inventory/edit-employee/${employeeId}`);
+//   }
+// }
+
+// /* *****************************
+//  * Deliver employee dashboard
+//  * *************************** */
+// async function employeeDashboard(req, res) {
+//   const accountData = res.locals.accountData || {};
+
+//   // Optional: Fetch real stats from DB (dummy for now)
+//   const stats = {
+//     patients: 15,
+//     pendingTasks: 5,
+//     attendedHours: 32,
+//     nextPayday: "May 31, 2024"
+//   };
+
+//   res.render("inventory/dashboard_01", {     // ← confirm this file exists!
+//     title: "Employee Dashboard",
+//     layout: false,
+//     messages: req.flash(),
+//     account_firstname: accountData.account_firstname || "Employee",
+//     account_email: accountData.account_email || "",
+//     account_type: accountData.account_type || "employee",
+//      stats
+//   });
+// }
+
+// /******************************
+//  * 
+//  * Deliver delete Employee page
+//  */
+
+// async function deleteEmployee(req, res) {
+//   try {
+//     const employeeId = parseInt(req.params.employee_id);
+
+//     if (!employeeId || isNaN(employeeId)) {
+//       req.flash("notice", "Invalid employee ID");
+//       return res.redirect("/account/inventory/employees");
+//     }
+
+//     // Security: only admin can delete
+//     if (res.locals.accountData?.account_type !== 'admin') {
+//       req.flash("notice", "Only administrators can delete employees");
+//       return res.redirect("/account/inventory/employees");
+//     }
+
+//     const success = await accountModel.deleteEmployee(employeeId);
+
+//     if (success) {
+//       req.flash("notice", "Employee permanently deleted from the system.");
+//     } else {
+//       req.flash("notice", "Failed to delete employee. Please try again.");
+//     }
+
+//     res.redirect("/account/inventory/employees");
+//   } catch (error) {
+//     console.error("Delete controller error:", error);
+//     req.flash("notice", "Error occurred while deleting employee");
+//     res.redirect("/account/inventory/employees");
+//   }
+// }
+// // Home page - public view
+// async function buildHome(req, res) {
+//   try {
+//     const latestNews = await accountModel.getLatestNews(5);
+//     const upcomingEvents = await accountModel.getUpcomingEvents(5);
+
+//     let nav = await utilities.getNav();
+
+//     res.render("index", {
+//       title: "Home",
+//       nav,
+//       latestNews,
+//       upcomingEvents,
+//       messages: req.flash(),
+//       loggedin: res.locals.loggedin || false,
+//       accountData: res.locals.accountData || null
+//     });
+//   } catch (err) {
+//     console.error("Home page error:", err);
+//     res.render("index", {
+//       title: "Home",
+//       nav: await utilities.getNav(),
+//       latestNews: [],
+//       upcomingEvents: [],
+//       messages: req.flash()
+//     });
+//   }
+// }
+
+// // Admin: Show form to add news
+// async function buildAddNews(req, res) {
+//   if (!res.locals.loggedin || res.locals.accountData?.account_type !== 'admin') {
+//     req.flash("notice", "Only admins can post news.");
+//     return res.redirect("/account");
+//   }
+
+//   res.render("inventory/management", {
+//     title: "Post News",
+//     layout: false,
+//     showAccount : false,
+//     showAddNew: true,
+//     messages: req.flash()
+//   });
+// }
+
+// // Admin: Process news post
+// async function processAddNews(req, res) {
+//   if (!res.locals.loggedin || res.locals.accountData?.account_type !== 'admin') {
+//     req.flash("notice", "Only administrators can add news.");
+//     return res.redirect("/account");
+//   }
+
+//   const { title, description, news_date } = req.body;
+//   const profile_image = req.file 
+//     ? `/images/site/${req.file.filename}` 
+//     : null;
+
+//   try {
+//     if (!title?.trim() || !description?.trim()) {
+//       req.flash("notice", "Title and description are required.");
+//       return res.redirect("/account/inventory/add-new");
+//     }
+
+//     await accountModel.createNews({
+//       title,
+//       description,
+//       profile_image,
+//       news_date,
+//       created_by: res.locals.accountData.account_id
+//     });
+
+//     req.flash("success", "News published successfully!");
+//     res.redirect("/account/inventory/add-new");   // stay on form or change to "/" 
+
+//   } catch (err) {
+//     console.error("Process Add News Error:", err.message);
+//     req.flash("notice", "Failed to publish news: " + err.message);
+//     res.redirect("/account/inventory/add-new");
+//   }
+// }
+// // Same for events (copy & change names)
+// async function buildAddEvent(req, res) {
+//   // same auth check as above
+//   res.render("inventory/management", {
+//     title: "Add Event",
+//     layout: false,
+//     showAccount : false,
+//     showAddEvent: true,
+//     messages: req.flash()
+//   });
+// }
+// async function processAddEvent(req, res) {
+//   if (!res.locals.loggedin || res.locals.accountData?.account_type !== 'admin') {
+//     req.flash("notice", "Only administrators can add events.");
+//     return res.redirect("/account");
+//   }
+
+//   const { title, description, event_date, location } = req.body;
+//   const profile_image = req.file 
+//     ? `/images/site/${req.file.filename}` 
+//     : null;
+
+//   try {
+//     if (!title?.trim() || !event_date) {
+//       req.flash("notice", "Title and event date are required.");
+//       return res.redirect("/account/inventory/add-event");
+//     }
+
+//     await accountModel.createEvent({
+//       title,
+//       description,
+//       event_date,
+//       location,
+//       profile_image,
+//       created_by: res.locals.accountData.account_id
+//     });
+
+//     req.flash("success", "Event created successfully!");
+//     res.redirect("/account/inventory/add-event");   // or /account/ if you prefer
+
+//   } catch (err) {
+//     console.error("Process Add Event Error:", err.message);
+//     req.flash("notice", "Failed to create event: " + err.message);
+//     res.redirect("/account/inventory/add-event");
+//   }
+// }
+
+// /* ****************************************
+//  *   Build Event Read More / Detail Page
+//  * *************************************** */
+// async function buildEventDetail(req, res) {
+//   try {
+//     const eventId = parseInt(req.params.id);
+
+//     if (!eventId || isNaN(eventId)) {
+//       req.flash("notice", "Invalid event link.");
+//       return res.redirect("/");
+//     }
+
+//     const event = await accountModel.getEventById(eventId);
+
+//     if (!event || event.is_active === false) {
+//       req.flash("notice", "Event not found or no longer available.");
+//       return res.redirect("/");
+//     }
+
+//     let nav = await utilities.getNav();
+
+//     res.render("pages/details", {
+//       title: event.title || "Event Details",
+//       event: event,
+//       nav,
+//       messages: req.flash(),
+//       loggedin: res.locals.loggedin || false
+//     });
+
+//   } catch (err) {
+//     console.error("Event Detail Controller Error:", err.message);
+//     req.flash("notice", "Something went wrong.");
+//     res.redirect("/");
+//   }
+// }
+
+// /* ****************************************
+//  *   Process Event Registration (POST)
+//  * *************************************** */
+// async function processEventRegistration(req, res) {
+//   try {
+//     const {
+//       event_id,
+//       full_name,
+//       phone_number,
+//       email,
+//       course_of_study,
+//       university_name,
+//       date_of_birth,
+//       working_experience,
+//       company_name
+//     } = req.body;
+
+//     // Basic validation
+//     if (!event_id || !full_name || !phone_number || !email) {
+//       req.flash("notice", "Please fill all required fields.");
+//       return res.redirect(`/events/register/${event_id}`);
+//     }
+
+//     // Save to database
+//     await accountModel.addEventRegistration({
+//       event_id: parseInt(event_id),
+//       full_name: full_name.trim(),
+//       phone_number: phone_number.trim(),
+//       email: email.trim().toLowerCase(),
+//       course_of_study: course_of_study ? course_of_study.trim() : null,
+//       university_name: university_name ? university_name.trim() : null,
+//       date_of_birth: date_of_birth || null,
+//       working_experience: parseInt(working_experience) || 0,
+//       company_name: company_name ? company_name.trim() : null
+//     });
+
+//     req.flash("success", "Registration successful! Thank you for registering.");
+//     res.redirect("/");   // or redirect to a thank you page
+
+//   } catch (error) {
+//     console.error("Process Event Registration Error:", error.message);
+//     req.flash("notice", "Failed to register. Please try again.");
+//     res.redirect(`/events/register/${req.body.event_id || ''}`);
+//   }
+// }
+
+// // 1. View Page
+// async function viewEventRegistrations(req, res) {
+//   try {
+//     const registrations = await accountModel.getAllEventRegistrations();
+
+//     res.render("inventory/management", {
+//       title: "Event Registrations",
+//       layout: false,
+//       registrations: registrations,
+//       showRegistrations: true,     // Important: hides default dashboard
+//       showAccount: false
+//     });
+//   } catch (error) {
+//     console.error("View Event Registrations Error:", error.message);
+//     req.flash("notice", "Failed to load registrations");
+//     res.redirect("/account/");
+//   }
+// }
+
+// // ====================== DOWNLOAD EVENT REGISTRATIONS AS EXCEL ======================
+// async function downloadEventRegistrationsExcel(req, res) {
+//   try {
+//     const registrations = await accountModel.getAllEventRegistrations();
+
+//     if (registrations.length === 0) {
+//       req.flash("notice", "No registrations found.");
+//       return res.redirect("/inventory/event-registrations");
+//     }
+
+//     const ExcelJS = require('exceljs');
+//     const workbook = new ExcelJS.Workbook();
+//     const worksheet = workbook.addWorksheet('Event Registrations');
+
+//     // Define Columns
+//     worksheet.columns = [
+//       { header: '#', key: 'no', width: 6 },
+//       { header: 'Event Title', key: 'event_title', width: 35 },
+//       { header: 'Full Name', key: 'full_name', width: 25 },
+//       { header: 'Phone Number', key: 'phone_number', width: 15 },
+//       { header: 'Email', key: 'email', width: 30 },
+//       { header: 'University', key: 'university_name', width: 30 },
+//       { header: 'Course', key: 'course_of_study', width: 25 },
+//       { header: 'Experience (Years)', key: 'working_experience', width: 15 },
+//       { header: 'Company', key: 'company_name', width: 25 },
+//       { header: 'Registered On', key: 'registered_at', width: 18 }
+//     ];
+
+//     // Add Data
+//     registrations.forEach((reg, index) => {
+//       worksheet.addRow({
+//         no: index + 1,
+//         event_title: reg.event_title || 'N/A',
+//         full_name: reg.full_name,
+//         phone_number: reg.phone_number,
+//         email: reg.email,
+//         university_name: reg.university_name || 'N/A',
+//         course_of_study: reg.course_of_study || 'N/A',
+//         working_experience: reg.working_experience || 0,
+//         company_name: reg.company_name || 'N/A',
+//         registered_at: new Date(reg.registered_at).toLocaleDateString('en-GB')
+//       });
+//     });
+
+//     // Style the header row
+//     const headerRow = worksheet.getRow(1);
+//     headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+//     headerRow.fill = {
+//       type: 'pattern',
+//       pattern: 'solid',
+//       fgColor: { argb: 'FF2E7D32' }
+//     };
+//     headerRow.alignment = { horizontal: 'center' };
+
+//     // Send the file
+//     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+//     res.setHeader('Content-Disposition', 'attachment; filename="UHWF_Event_Registrations.xlsx"');
+
+//     await workbook.xlsx.write(res);
+//     res.end();
+
+//   } catch (err) {
+//     console.error("Excel Download Error:", err.message);
+//     req.flash("notice", "Failed to generate Excel file.");
+//     res.redirect("/account/inventory/event-registrations");
+//   }
+// }
+
+// // Build Video Gallery Page (Public)
+// async function buildVideoGallery(req, res) {
+//   let nav = await utilities.getNav();
+//   try {
+//     const videos = await accountModel.getAllVideos();
+
+//     res.render("pages/video-gallery", {
+//       title: "Video Gallery",
+//       nav,
+//       videos: videos,
+//       messages: req.flash()
+//     });
+//   } catch (err) {
+//     console.error(err);
+//     res.render("pages/video-gallery", {
+//       title: "Video Gallery",
+//       nav,
+//       videos: [],
+//       messages: req.flash()
+//     });
+//   }
+// }
+
+// async function buildAddVideo(req, res) {
+//   if (!res.locals.loggedin || res.locals.accountData?.account_type !== 'admin') {
+//     req.flash("notice", "Only administrators can add videos.");
+//     return res.redirect("/account");
+//   }
+
+//   res.render("inventory/management", {
+//     title: "Add New Video",
+//     layout: false,
+//     showAccount: false,
+//     showAddVideo: true,       // ← controls which panel shows in management.ejs
+//     messages: req.flash()
+//   });
+// }
+
+// // Admin: Process Add Video
+// async function processAddVideo(req, res) {
+//   if (!res.locals.loggedin || res.locals.accountData?.account_type !== 'admin') {
+//     req.flash("notice", "Only administrators can add videos.");
+//     return res.redirect("/account");
+//   }
+
+//   const { title, description, youtube_url, category } = req.body;
+
+//   if (!title?.trim() || !youtube_url?.trim()) {
+//     req.flash("notice", "Title and YouTube URL are required.");
+//     return res.redirect("/account/inventory/add-video");
+//   }
+
+//   try {
+//     await accountModel.createVideo({
+//       title: title.trim(),
+//       description: description?.trim() || null,
+//       youtube_url: youtube_url.trim(),
+//       category: category?.trim() || 'General',
+//       created_by: res.locals.accountData.account_id
+//     });
+
+//     req.flash("success", "Video added successfully!");
+//     res.redirect("/account/inventory/add-video");
+//   } catch (err) {
+//     console.error("processAddVideo Error:", err.message);
+//     req.flash("notice", "Failed to add video: " + err.message);
+//     res.redirect("/account/inventory/add-video");
+//   }
+// }
+
+// // Admin: List all videos in management panel
+// async function viewVideos(req, res) {
+//   if (!res.locals.loggedin || res.locals.accountData?.account_type !== 'admin') {
+//     req.flash("notice", "Access denied.");
+//     return res.redirect("/account");
+//   }
+
+//   try {
+//     const videos = await accountModel.getAllVideos();
+//     res.render("inventory/management", {
+//       title: "Manage Videos",
+//       layout: false,
+//       showAccount: false,
+//       showVideos: true,       // ← new panel flag
+//       videos,
+//       messages: req.flash()
+//     });
+//   } catch (err) {
+//     console.error("viewVideos Error:", err.message);
+//     req.flash("notice", "Failed to load videos.");
+//     res.redirect("/account/");
+//   }
+// }
+
+// // Admin: Delete (soft delete) a video
+// async function deleteVideo(req, res) {
+//   if (!res.locals.loggedin || res.locals.accountData?.account_type !== 'admin') {
+//     req.flash("notice", "Only administrators can delete videos.");
+//     return res.redirect("/account");
+//   }
+
+//   try {
+//     const videoId = parseInt(req.params.video_id);
+
+//     if (!videoId || isNaN(videoId)) {
+//       req.flash("notice", "Invalid video ID.");
+//       return res.redirect("/account/inventory/videos");
+//     }
+
+//     await accountModel.softDeleteVideo(videoId);
+
+//     req.flash("notice", "Video deleted successfully.");
+//     res.redirect("/account/inventory/videos");
+//   } catch (err) {
+//     console.error("deleteVideo Error:", err.message);
+//     req.flash("notice", "Failed to delete video.");
+//     res.redirect("/account/inventory/videos");
+//   }
+// }
+// // 1. Show Forgot Password Page
+// async function buildForgotPassword(req, res) {
+//   let nav = await utilities.getNav();
+//   res.render("account/forgot-password", {
+//     title: "Forgot Password",
+//     nav,
+//     messages: req.flash()
+//   });
+// }
+
+// // 2. Send Reset Link
+// // 2. Send Reset Link -
+// async function sendResetLink(req, res) {
+//   const { email } = req.body;
+
+//   console.log("=== FORGOT PASSWORD REQUEST START ===");
+//   console.log("Email submitted:", email);
+
+//   if (!email) {
+//     req.flash("notice", "Please enter your email address.");
+//     return res.redirect("/account/forgot-password");
+//   }
+
+//   try {
+//     // 1. Check if account exists
+//     const account = await accountModel.getAccountByEmail(email);
+//     console.log("Account lookup result:", account ? "FOUND" : "NOT FOUND");
+
+//     if (!account) {
+//       req.flash("notice", "No account found with this email address.");
+//       return res.redirect("/account/forgot-password");
+//     }
+
+//     // 2. Generate token
+//     const token = crypto.randomBytes(32).toString('hex');
+//     console.log("Generated reset token:", token);
+
+//     // 3. Save token
+//     await accountModel.saveResetToken(email, token);
+//     console.log("Reset token saved in database successfully");
+
+//     // 4. Send email
+//     console.log("Attempting to send email via Brevo...");
+//     await sendPasswordResetEmail(email, token);
+//     console.log("✅ Email sent successfully to:", email);
+
+//     req.flash("success", "Password reset link has been sent to your email.");
+//     res.redirect("/account/forgot-password");
+
+//   } catch (err) {
+//     console.error("=== ERROR in sendResetLink ===");
+//     console.error("Error Message:", err.message);
+//     console.error("Error Stack:", err.stack);
+
+//     req.flash("notice", "Something went wrong. Please check server logs.");
+//     res.redirect("/account/forgot-password");
+//   }
+// }
+
+// // 3. Show Reset Password Page
+// async function buildResetPassword(req, res) {
+//   const { token } = req.query;
+//   let nav = await utilities.getNav();
+
+//   const resetData = await accountModel.verifyResetToken(token);
+//   if (!resetData) {
+//     req.flash("notice", "Invalid or expired reset link.");
+//     return res.redirect("/account/forgot-password");
+//   }
+
+//   res.render("account/reset-password", {
+//     title: "Reset Password",
+//     token: token,
+//     nav,
+//     messages: req.flash()
+//   });
+// }
+
+// // 4. Process New Password
+// async function processResetPassword(req, res) {
+//   const { token, new_password, confirm_password } = req.body;
+
+//   if (new_password !== confirm_password) {
+//     req.flash("notice", "Passwords do not match.");
+//     return res.redirect(`/account/reset-password?token=${token}`);
+//   }
+
+//   try {
+//     const resetData = await accountModel.verifyResetToken(token);
+//     if (!resetData) {
+//       req.flash("notice", "Invalid or expired token.");
+//       return res.redirect("/account/forgot-password");
+//     }
+
+//     const hashedPassword = await bcrypt.hash(new_password, 10);
+//     await accountModel.updatePassword(resetData.email, hashedPassword);
+
+//     await pool.query("DELETE FROM public.password_resets WHERE token = $1", [token]);
+
+//     req.flash("success", "Password changed successfully! Login with new password.");
+//     res.redirect("/account/login");
+//   } catch (err) {
+//     req.flash("notice", "Failed to reset password.");
+//     res.redirect(`/account/reset-password?token=${token}`);
+//   }
+// }
+
+// // Helper: Send Email using Brevo
+// async function sendPasswordResetEmail(email, token) {
+//   const transporter = nodemailer.createTransport({
+//     host: process.env.EMAIL_HOST,
+//     port: process.env.EMAIL_PORT,
+//     secure: false,
+//     auth: {
+//       user: process.env.EMAIL_USER,
+//       pass: process.env.EMAIL_PASS
+//     }
+//   });
+
+//   const resetLink = `${process.env.BASE_URL}/account/reset-password?token=${token}`;
+
+//   await transporter.sendMail({
+//     from: process.env.EMAIL_FROM,
+//     to: email,
+//     subject: "Reset Your UHWF Password",
+//     html: `
+//       <h2>Password Reset - UHWF Tanzania</h2>
+//       <p>Hello,</p>
+//       <p>You requested to reset your password.</p>
+//       <a href="${resetLink}" style="background:#2e7d32;color:white;padding:15px 25px;text-decoration:none;border-radius:6px;font-weight:bold;">
+//         Reset My Password
+//       </a>
+//       <p>This link expires in 1 hour.</p>
+//       <p>If you did not request this, please ignore this email.</p>
+//     `
+//   });
+// }
+
+// // Public: show career page
+// async function getCareerPage(req, res) {
+//   try {
+//     const jobs = await accountModel.getAllJobs();
+//     let nav = await utilities.getNav();
+//     res.render("pages/career", {
+//       title: "Career Opportunities",
+//       nav,
+//       jobs,
+//       messages: req.flash()
+//     });
+//   } catch (err) {
+//     console.error("Career Page Error:", err.message);
+//     res.status(500).send("Error loading jobs");
+//   }
+// }
+
+// // Admin: show add-job form
+// async function buildAddJob(req, res) {
+//   if (!res.locals.loggedin || res.locals.accountData?.account_type !== 'admin') {
+//     req.flash("notice", "Only administrators can post jobs.");
+//     return res.redirect("/account");
+//   }
+//   res.render("inventory/management", {
+//     title: "Post Job Opening",
+//     layout: false,
+//     showAddJob: true,
+//     showAccount: false,
+//     messages: req.flash()
+//   });
+// }
+
+// // Admin: save new job to DB
+// async function processAddJob(req, res) {
+//   if (!res.locals.loggedin || res.locals.accountData?.account_type !== 'admin') {
+//     req.flash("notice", "Only administrators can post jobs.");
+//     return res.redirect("/account");
+//   }
+//   const { department_name, job_title, number_of_positions, qualifications, experience } = req.body;
+//   try {
+//     if (!department_name?.trim() || !job_title?.trim() || !experience?.trim()) {
+//       req.flash("notice", "Department, job title, and experience are required.");
+//       return res.redirect("/account/inventory/add-job");
+//     }
+//     const qualificationsArray = qualifications
+//       ? qualifications.split('\n').map(q => q.trim()).filter(Boolean)
+//       : [];
+//     await accountModel.createJob({
+//       department_name: department_name.trim(),
+//       job_title: job_title.trim(),
+//       number_of_positions: parseInt(number_of_positions) || 1,
+//       qualifications: qualificationsArray,
+//       experience: experience.trim(),
+//       posted_by: res.locals.accountData.account_id
+//     });
+//     req.flash("success", "Job posted successfully!");
+//     res.redirect("/account/inventory/add-job");
+//   } catch (err) {
+//     console.error("processAddJob error:", err.message);
+//     req.flash("notice", "Failed to post job: " + err.message);
+//     res.redirect("/account/inventory/add-job");
+//   }
+// }
+
+// // ═══════════════════════════════════════════════════════
+// //  ADMIN — ASSIGN TASK
+// // ═══════════════════════════════════════════════════════
+
+// async function buildAssignTask(req, res) {
+//   try {
+//     const employees = await accountModel.getAllEmployees();
+//     res.render("inventory/management", {
+//       title: "Assign Task",
+//       layout: false,
+//       showAccount: false,
+//       showAssignTask: true,
+//       employees,
+//       messages: req.flash()
+//     });
+//   } catch (err) {
+//     console.error("buildAssignTask:", err.message);
+//     req.flash("notice", "Failed to load form.");
+//     res.redirect("/account/");
+//   }
+// }
+
+// async function processAssignTask(req, res) {
+//   try {
+//     const { title, description, assigned_to, priority, due_date } = req.body;
+//     if (!title?.trim() || !assigned_to) {
+//       req.flash("notice", "Title and employee are required.");
+//       return res.redirect("/account/inventory/assign-task");
+//     }
+//     await accountModel.createTask({
+//       title:       title.trim(),
+//       description: description?.trim() || null,
+//       assigned_to: parseInt(assigned_to),
+//       assigned_by: res.locals.accountData.account_id,
+//       priority:    priority || "medium",
+//       due_date:    due_date || null
+//     });
+//     req.flash("success", "Task assigned successfully!");
+//     res.redirect("/account/inventory/assign-task");
+//   } catch (err) {
+//     console.error("processAssignTask:", err.message);
+//     req.flash("notice", "Failed to assign task: " + err.message);
+//     res.redirect("/account/inventory/assign-task");
+//   }
+// }
+
+// async function viewAllTasks(req, res) {
+//   try {
+//     const tasks = await taskModel.getAllTasks();
+//     res.render("inventory/management", {
+//       title: "All Tasks",
+//       layout: false,
+//       showAllTasks: true,
+//       showAccount: false,
+//       tasks,
+//       messages: req.flash()
+//     });
+//   } catch (err) {
+//     console.error("viewAllTasks:", err.message);
+//     req.flash("notice", "Failed to load tasks.");
+//     res.redirect("/account/");
+//   }
+// }
+
+// async function deleteTask(req, res) {
+//   try {
+//     await taskModel.deleteTask(parseInt(req.params.task_id));
+//     req.flash("notice", "Task deleted.");
+//     res.redirect("/account/inventory/tasks");
+//   } catch (err) {
+//     console.error("deleteTask:", err.message);
+//     req.flash("notice", "Failed to delete task.");
+//     res.redirect("/account/inventory/tasks");
+//   }
+// }
+
+// // ═══════════════════════════════════════════════════════
+// //  ADMIN — REPORTS & COMMENTS
+// // ═══════════════════════════════════════════════════════
+
+// async function viewAllReports(req, res) {
+//   try {
+//     const reports = await taskModel.getAllReports();
+//     res.render("inventory/management", {
+//       title: "Submitted Reports",
+//       layout: false,
+//       showAllReports: true,
+//       showAccount: false,
+//       reports,
+//       messages: req.flash()
+//     });
+//   } catch (err) {
+//     console.error("viewAllReports:", err.message);
+//     req.flash("notice", "Failed to load reports.");
+//     res.redirect("/account/");
+//   }
+// }
+
+// async function viewReportDetail(req, res) {
+//   try {
+//     const report_id = parseInt(req.params.report_id);
+//     const report    = await taskModel.getReportById(report_id);
+//     const comments  = await taskModel.getCommentsByReportId(report_id);
+//     if (!report) {
+//       req.flash("notice", "Report not found.");
+//       return res.redirect("/account/inventory/reports");
+//     }
+//     res.render("inventory/management", {
+//       title: "Report Detail",
+//       layout: false,
+//       showReportDetail: true,
+//       showAccount: false,
+//       report,
+//       comments,
+//       messages: req.flash()
+//     });
+//   } catch (err) {
+//     console.error("viewReportDetail:", err.message);
+//     req.flash("notice", "Failed to load report.");
+//     res.redirect("/account/inventory/reports");
+//   }
+// }
+
+// async function processAddComment(req, res) {
+//   try {
+//     const report_id        = parseInt(req.params.report_id);
+//     const { comment_text } = req.body;
+//     const admin_id         = res.locals.accountData.account_id;
+//     const admin_name       = res.locals.accountData.account_firstname;
+
+//     if (!comment_text?.trim()) {
+//       req.flash("notice", "Comment cannot be empty.");
+//       return res.redirect(`/account/inventory/reports/${report_id}`);
+//     }
+
+//     await taskModel.addComment({
+//       report_id,
+//       commented_by: admin_id,
+//       comment_text: comment_text.trim()
+//     });
+
+//     const report = await taskModel.getReportById(report_id);
+
+//     // Notify employee
+//     await taskModel.createNotification({
+//       user_id: report.employee_account_id,
+//       message: `Admin ${admin_name} commented on your report for task: "${report.task_title}"`,
+//       link:    `/account/tasks/my-report/${report_id}`
+//     });
+
+//     // Mark task completed
+//     await taskModel.updateTaskStatus(report.task_id, "completed");
+
+//     req.flash("success", "Comment posted and employee notified!");
+//     res.redirect(`/account/inventory/reports/${report_id}`);
+//   } catch (err) {
+//     console.error("processAddComment:", err.message);
+//     req.flash("notice", "Failed to add comment: " + err.message);
+//     res.redirect(`/account/inventory/reports/${req.params.report_id}`);
+//   }
+// }
+
+// async function downloadReportPDF(req, res) {
+//   try {
+//     const report_id = parseInt(req.params.report_id);
+//     const report    = await taskModel.getReportById(report_id);
+//     const comments  = await taskModel.getCommentsByReportId(report_id);
+
+//     if (!report) {
+//       req.flash("notice", "Report not found.");
+//       return res.redirect("/account/inventory/reports");
+//     }
+
+//     const doc = new PDFDocument({ margin: 50, size: "A4" });
+//     res.setHeader("Content-Type", "application/pdf");
+//     res.setHeader("Content-Disposition",
+//       `attachment; filename="UHWF_Report_${report_id}.pdf"`);
+//     doc.pipe(res);
+
+//     // Green header bar
+//     doc.rect(0, 0, 595, 80).fill("#2e7d32");
+//     doc.fillColor("white").fontSize(22).font("Helvetica-Bold")
+//        .text("UHWF Tanzania", 50, 22);
+//     doc.fontSize(11).font("Helvetica").text("Task Report", 50, 50);
+//     doc.moveDown(4);
+
+//     // Info rows
+//     const rows = [
+//       ["Task",      report.task_title],
+//       ["Employee",  report.employee_name],
+//       ["Email",     report.employee_email],
+//       ["Priority",  (report.priority || "N/A").toUpperCase()],
+//       ["Due Date",  report.due_date
+//                       ? new Date(report.due_date).toLocaleDateString("en-GB")
+//                       : "N/A"],
+//       ["Submitted", new Date(report.submitted_at).toLocaleString("en-GB")],
+//     ];
+//     rows.forEach(([label, value]) => {
+//       doc.fontSize(10).font("Helvetica-Bold").fillColor("#555")
+//          .text(`${label}:  `, { continued: true });
+//       doc.font("Helvetica").fillColor("#1a1a2e").text(value || "N/A");
+//     });
+
+//     doc.moveDown();
+//     doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor("#e0e0e0").stroke();
+//     doc.moveDown();
+
+//     doc.fontSize(13).font("Helvetica-Bold").fillColor("#2e7d32").text("Report Content");
+//     doc.moveDown(0.3);
+//     doc.fontSize(10).font("Helvetica").fillColor("#333")
+//        .text(report.report_text, { lineGap: 5 });
+
+//     if (comments && comments.length > 0) {
+//       doc.moveDown();
+//       doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor("#e0e0e0").stroke();
+//       doc.moveDown();
+//       doc.fontSize(13).font("Helvetica-Bold").fillColor("#2e7d32").text("Admin Comments");
+//       doc.moveDown(0.3);
+//       comments.forEach((c, i) => {
+//         doc.fontSize(10).font("Helvetica-Bold").fillColor("#2e7d32")
+//            .text(`[${i+1}] ${c.commenter_name} — ${new Date(c.created_at).toLocaleString("en-GB")}`);
+//         doc.fontSize(10).font("Helvetica").fillColor("#333")
+//            .text(c.comment_text, { indent: 12, lineGap: 4 });
+//         doc.moveDown(0.4);
+//       });
+//     }
+
+//     doc.moveDown(2);
+//     doc.fontSize(8).fillColor("#aaa").font("Helvetica")
+//        .text(`Generated by UHWF Tanzania Portal · ${new Date().toLocaleString("en-GB")}`,
+//              { align: "center" });
+//     doc.end();
+
+//   } catch (err) {
+//     console.error("downloadReportPDF:", err.message);
+//     req.flash("notice", "Failed to generate PDF.");
+//     res.redirect("/account/inventory/reports");
+//   }
+// }
+
+// // ═══════════════════════════════════════════════════════
+// //  EMPLOYEE — TASKS
+// // ═══════════════════════════════════════════════════════
+
+// async function employeeTaskList(req, res) {
+//   try {
+//     const account_id  = res.locals.accountData.account_id;
+//     const tasks       = await taskModel.getTasksByEmployee(account_id);
+//     const unreadCount = await taskModel.countUnreadNotifications(account_id);
+//     res.render("inventory/dashboard_01", {
+//       title: "My Tasks",
+//       layout: false,
+//       showTasks: true,
+//       tasks,
+//       unreadCount,
+//       messages: req.flash(),
+//       account_firstname: res.locals.accountData.account_firstname,
+//       account_email:     res.locals.accountData.account_email,
+//       account_type:      res.locals.accountData.account_type,
+//     });
+//   } catch (err) {
+//     console.error("employeeTaskList:", err.message);
+//     req.flash("notice", "Failed to load tasks.");
+//     res.redirect("/account/dashboard_01/");
+//   }
+// }
+
+// async function buildSubmitReport(req, res) {
+//   try {
+//     const task_id    = parseInt(req.params.task_id);
+//     const account_id = res.locals.accountData.account_id;
+//     const task       = await taskModel.getTaskById(task_id);
+
+//     if (!task || task.assigned_to !== account_id) {
+//       req.flash("notice", "Task not found.");
+//       return res.redirect("/account/tasks/my-tasks");
+//     }
+
+//     const existingReport = await taskModel.getReportByTaskId(task_id);
+//     const unreadCount    = await taskModel.countUnreadNotifications(account_id);
+
+//     res.render("inventory/dashboard_01", {
+//       title: "Submit Report",
+//       layout: false,
+//       showSubmitReport: true,
+//       task,
+//       existingReport: existingReport || null,
+//       unreadCount,
+//       messages: req.flash(),
+//       account_firstname: res.locals.accountData.account_firstname,
+//       account_email:     res.locals.accountData.account_email,
+//       account_type:      res.locals.accountData.account_type,
+//     });
+//   } catch (err) {
+//     console.error("buildSubmitReport:", err.message);
+//     req.flash("notice", "Error loading task.");
+//     res.redirect("/account/tasks/my-tasks");
+//   }
+// }
+
+// async function processSubmitReport(req, res) {
+//   try {
+//     const task_id         = parseInt(req.params.task_id);
+//     const { report_text } = req.body;
+//     const account_id      = res.locals.accountData.account_id;
+
+//     if (!report_text?.trim()) {
+//       req.flash("notice", "Report content is required.");
+//       return res.redirect(`/account/tasks/submit-report/${task_id}`);
+//     }
+//     await taskModel.submitReport({
+//       task_id,
+//       submitted_by: account_id,
+//       report_text:  report_text.trim()
+//     });
+//     req.flash("success", "Report submitted successfully!");
+//     res.redirect("/account/tasks/my-tasks");
+//   } catch (err) {
+//     console.error("processSubmitReport:", err.message);
+//     req.flash("notice", "Failed to submit: " + err.message);
+//     res.redirect(`/account/tasks/submit-report/${req.params.task_id}`);
+//   }
+// }
+
+// // ═══════════════════════════════════════════════════════
+// //  EMPLOYEE — NOTIFICATIONS
+// // ═══════════════════════════════════════════════════════
+
+// async function viewNotifications(req, res) {
+//   try {
+//     const account_id    = res.locals.accountData.account_id;
+//     const notifications = await taskModel.getNotificationsByUser(account_id);
+//     await taskModel.markNotificationsRead(account_id);
+//     res.render("inventory/dashboard_01", {
+//       title: "Notifications",
+//       layout: false,
+//       showNotifications: true,
+//       notifications,
+//       unreadCount: 0,
+//       messages: req.flash(),
+//       account_firstname: res.locals.accountData.account_firstname,
+//       account_email:     res.locals.accountData.account_email,
+//       account_type:      res.locals.accountData.account_type,
+//     });
+//   } catch (err) {
+//     console.error("viewNotifications:", err.message);
+//     req.flash("notice", "Failed to load notifications.");
+//     res.redirect("/account/dashboard_01/");
+//   }
+// }
+
+// async function viewMyReport(req, res) {
+//   try {
+//     const report_id   = parseInt(req.params.report_id);
+//     const report      = await taskModel.getReportById(report_id);
+//     const comments    = await taskModel.getCommentsByReportId(report_id);
+//     const unreadCount = await taskModel.countUnreadNotifications(
+//                           res.locals.accountData.account_id);
+//     res.render("inventory/dashboard_01", {
+//       title: "My Report",
+//       layout: false,
+//       showMyReport: true,
+//       report,
+//       comments,
+//       unreadCount,
+//       messages: req.flash(),
+//       account_firstname: res.locals.accountData.account_firstname,
+//       account_email:     res.locals.accountData.account_email,
+//       account_type:      res.locals.accountData.account_type,
+//     });
+//   } catch (err) {
+//     console.error("viewMyReport:", err.message);
+//     req.flash("notice", "Failed to load report.");
+//     res.redirect("/account/tasks/my-tasks");
+//   }
+// }
+
+// // ═══════════════════════════════════════════════════════
+// //  EMPLOYEE — EDIT PROFILE
+// // ═══════════════════════════════════════════════════════
+
+// async function buildEditProfile(req, res) {
+//   try {
+//     const account_id  = res.locals.accountData.account_id;
+//     const profile     = await taskModel.getEmployeeProfile(account_id);
+//     const unreadCount = await taskModel.countUnreadNotifications(account_id);
+//     res.render("inventory/dashboard_01", {
+//       title: "Edit Profile",
+//       layout: false,
+//       showEditProfile: true,
+//       profile,
+//       unreadCount,
+//       messages: req.flash(),
+//       account_firstname: res.locals.accountData.account_firstname,
+//       account_email:     res.locals.accountData.account_email,
+//       account_type:      res.locals.accountData.account_type,
+//     });
+//   } catch (err) {
+//     console.error("buildEditProfile:", err.message);
+//     req.flash("notice", "Failed to load profile.");
+//     res.redirect("/account/dashboard_01/");
+//   }
+// }
+
+// async function processEditProfile(req, res) {
+//   try {
+//     const account_id    = res.locals.accountData.account_id;
+//     const { firstname, lastname, phone_number } = req.body;
+//     const profile_image = req.file ? `/images/site/${req.file.filename}` : null;
+//     await taskModel.updateEmployeeProfile({
+//       account_id,
+//       firstname:    firstname?.trim()    || "",
+//       lastname:     lastname?.trim()     || "",
+//       phone_number: phone_number?.trim() || null,
+//       profile_image
+//     });
+//     req.flash("success", "Profile updated successfully!");
+//     res.redirect("/account/tasks/edit-profile");
+//   } catch (err) {
+//     console.error("processEditProfile:", err.message);
+//     req.flash("notice", "Failed to update: " + err.message);
+//     res.redirect("/account/tasks/edit-profile");
+//   }
+// }
+
+// const editProfileMiddleware = [upload.single("profile_image"), processEditProfile];
+
+
+// // ═══════════════════════════════════════════════════════
+// //  TEAM MEMBERS CONTROLLER
+// // ═══════════════════════════════════════════════════════
+
+// // Public: about page shows team
+// // Public: Team page
+// async function buildTeamPage(req, res) {
+//   try {
+//     const teamMembers = await accountModel.getAllTeamMembers();
+//     let nav = await utilities.getNav();
+//     res.render("pages/team", {
+//       title: "Our Team",
+//       nav,
+//       teamMembers,
+//       messages: req.flash(),
+//       loggedin: res.locals.loggedin || false,
+//       accountData: res.locals.accountData || null
+//     });
+//   } catch (err) {
+//     console.error("buildTeamPage:", err.message);
+//     res.render("pages/team", {
+//       title: "Our Team",
+//       nav: await utilities.getNav(),
+//       teamMembers: [],
+//       messages: req.flash()
+//     });
+//   }
+// }
+
+
+// // Admin: view all team members
+// async function viewTeamMembers(req, res) {
+//   try {
+//     const teamMembers = await accountModel.getAllTeamMembersAdmin();
+//     res.render("inventory/management", {
+//       title: "Manage Team",
+//       layout: false,
+//       showTeamMembers: true,
+//       showAccount: false,
+//       teamMembers,
+//       messages: req.flash()
+//     });
+//   } catch (err) {
+//     console.error("viewTeamMembers:", err.message);
+//     req.flash("notice", "Failed to load team members.");
+//     res.redirect("/account/");
+//   }
+// }
+
+// // Admin: show add team member form
+// async function buildAddTeamMember(req, res) {
+//   try {
+//     res.render("inventory/management", {
+//         title: "Add Team Member",
+//         layout: false,
+//         showAddTeamMember: true,
+//         showAccount: false,
+//         studentCount: 0,   // ← required by management.ejs
+//         memberCount:  0,   // ← required by management.ejs
+//         activeCount:  0,   // ← required by management.ejs
+//         members:      [],  // ← required by management.ejs
+//         messages:     req.flash()
+//       });
+//   } catch (err) {
+//     console.error("buildAddTeamMember:", err.message);
+//     req.flash("notice", "Failed to load form.");
+//     res.redirect("/account/");
+//   }
+// }
+
+// // Admin: save new team member
+// async function processAddTeamMember(req, res) {
+//   // If null → not logged in or JWT expired
+//   if (!res.locals.accountData) {
+//     req.flash("notice", "Session expired. Please log in again.");
+//     return res.redirect("/account/login");   // ← safe redirect, no crash
+//   }
+
+//   const {
+//     full_name, position, description,
+//     linkedin_url, twitter_url,
+//     instagram_url, email_url, display_order
+//   } = req.body;
+
+//   if (!full_name?.trim() || !position?.trim()) {
+//     req.flash("notice", "Name and position are required.");
+//     return res.redirect("/account/inventory/team/add");
+//   }
+
+//   const profile_image = req.file
+//     ? `/images/site/${req.file.filename}`
+//     : null;
+
+//   try {
+//     await accountModel.createTeamMember({
+//       full_name:     full_name.trim(),
+//       position:      position.trim(),
+//       description:   description?.trim()    || null,
+//       profile_image: profile_image,
+//       linkedin_url:  linkedin_url?.trim()   || null,
+//       twitter_url:   twitter_url?.trim()    || null,
+//       instagram_url: instagram_url?.trim()  || null,
+//       email_url:     email_url?.trim()      || null,
+//       display_order: parseInt(display_order) || 0,
+//       created_by:    res.locals.accountData.account_id
+//     });
+
+//     req.flash("success", "Team member added successfully!");
+//     return res.redirect("/account/inventory/team/add");
+
+//   } catch (err) {
+//     console.error("=== DB ERROR:", err.message);   // ← will show exact DB error
+//     req.flash("notice", "Save error: " + err.message);
+//     return res.redirect("/account/inventory/team/add");
+//   }
+// }
+
+// // Admin: show edit form
+// async function buildEditTeamMember(req, res) {
+//   try {
+//     const member_id = parseInt(req.params.member_id);
+//     const member    = await accountModel.getTeamMemberById(member_id);
+
+//     if (!member) {
+//       req.flash("notice", "Team member not found.");
+//       return res.redirect("/account/inventory/team");
+//     }
+
+//     res.render("inventory/management", {
+//       title: "Edit Team Member",
+//       layout: false,
+//       showEditTeamMember: true,
+//       showAccount: false,
+//       member,
+//       messages: req.flash()
+//     });
+//   } catch (err) {
+//     console.error("buildEditTeamMember:", err.message);
+//     req.flash("notice", "Failed to load member.");
+//     res.redirect("/account/inventory/team");
+//   }
+// }
+
+// // Admin: process edit
+// async function processEditTeamMember(req, res) {
+//   try {
+//     const member_id = parseInt(req.params.member_id);
+//     const {
+//       full_name, position, description,
+//       linkedin_url, twitter_url, instagram_url,
+//       email_url, display_order
+//     } = req.body;
+
+//     if (!full_name?.trim() || !position?.trim()) {
+//       req.flash("notice", "Name and position are required.");
+//       return res.redirect(`/account/inventory/team/edit/${member_id}`);
+//     }
+
+//     const profile_image = req.file
+//       ? `/images/site/${req.file.filename}`
+//       : null;
+
+//     await accountModel.updateTeamMember({
+//       member_id,
+//       full_name:     full_name.trim(),
+//       position:      position.trim(),
+//       description:   description?.trim() || null,
+//       profile_image,
+//       linkedin_url:  linkedin_url?.trim()  || null,
+//       twitter_url:   twitter_url?.trim()   || null,
+//       instagram_url: instagram_url?.trim() || null,
+//       email_url:     email_url?.trim()     || null,
+//       display_order: parseInt(display_order) || 0
+//     });
+
+//     req.flash("success", "Team member updated successfully!");
+//     res.redirect("/account/inventory/team");
+//   } catch (err) {
+//     console.error("processEditTeamMember:", err.message);
+//     req.flash("notice", "Failed to update: " + err.message);
+//     res.redirect(`/account/inventory/team/edit/${req.params.member_id}`);
+//   }
+// }
+
+// // Admin: delete
+// async function processDeleteTeamMember(req, res) {
+//   try {
+//     const member_id = parseInt(req.params.member_id);
+//     await accountModel.deleteTeamMember(member_id);
+//     req.flash("notice", "Team member deleted.");
+//     res.redirect("/account/inventory/team");
+//   } catch (err) {
+//     console.error("processDeleteTeamMember:", err.message);
+//     req.flash("notice", "Failed to delete.");
+//     res.redirect("/account/inventory/team");
+//   }
+// }
+
+
+// // Export the middleware chain correctly
+// module.exports.addMemberMiddleware = [
+//   upload.single("profile_image"),
+//   utilities.handleErrors(processAddMember)  // ← wrap your actual handler
+// ];
+// // Export the middleware chain correctly
+// module.exports.addEmployeeMiddleware = [
+//   upload.single("profile_image"),
+//   utilities.handleErrors(processAddEmployee)  // ← wrap your actual handler
+// ];
+// module.exports.addEventMiddleware = [
+//   upload.single("profile_image"),
+//   utilities.handleErrors(processAddEvent)  // ← wrap your actual handler
+// ];
+// module.exports.addNewMiddleware = [
+//   upload.single("profile_image"),
+//   utilities.handleErrors(processAddNews)  // ← wrap your actual handler
+// ];
+
+// // Export middleware chain for update (with multer) for employee edit
+// module.exports.updateEmployeeMiddleware = [
+//   upload.single("profile_image"),
+//   utilities.handleErrors(processUpdateEmployee)
+// ];
+
+// module.exports.updateMemberMiddleware = [
+//   upload.single("profile_image"),
+//   utilities.handleErrors(processUpdateMember)
+// ];
+// module.exports.addTeamMemberMiddleware = [
+//   upload.single("profile_image"),utilities.handleErrors(
+//   processAddTeamMember)
+// ];
+
+// module.exports.editTeamMemberMiddleware = [
+//   upload.single("profile_image"),utilities.handleErrors(
+//   processEditTeamMember)
+// ];
+
+// // Export everything else
+// module.exports.buildLogin = buildLogin;
+// module.exports.buildRegister = buildRegister;
+// module.exports.registerAccount = registerAccount;
+// module.exports.accountLogin = accountLogin;
+// module.exports.logoutaccount = logoutaccount;
+// module.exports.accountManagement = accountManagement;
+// module.exports.buildAddMember = buildAddMember;
+// module.exports.addMember =addMember;
+// module.exports.buildEditMember =buildEditMember;
+// module.exports.userDashboard=userDashboard;
+// module.exports.submitContact=submitContact;
+// module.exports.viewMembers=viewMembers;
+// module.exports.getAllMembers=getMemberDetail;
+// module.exports.deleteMember=deleteMember;
+// module.exports.getAllStudents=getAllStudents;
+// module.exports.viewEmployees=viewEmployees;
+// module.exports.buildaddEmployee =buildaddEmployee;
+// module.exports.employeeDashboard=employeeDashboard;
+// module.exports.buildEditEmployee=buildEditEmployee;
+// module.exports.deleteEmployee=deleteEmployee;
+// module.exports.buildHome=buildHome;
+// module.exports.buildAddEvent=buildAddEvent;
+// module.exports.processAddEvent=processAddEvent;
+// module.exports.buildAddNews=buildAddNews;
+// module.exports.processAddNews=processAddNews;
+// module.exports.buildEventDetail=buildEventDetail;
+// module.exports.processEventRegistration=processEventRegistration;
+// module.exports.viewEventRegistrations=viewEventRegistrations;
+// module.exports.downloadEventRegistrationsExcel = downloadEventRegistrationsExcel;
+// module.exports.buildVideoGallery=buildVideoGallery;
+// module.exports.buildAddVideo=buildAddVideo;
+// module.exports.processAddVideo=processAddVideo;
+// module.exports.buildForgotPassword=buildForgotPassword;
+// module.exports.sendResetLink=sendResetLink;
+// module.exports.buildResetPassword=buildResetPassword;
+// module.exports.processResetPassword=processResetPassword;
+// module.exports.getCareerPage=getCareerPage;
+// module.exports.buildAddJob=buildAddJob;
+// module.exports.processAddJob=processAddJob;
+// module.exports.viewVideos=viewVideos;
+// module.exports.deleteVideo=deleteVideo;
+// module.exports.buildAssignTask=buildAssignTask;
+// module.exports.processAssignTask=processAssignTask;
+// module.exports.viewAllTasks=viewAllTasks;
+// module.exports.employeeTaskList=employeeTaskList;
+// module.exports.buildTeamPage = buildTeamPage;
+// module.exports.viewTeamMembers         = viewTeamMembers;
+// module.exports.buildAddTeamMember      = buildAddTeamMember;
+// module.exports.processAddTeamMember    = processAddTeamMember;
+// module.exports.buildEditTeamMember     = buildEditTeamMember;
+// module.exports.processEditTeamMember   = processEditTeamMember;
+// module.exports.processDeleteTeamMember = processDeleteTeamMember;
 const utilities = require("../utilities")
 const jwt = require("jsonwebtoken")
 const accountModel =require("../models/account-model")
@@ -14,7 +2227,7 @@ const crypto = require('crypto');
 // Save uploaded images to public/images/members folder
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "public/images/site/");  // Create this folder if not exists
+    cb(null, "public/images/site/");
   },
   filename: (req, file, cb) => {
     const uniqueName = Date.now() + "-" + Math.round(Math.random() * 1E9) + path.extname(file.originalname);
@@ -33,54 +2246,51 @@ const upload = multer({
     cb(new Error("Only image files allowed!"));
   }
 });
-/*************************
+
+/* ****************************************
  * Deliver login view
- * Deliver login view Activity
- *********************************/
-async function buildLogin(req,res,next) {
-  let nav =await utilities.getNav()
-  res.render("account/login",{
-      title: "Login",
-      nav,
-      errors: null,
-      login_id: ""
+ * *************************************** */
+async function buildLogin(req, res, next) {
+  let nav = await utilities.getNav()
+  res.render("account/login", {
+    title: "Login",
+    nav,
+    errors: null,
+    login_id: ""
   })
-  
 }
 
-/**********************************
- * Deliver registration view
- * Deliver registration view Activity
- */
-async function buildRegister(req,res,next) {
-  let nav =await utilities.getNav()
-  res.render("account/register",{
-      title: "Register",
-      nav,
-      errors: null,
-  })    
-}
 /* ****************************************
-*  Process Registration
-* *************************************** */
+ * Deliver registration view
+ * *************************************** */
+async function buildRegister(req, res, next) {
+  let nav = await utilities.getNav()
+  res.render("account/register", {
+    title: "Register",
+    nav,
+    errors: null,
+  })
+}
+
+/* ****************************************
+ * Process Registration
+ * *************************************** */
 async function registerAccount(req, res) {
   let nav = await utilities.getNav();
-  const { 
-    account_firstname, 
-    account_lastname, 
-    account_email, 
+  const {
+    account_firstname,
+    account_lastname,
+    account_email,
     account_password,
-    account_type   // ← NEW: from form
+    account_type
   } = req.body;
 
-  // Validate allowed types (security!)
   const allowedTypes = ['student', 'citizen', 'member'];
   if (!allowedTypes.includes(account_type)) {
     req.flash("notice", "Invalid account type selected.");
     return res.render("account/register", { title: "Register", nav, errors: null });
   }
 
-  // Hash password
   const hashedPassword = await bcrypt.hash(account_password, 10);
 
   try {
@@ -89,7 +2299,7 @@ async function registerAccount(req, res) {
       account_lastname,
       account_email,
       hashedPassword,
-      account_type   // ← Pass the selected type
+      account_type
     );
 
     if (regResult) {
@@ -104,6 +2314,10 @@ async function registerAccount(req, res) {
     return res.render("account/register", { title: "Register", nav, errors: null });
   }
 }
+
+/* ****************************************
+ * User Dashboard
+ * *************************************** */
 async function userDashboard(req, res) {
   const accountData = res.locals.accountData || {};
   res.render("inventory/dashboard", {
@@ -115,15 +2329,15 @@ async function userDashboard(req, res) {
     account_type: accountData.account_type,
   });
 }
+
 /* ****************************************
- *  Process login request
- * ************************************ */
+ * Process login request
+ * *************************************** */
 async function accountLogin(req, res) {
   let nav = await utilities.getNav();
   const { login_id, account_password } = req.body;
   let accountData = await accountModel.getAccountByEmail(login_id);
 
-  // If not found → try employee code
   if (!accountData) {
     accountData = await accountModel.getAccountByEmployeeCode(login_id);
   }
@@ -136,6 +2350,7 @@ async function accountLogin(req, res) {
       login_id: req.body.login_id || "",
     });
   }
+
   try {
     const passwordMatch = await bcrypt.compare(account_password, accountData.account_password);
     if (passwordMatch) {
@@ -143,38 +2358,30 @@ async function accountLogin(req, res) {
 
       const accessToken = jwt.sign(accountData, process.env.ACCESS_TOKEN_SECRET, { expiresIn: 3600 * 1000 });
 
-      // res.cookie("jwt", accessToken, {
-      //   httpOnly: true,
-      //   secure: process.env.NODE_ENV !== 'development',
-      //   maxAge: 3600 * 1000,
-    // });
-    res.cookie("jwt", accessToken, {
-      httpOnly: true,
-      secure: true,        // Render uses HTTPS always
-      sameSite: 'none',   // Required for cross-site cookies on Render
-      maxAge: 3600 * 1000,
-    });
-      
+      res.cookie("jwt", accessToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        maxAge: 3600 * 1000,
+      });
+
       const accountType = (accountData.account_type || '').trim().toLowerCase();
       const rawType = accountData.account_type || '(missing)';
+
       if (accountType === 'admin') {
         req.flash("notice", "Welcome Admin!");
         return res.redirect("/account/");
-      } 
-      else if (accountType === 'employee') {
+      } else if (accountType === 'employee') {
         req.flash("notice", "Welcome back");
         return res.redirect("/account/dashboard_01/");
-      } 
-      else if (['citizen', 'student', 'member'].includes(accountType)) {
+      } else if (['citizen', 'student', 'member'].includes(accountType)) {
         req.flash("notice", "Welcome back!");
         return res.redirect("/account/dashboard/");
-      } 
-      else {
+      } else {
         req.flash("notice", `Unknown account type: "${rawType}" (contact support)`);
         return res.redirect("/account/login");
       }
-    } 
-    else {
+    } else {
       req.flash("note", "Warning!! Invalid Employee ID / Email or password.");
       return res.status(400).render("account/login", {
         title: "Login",
@@ -189,6 +2396,9 @@ async function accountLogin(req, res) {
   }
 }
 
+/* ****************************************
+ * Employee Dashboard
+ * *************************************** */
 async function employeeDashboard(req, res) {
   console.log("EMPLOYEE DASHBOARD CONTROLLER REACHED");
   console.log("User:", res.locals.accountData?.account_email || "unknown");
@@ -197,14 +2407,21 @@ async function employeeDashboard(req, res) {
   try {
     const accountData = res.locals.accountData || {};
 
-    res.render("inventory/dashboard_01", {   // ← confirm this view file exists!
+    const stats = {
+      patients: 15,
+      pendingTasks: 5,
+      attendedHours: 32,
+      nextPayday: "May 31, 2024"
+    };
+
+    res.render("inventory/dashboard_01", {
       title: "Employee Dashboard",
       layout: false,
       messages: req.flash(),
       account_firstname: accountData.account_firstname || "Employee",
       account_email: accountData.account_email || "",
       account_type: accountData.account_type || "employee",
-      // ... your stats object if any
+      stats
     });
   } catch (err) {
     console.error("EMPLOYEE DASHBOARD CRASH:", err.message);
@@ -212,34 +2429,38 @@ async function employeeDashboard(req, res) {
     res.status(500).send("Error loading employee dashboard – check server logs");
   }
 }
+
 /* ****************************************
-*  Deliver account management view
-* *************************************** */
-// 
+ * Deliver account management view (Admin Dashboard)
+ * FIX: Cast string literals to ::account_type enum to avoid btrim error
+ * *************************************** */
 async function accountManagement(req, res) {
   console.log("=== ADMIN DASHBOARD HIT ===");
   console.log("accountData:", res.locals.accountData);
   console.log("loggedin:", res.locals.loggedin);
-  
+
   try {
     const accountData = res.locals.accountData || {};
-    
+
     const members = await accountModel.getAllMembers();
     console.log("Members fetched:", members.length);
-    
+
+    // FIX: Cast 'student' to ::account_type (enum) instead of plain string
     const studentCountResult = await pool.query(
-      "SELECT COUNT(*) AS count FROM public.account WHERE account_type = 'student'"
+      "SELECT COUNT(*) AS count FROM public.account WHERE account_type = 'student'::account_type"
     );
     const studentCount = studentCountResult.rows[0].count;
-    
+
+    // FIX: Cast 'member' to ::account_type (enum) instead of plain string
     const memberCountResult = await pool.query(
-      "SELECT COUNT(*) AS count FROM public.member WHERE account_type = 'member'"
+      "SELECT COUNT(*) AS count FROM public.member WHERE account_type = 'member'::account_type"
     );
     const memberCount = memberCountResult.rows[0].count;
 
+    // FIX: Remove LOWER(TRIM(...)) on enum columns — use ::account_type cast instead
     const activeTotalResult = await pool.query(`
       SELECT (
-        (SELECT COUNT(*) FROM public.account WHERE LOWER(TRIM(account_type)) = 'student') +
+        (SELECT COUNT(*) FROM public.account WHERE account_type = 'student'::account_type) +
         (SELECT COUNT(*) FROM public.member)
       ) AS total_active
     `);
@@ -268,7 +2489,6 @@ async function accountManagement(req, res) {
     console.error("=== ADMIN DASHBOARD ERROR ===");
     console.error("Message:", err.message);
     console.error("Stack:", err.stack);
-    // Instead of crashing, send a readable error
     res.status(500).send(`
       <h2>Dashboard Error</h2>
       <pre>${err.message}</pre>
@@ -276,26 +2496,19 @@ async function accountManagement(req, res) {
     `);
   }
 }
-/* ***************************
- *  Process Logout
-//  * ************************** */
-// async function  logoutaccount  (req, res, next) {
-//   console.log("Logging out user:", res.locals.accountData?.account_email)
-//   res.clearCookie("jwt")
-//   res.locals.loggedin = 0
-//   res.locals.accountData = null
-//   req.flash("notice", "You have been logged out Successfully.")
-//   res.redirect("/account/login")
-// }
+
+/* ****************************************
+ * Process Logout
+ * *************************************** */
 async function logoutaccount(req, res, next) {
   console.log("Logging out user:", res.locals.accountData?.account_email);
-  
+
   res.clearCookie("jwt", {
     httpOnly: true,
-    secure: true,        // ← required for HTTPS on Render
-    sameSite: 'none'     // ← required for Render
+    secure: true,
+    sameSite: 'none'
   });
-  
+
   res.locals.loggedin = 0;
   res.locals.accountData = null;
   req.flash("notice", "You have been logged out Successfully.");
@@ -303,44 +2516,34 @@ async function logoutaccount(req, res, next) {
 }
 
 /* ****************************************
- *  Deliver Add Member form view
+ * Deliver Add Member form view
  * *************************************** */
 async function buildAddMember(req, res, next) {
   res.render("inventory/add-member", {
     title: "Add New Member",
-    layout:false,
+    layout: false,
     errors: null,
     messages: req.flash()
   })
 }
 
 async function addMember(req, res) {
-  // Security check
   if (!res.locals.loggedin || res.locals.accountData?.account_type !== 'citizen') {
     req.flash("notice", "Access denied.")
     return res.redirect("/account/login")
   }
 
-  // SAFETY: Check if req.body exists
   if (!req.body || Object.keys(req.body).length === 0) {
-    console.error("req.body is empty or undefined - likely missing enctype='multipart/form-data'")
+    console.error("req.body is empty or undefined")
     req.flash("notice", "Form submission failed. Please try again.")
     return res.redirect("/account")
   }
 
   const { first_name, last_name, email, phone, address, membership_number } = req.body
-  let profile_image = null
-
-  if (req.file) {
-    // Save the image file and store only the URL path in DB
-    profile_image = `/images/site/${req.file.filename}`;  // e.g., /images/members/123456789.jpg
-    console.log("Image uploaded and saved:", profile_image);
-  } else {
-    profile_image = null;
-  }
+  const profile_image = req.file ? `/images/site/${req.file.filename}` : null;
 
   try {
-    const newMember = await accountModel.addMember(
+    await accountModel.addMember(
       first_name?.trim(),
       last_name?.trim(),
       email?.trim(),
@@ -359,42 +2562,37 @@ async function addMember(req, res) {
   }
 }
 
-/* -------------------------------------------------
-   Process Add Member - Save to database with image as URL
-   ------------------------------------------------- */
-   async function processAddMember(req, res) {
-    // Log for debugging
-    console.log("Add Member - Body:", req.body);
-    console.log("Add Member - File:", req.file ? req.file.originalname : "No file");
-  
-    const { first_name, last_name, email, phone, address } = req.body;
-  
-    // Image path (URL) - null if no file uploaded
-    const profile_image_path = req.file 
-      ? `/images/site/${req.file.filename}` 
-      : null;
-  
-    try {
-      const newMember = await accountModel.addMember(
-        first_name?.trim() || "",
-        last_name?.trim() || "",
-        email?.trim() || "",
-        phone?.trim() || null,
-        address?.trim() || null,
-        profile_image_path  // ← Now a string URL (or null), safe for VARCHAR
-      );
-  
-      req.flash("notice", `Member "${first_name} ${last_name}" added successfully!`);
-      return res.redirect("/account/");
-    } catch (error) {
-      console.error("Add member failed:", error);
-      req.flash("notice", `Error: ${error.message || "Could not add member"}`);
-      return res.redirect("/account/"); // or back to form if you have one
-    }
+/* ****************************************
+ * Process Add Member - Save to database with image as URL
+ * *************************************** */
+async function processAddMember(req, res) {
+  console.log("Add Member - Body:", req.body);
+  console.log("Add Member - File:", req.file ? req.file.originalname : "No file");
+
+  const { first_name, last_name, email, phone, address } = req.body;
+  const profile_image_path = req.file ? `/images/site/${req.file.filename}` : null;
+
+  try {
+    await accountModel.addMember(
+      first_name?.trim() || "",
+      last_name?.trim() || "",
+      email?.trim() || "",
+      phone?.trim() || null,
+      address?.trim() || null,
+      profile_image_path
+    );
+
+    req.flash("notice", `Member "${first_name} ${last_name}" added successfully!`);
+    return res.redirect("/account/");
+  } catch (error) {
+    console.error("Add member failed:", error);
+    req.flash("notice", `Error: ${error.message || "Could not add member"}`);
+    return res.redirect("/account/");
   }
+}
 
 /* ****************************************
- *  Deliver Edit Member view (with data)
+ * Deliver Edit Member view
  * *************************************** */
 async function buildEditMember(req, res) {
   const member_id = parseInt(req.params.id);
@@ -410,7 +2608,7 @@ async function buildEditMember(req, res) {
     res.render("inventory/edit-member", {
       title: "Edit Member",
       nav,
-      member,  // ← data passed to view
+      member,
       messages: req.flash()
     });
   } catch (error) {
@@ -418,8 +2616,9 @@ async function buildEditMember(req, res) {
     res.redirect("/account/");
   }
 }
+
 /* ****************************************
- *  Process Edit Member update
+ * Process Edit Member update
  * *************************************** */
 async function processUpdateMember(req, res) {
   const member_id = parseInt(req.params.id);
@@ -428,7 +2627,7 @@ async function processUpdateMember(req, res) {
   console.log("UPDATE MEMBER - File:", req.file ? "Yes" : "No");
 
   const { first_name, last_name, email, phone, address } = req.body;
-  const profile_image = req.file ? req.file.buffer : null; // null = keep old
+  const profile_image = req.file ? req.file.buffer : null;
 
   try {
     const updatedMember = await accountModel.updateMember(
@@ -456,11 +2655,12 @@ async function processUpdateMember(req, res) {
   }
 }
 
-// contact
+/* ****************************************
+ * Contact form submission
+ * *************************************** */
 async function submitContact(req, res) {
   const { firstname, lastname, email, message } = req.body;
 
-  // Basic validation
   if (!firstname || !lastname || !email || !message) {
     req.flash("error", "All fields are required.");
     return res.redirect("/contact");
@@ -468,7 +2668,6 @@ async function submitContact(req, res) {
 
   try {
     await accountModel.saveContactMessage(firstname, lastname, email, message);
-
     req.flash("success", "Your message has been sent successfully! We will get back to you within 24 hours.");
     res.redirect("/contact");
   } catch (error) {
@@ -476,16 +2675,19 @@ async function submitContact(req, res) {
     res.redirect("/contact");
   }
 }
-// member page to be getted in admin dashboard.
+
+/* ****************************************
+ * View Members in admin dashboard
+ * *************************************** */
 async function viewMembers(req, res) {
   try {
-    const members = await accountModel.getAllMembers(); // Use your existing model method
+    const members = await accountModel.getAllMembers();
     res.render("inventory/management", {
       title: "View All Members",
-      layout: false, // or your dashboard layout
-       members,
-       showMembers: true,
-       showAccount: false,
+      layout: false,
+      members,
+      showMembers: true,
+      showAccount: false,
       messages: req.flash()
     });
   } catch (error) {
@@ -495,13 +2697,13 @@ async function viewMembers(req, res) {
   }
 }
 
-/**
+/* ****************************************
  * Get single member details (JSON for AJAX modal)
- */
+ * *************************************** */
 async function getMemberDetail(req, res) {
   try {
     const memberId = parseInt(req.params.id);
-    const member = await accountModel.getMemberById(memberId); // Assume this exists in model
+    const member = await accountModel.getMemberById(memberId);
 
     if (!member) {
       return res.status(404).json({ error: "Member not found" });
@@ -514,13 +2716,13 @@ async function getMemberDetail(req, res) {
   }
 }
 
-/**
+/* ****************************************
  * Delete member
- */
+ * *************************************** */
 async function deleteMember(req, res) {
   try {
     const memberId = parseInt(req.params.id);
-    const deleted = await accountModel.deleteMember(memberId); // Assume model has this
+    const deleted = await accountModel.deleteMember(memberId);
 
     if (!deleted) {
       return res.status(404).json({ error: "Member not found" });
@@ -533,10 +2735,13 @@ async function deleteMember(req, res) {
     res.status(500).json({ error: "Failed to delete member" });
   }
 }
-// for get student in management view.
+
+/* ****************************************
+ * Get all students in management view
+ * *************************************** */
 async function getAllStudents(req, res) {
   try {
-    const students = await accountModel.getAllStudents(); // fetch from model
+    const students = await accountModel.getAllStudents();
 
     res.render("inventory/management", {
       title: "Manage Students",
@@ -553,12 +2758,13 @@ async function getAllStudents(req, res) {
     res.redirect("/account/");
   }
 }
- /****************************
-  * Delivery employee view in admin dashboard
-  */
- async function viewEmployees(req, res) {
+
+/* ****************************************
+ * View employees in admin dashboard
+ * *************************************** */
+async function viewEmployees(req, res) {
   try {
-    const  employees = await accountModel.viewEmployees(); // fetch from model
+    const employees = await accountModel.viewEmployees();
 
     res.render("inventory/management", {
       title: "Manage Employees",
@@ -575,9 +2781,10 @@ async function getAllStudents(req, res) {
     res.redirect("/account/");
   }
 }
-// end here employee views
 
-// GET: Show add employee form
+/* ****************************************
+ * Show add employee form
+ * *************************************** */
 async function buildaddEmployee(req, res) {
   try {
     res.render("inventory/management", {
@@ -594,40 +2801,35 @@ async function buildaddEmployee(req, res) {
   }
 }
 
-// POST: Create account + employee with full checks
+/* ****************************************
+ * Create account + employee
+ * *************************************** */
 async function processAddEmployee(req, res) {
   try {
-    const { 
-      firstname, lastname, email, password, account_type, 
-      phone_number, department, position, hire_date 
+    const {
+      firstname, lastname, email, password, account_type,
+      phone_number, department, position, hire_date
     } = req.body;
 
-    const profile_image = req.file
-      ? `/images/site/${req.file.filename}`
-      : null;
+    const profile_image = req.file ? `/images/site/${req.file.filename}` : null;
 
-    // Validate required fields
     if (!firstname || !lastname || !email || !password || !phone_number) {
       req.flash("notice", "Missing required fields.");
       return res.redirect("/account/inventory/add-employees");
     }
 
-    // Check email uniqueness
     const existing = await accountModel.checkExistingEmail(email);
     if (existing > 0) {
       req.flash("notice", "Email already in use.");
       return res.redirect("/account/inventory/add-employees");
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create account
     const account = await accountModel.addAccount(
       firstname, lastname, email, hashedPassword, account_type
     );
 
-    // Create employee (no employee_code — model generates it)
     await accountModel.addEmployee(
       account.account_id,
       phone_number, department, position, hire_date, profile_image
@@ -642,16 +2844,14 @@ async function processAddEmployee(req, res) {
   }
 }
 
-
 /* ****************************************
- *  Delivering Build Edit Employee Form (GET)
+ * Build Edit Employee Form (GET)
  * *************************************** */
 async function buildEditEmployee(req, res) {
   const employeeId = parseInt(req.params.employee_id);
   const accountData = res.locals.accountData || {};
 
   try {
-    // Fetch full employee data (joined with account)
     const employee = await accountModel.getEmployeeById(employeeId);
 
     if (!employee) {
@@ -662,13 +2862,13 @@ async function buildEditEmployee(req, res) {
     res.render("inventory/management", {
       title: "Edit Employee",
       layout: false,
-      showAccount : false,
+      showAccount: false,
       showEditEmployee: true,
       messages: req.flash(),
       account_firstname: accountData.account_firstname,
       account_email: accountData.account_email,
       account_type: accountData.account_type,
-      employee,           // ← pass the full employee object to pre-fill form
+      employee,
     });
   } catch (error) {
     console.error("Error loading edit employee form:", error);
@@ -678,77 +2878,8 @@ async function buildEditEmployee(req, res) {
 }
 
 /* ****************************************
- *  Process Update Employee (POST)
- *  Uses multer middleware for optional new image
+ * Process Update Employee (POST)
  * *************************************** */
-// async function processUpdateEmployee(req, res) {
-//   const employeeId = parseInt(req.params.employee_id);
-//   let employee;
-//   try {
-//     employee = await accountModel.getEmployeeById(employeeId);
-//     if (!employee) {
-//       req.flash("notice", "Employee not found");
-//       return res.redirect("/account/inventory/employees");
-//     }
-//   } catch (err) {
-//     console.error("Failed to fetch employee:", err);
-//     req.flash("error", "Could not load employee data");
-//     return res.redirect("/account/inventory/employees");
-//   }
-
-//   const {
-//     firstname,
-//     lastname,
-//     email,
-//     employee_code,
-//     phone_number,
-//     department,
-//     position,
-//     hire_date,
-//     status
-//   } = req.body;
-
-//   let profile_image = null;
-//   if (req.file) {
-//     profile_image = `/images/site/${req.file.filename}`;
-//   }
-
-//   try {
-//     // 1. Update account table (name + email)
-//     await accountModel.updateAccountBasic(
-//       employee.account_id,
-//       firstname?.trim() || "",
-//       lastname?.trim() || "",
-//       email?.trim().toLowerCase() || ""
-//     );
-
-//     // 2. Update employee table
-//     const updated = await accountModel.updateEmployee({
-//       employee_id: employee.employee_id,          // ← FIXED: use the real ID
-//       employee_code: employee_code?.trim() || employee.employee_code || "",
-//       phone_number: phone_number?.trim() || null,
-//       department: department?.trim() || null,
-//       position: position?.trim() || null,
-//       hire_date: hire_date && hire_date.trim() !== '' ? hire_date.trim() : null,
-//       profile_image,                              // null = keep old
-//       status: status || employee.status || "active"
-//     });
-
-//     if (updated) {
-//       req.flash("notice", `Employee ${firstname} ${lastname} updated successfully!`);
-//       return res.redirect("/account/inventory/employees");  // better redirect
-//     } else {
-//       req.flash("notice", "No changes made or update failed.");
-//       return res.redirect(`/account/inventory/edit-employee/${employee.employee_id}`);
-//     }
-//   } catch (error) {
-//     console.error("Update employee failed:", error.message);
-//     console.error(error.stack);  // ← helps see full error
-//     req.flash("notice", `Error: ${error.message || "Update failed"}`);
-//     return res.redirect(`/account/inventory/edit-employee/${employee.employee_id}`);
-//   }
-// }
-
 async function processUpdateEmployee(req, res) {
   const employeeId = parseInt(req.params.employee_id);
 
@@ -770,24 +2901,19 @@ async function processUpdateEmployee(req, res) {
     department, position, hire_date, status
   } = req.body;
 
-  // Log to confirm body is received
   console.log("UPDATE BODY:", req.body);
   console.log("UPDATE FILE:", req.file ? req.file.filename : "no file");
 
-  const profile_image = req.file
-    ? `/images/site/${req.file.filename}`
-    : null;
+  const profile_image = req.file ? `/images/site/${req.file.filename}` : null;
 
   try {
-    // 1. Update account table
     await accountModel.updateAccountBasic(
       employee.account_id,
-      firstname?.trim()          || "",
-      lastname?.trim()           || "",
+      firstname?.trim() || "",
+      lastname?.trim() || "",
       email?.trim().toLowerCase() || ""
     );
 
-    // 2. Update employee table
     const updated = await accountModel.updateEmployee({
       employee_id:   employeeId,
       employee_code: employee_code?.trim() || employee.employee_code || "",
@@ -815,36 +2941,9 @@ async function processUpdateEmployee(req, res) {
   }
 }
 
-/* *****************************
- * Deliver employee dashboard
- * *************************** */
-async function employeeDashboard(req, res) {
-  const accountData = res.locals.accountData || {};
-
-  // Optional: Fetch real stats from DB (dummy for now)
-  const stats = {
-    patients: 15,
-    pendingTasks: 5,
-    attendedHours: 32,
-    nextPayday: "May 31, 2024"
-  };
-
-  res.render("inventory/dashboard_01", {     // ← confirm this file exists!
-    title: "Employee Dashboard",
-    layout: false,
-    messages: req.flash(),
-    account_firstname: accountData.account_firstname || "Employee",
-    account_email: accountData.account_email || "",
-    account_type: accountData.account_type || "employee",
-     stats
-  });
-}
-
-/******************************
- * 
- * Deliver delete Employee page
- */
-
+/* ****************************************
+ * Delete Employee
+ * *************************************** */
 async function deleteEmployee(req, res) {
   try {
     const employeeId = parseInt(req.params.employee_id);
@@ -854,7 +2953,6 @@ async function deleteEmployee(req, res) {
       return res.redirect("/account/inventory/employees");
     }
 
-    // Security: only admin can delete
     if (res.locals.accountData?.account_type !== 'admin') {
       req.flash("notice", "Only administrators can delete employees");
       return res.redirect("/account/inventory/employees");
@@ -875,12 +2973,14 @@ async function deleteEmployee(req, res) {
     res.redirect("/account/inventory/employees");
   }
 }
-// Home page - public view
+
+/* ****************************************
+ * Home page - public view
+ * *************************************** */
 async function buildHome(req, res) {
   try {
     const latestNews = await accountModel.getLatestNews(5);
     const upcomingEvents = await accountModel.getUpcomingEvents(5);
-
     let nav = await utilities.getNav();
 
     res.render("index", {
@@ -904,7 +3004,9 @@ async function buildHome(req, res) {
   }
 }
 
-// Admin: Show form to add news
+/* ****************************************
+ * Admin: Show form to add news
+ * *************************************** */
 async function buildAddNews(req, res) {
   if (!res.locals.loggedin || res.locals.accountData?.account_type !== 'admin') {
     req.flash("notice", "Only admins can post news.");
@@ -914,13 +3016,15 @@ async function buildAddNews(req, res) {
   res.render("inventory/management", {
     title: "Post News",
     layout: false,
-    showAccount : false,
+    showAccount: false,
     showAddNew: true,
     messages: req.flash()
   });
 }
 
-// Admin: Process news post
+/* ****************************************
+ * Admin: Process news post
+ * *************************************** */
 async function processAddNews(req, res) {
   if (!res.locals.loggedin || res.locals.accountData?.account_type !== 'admin') {
     req.flash("notice", "Only administrators can add news.");
@@ -928,9 +3032,7 @@ async function processAddNews(req, res) {
   }
 
   const { title, description, news_date } = req.body;
-  const profile_image = req.file 
-    ? `/images/site/${req.file.filename}` 
-    : null;
+  const profile_image = req.file ? `/images/site/${req.file.filename}` : null;
 
   try {
     if (!title?.trim() || !description?.trim()) {
@@ -947,25 +3049,27 @@ async function processAddNews(req, res) {
     });
 
     req.flash("success", "News published successfully!");
-    res.redirect("/account/inventory/add-new");   // stay on form or change to "/" 
-
+    res.redirect("/account/inventory/add-new");
   } catch (err) {
     console.error("Process Add News Error:", err.message);
     req.flash("notice", "Failed to publish news: " + err.message);
     res.redirect("/account/inventory/add-new");
   }
 }
-// Same for events (copy & change names)
+
+/* ****************************************
+ * Admin: Add Event
+ * *************************************** */
 async function buildAddEvent(req, res) {
-  // same auth check as above
   res.render("inventory/management", {
     title: "Add Event",
     layout: false,
-    showAccount : false,
+    showAccount: false,
     showAddEvent: true,
     messages: req.flash()
   });
 }
+
 async function processAddEvent(req, res) {
   if (!res.locals.loggedin || res.locals.accountData?.account_type !== 'admin') {
     req.flash("notice", "Only administrators can add events.");
@@ -973,9 +3077,7 @@ async function processAddEvent(req, res) {
   }
 
   const { title, description, event_date, location } = req.body;
-  const profile_image = req.file 
-    ? `/images/site/${req.file.filename}` 
-    : null;
+  const profile_image = req.file ? `/images/site/${req.file.filename}` : null;
 
   try {
     if (!title?.trim() || !event_date) {
@@ -993,8 +3095,7 @@ async function processAddEvent(req, res) {
     });
 
     req.flash("success", "Event created successfully!");
-    res.redirect("/account/inventory/add-event");   // or /account/ if you prefer
-
+    res.redirect("/account/inventory/add-event");
   } catch (err) {
     console.error("Process Add Event Error:", err.message);
     req.flash("notice", "Failed to create event: " + err.message);
@@ -1003,7 +3104,7 @@ async function processAddEvent(req, res) {
 }
 
 /* ****************************************
- *   Build Event Read More / Detail Page
+ * Build Event Detail Page
  * *************************************** */
 async function buildEventDetail(req, res) {
   try {
@@ -1030,7 +3131,6 @@ async function buildEventDetail(req, res) {
       messages: req.flash(),
       loggedin: res.locals.loggedin || false
     });
-
   } catch (err) {
     console.error("Event Detail Controller Error:", err.message);
     req.flash("notice", "Something went wrong.");
@@ -1039,29 +3139,21 @@ async function buildEventDetail(req, res) {
 }
 
 /* ****************************************
- *   Process Event Registration (POST)
+ * Process Event Registration (POST)
  * *************************************** */
 async function processEventRegistration(req, res) {
   try {
     const {
-      event_id,
-      full_name,
-      phone_number,
-      email,
-      course_of_study,
-      university_name,
-      date_of_birth,
-      working_experience,
-      company_name
+      event_id, full_name, phone_number, email,
+      course_of_study, university_name, date_of_birth,
+      working_experience, company_name
     } = req.body;
 
-    // Basic validation
     if (!event_id || !full_name || !phone_number || !email) {
       req.flash("notice", "Please fill all required fields.");
       return res.redirect(`/events/register/${event_id}`);
     }
 
-    // Save to database
     await accountModel.addEventRegistration({
       event_id: parseInt(event_id),
       full_name: full_name.trim(),
@@ -1075,8 +3167,7 @@ async function processEventRegistration(req, res) {
     });
 
     req.flash("success", "Registration successful! Thank you for registering.");
-    res.redirect("/");   // or redirect to a thank you page
-
+    res.redirect("/");
   } catch (error) {
     console.error("Process Event Registration Error:", error.message);
     req.flash("notice", "Failed to register. Please try again.");
@@ -1084,7 +3175,9 @@ async function processEventRegistration(req, res) {
   }
 }
 
-// 1. View Page
+/* ****************************************
+ * View Event Registrations
+ * *************************************** */
 async function viewEventRegistrations(req, res) {
   try {
     const registrations = await accountModel.getAllEventRegistrations();
@@ -1093,7 +3186,7 @@ async function viewEventRegistrations(req, res) {
       title: "Event Registrations",
       layout: false,
       registrations: registrations,
-      showRegistrations: true,     // Important: hides default dashboard
+      showRegistrations: true,
       showAccount: false
     });
   } catch (error) {
@@ -1103,7 +3196,9 @@ async function viewEventRegistrations(req, res) {
   }
 }
 
-// ====================== DOWNLOAD EVENT REGISTRATIONS AS EXCEL ======================
+/* ****************************************
+ * Download Event Registrations as Excel
+ * *************************************** */
 async function downloadEventRegistrationsExcel(req, res) {
   try {
     const registrations = await accountModel.getAllEventRegistrations();
@@ -1117,7 +3212,6 @@ async function downloadEventRegistrationsExcel(req, res) {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Event Registrations');
 
-    // Define Columns
     worksheet.columns = [
       { header: '#', key: 'no', width: 6 },
       { header: 'Event Title', key: 'event_title', width: 35 },
@@ -1131,7 +3225,6 @@ async function downloadEventRegistrationsExcel(req, res) {
       { header: 'Registered On', key: 'registered_at', width: 18 }
     ];
 
-    // Add Data
     registrations.forEach((reg, index) => {
       worksheet.addRow({
         no: index + 1,
@@ -1147,23 +3240,16 @@ async function downloadEventRegistrationsExcel(req, res) {
       });
     });
 
-    // Style the header row
     const headerRow = worksheet.getRow(1);
     headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-    headerRow.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FF2E7D32' }
-    };
+    headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2E7D32' } };
     headerRow.alignment = { horizontal: 'center' };
 
-    // Send the file
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', 'attachment; filename="UHWF_Event_Registrations.xlsx"');
 
     await workbook.xlsx.write(res);
     res.end();
-
   } catch (err) {
     console.error("Excel Download Error:", err.message);
     req.flash("notice", "Failed to generate Excel file.");
@@ -1171,12 +3257,13 @@ async function downloadEventRegistrationsExcel(req, res) {
   }
 }
 
-// Build Video Gallery Page (Public)
+/* ****************************************
+ * Video Gallery
+ * *************************************** */
 async function buildVideoGallery(req, res) {
   let nav = await utilities.getNav();
   try {
     const videos = await accountModel.getAllVideos();
-
     res.render("pages/video-gallery", {
       title: "Video Gallery",
       nav,
@@ -1204,12 +3291,11 @@ async function buildAddVideo(req, res) {
     title: "Add New Video",
     layout: false,
     showAccount: false,
-    showAddVideo: true,       // ← controls which panel shows in management.ejs
+    showAddVideo: true,
     messages: req.flash()
   });
 }
 
-// Admin: Process Add Video
 async function processAddVideo(req, res) {
   if (!res.locals.loggedin || res.locals.accountData?.account_type !== 'admin') {
     req.flash("notice", "Only administrators can add videos.");
@@ -1241,7 +3327,6 @@ async function processAddVideo(req, res) {
   }
 }
 
-// Admin: List all videos in management panel
 async function viewVideos(req, res) {
   if (!res.locals.loggedin || res.locals.accountData?.account_type !== 'admin') {
     req.flash("notice", "Access denied.");
@@ -1254,7 +3339,7 @@ async function viewVideos(req, res) {
       title: "Manage Videos",
       layout: false,
       showAccount: false,
-      showVideos: true,       // ← new panel flag
+      showVideos: true,
       videos,
       messages: req.flash()
     });
@@ -1265,7 +3350,6 @@ async function viewVideos(req, res) {
   }
 }
 
-// Admin: Delete (soft delete) a video
 async function deleteVideo(req, res) {
   if (!res.locals.loggedin || res.locals.accountData?.account_type !== 'admin') {
     req.flash("notice", "Only administrators can delete videos.");
@@ -1281,7 +3365,6 @@ async function deleteVideo(req, res) {
     }
 
     await accountModel.softDeleteVideo(videoId);
-
     req.flash("notice", "Video deleted successfully.");
     res.redirect("/account/inventory/videos");
   } catch (err) {
@@ -1290,7 +3373,10 @@ async function deleteVideo(req, res) {
     res.redirect("/account/inventory/videos");
   }
 }
-// 1. Show Forgot Password Page
+
+/* ****************************************
+ * Forgot Password
+ * *************************************** */
 async function buildForgotPassword(req, res) {
   let nav = await utilities.getNav();
   res.render("account/forgot-password", {
@@ -1300,13 +3386,8 @@ async function buildForgotPassword(req, res) {
   });
 }
 
-// 2. Send Reset Link
-// 2. Send Reset Link -
 async function sendResetLink(req, res) {
   const { email } = req.body;
-
-  console.log("=== FORGOT PASSWORD REQUEST START ===");
-  console.log("Email submitted:", email);
 
   if (!email) {
     req.flash("notice", "Please enter your email address.");
@@ -1314,42 +3395,26 @@ async function sendResetLink(req, res) {
   }
 
   try {
-    // 1. Check if account exists
     const account = await accountModel.getAccountByEmail(email);
-    console.log("Account lookup result:", account ? "FOUND" : "NOT FOUND");
 
     if (!account) {
       req.flash("notice", "No account found with this email address.");
       return res.redirect("/account/forgot-password");
     }
 
-    // 2. Generate token
     const token = crypto.randomBytes(32).toString('hex');
-    console.log("Generated reset token:", token);
-
-    // 3. Save token
     await accountModel.saveResetToken(email, token);
-    console.log("Reset token saved in database successfully");
-
-    // 4. Send email
-    console.log("Attempting to send email via Brevo...");
     await sendPasswordResetEmail(email, token);
-    console.log("✅ Email sent successfully to:", email);
 
     req.flash("success", "Password reset link has been sent to your email.");
     res.redirect("/account/forgot-password");
-
   } catch (err) {
-    console.error("=== ERROR in sendResetLink ===");
-    console.error("Error Message:", err.message);
-    console.error("Error Stack:", err.stack);
-
+    console.error("Error in sendResetLink:", err.message);
     req.flash("notice", "Something went wrong. Please check server logs.");
     res.redirect("/account/forgot-password");
   }
 }
 
-// 3. Show Reset Password Page
 async function buildResetPassword(req, res) {
   const { token } = req.query;
   let nav = await utilities.getNav();
@@ -1368,7 +3433,6 @@ async function buildResetPassword(req, res) {
   });
 }
 
-// 4. Process New Password
 async function processResetPassword(req, res) {
   const { token, new_password, confirm_password } = req.body;
 
@@ -1386,7 +3450,6 @@ async function processResetPassword(req, res) {
 
     const hashedPassword = await bcrypt.hash(new_password, 10);
     await accountModel.updatePassword(resetData.email, hashedPassword);
-
     await pool.query("DELETE FROM public.password_resets WHERE token = $1", [token]);
 
     req.flash("success", "Password changed successfully! Login with new password.");
@@ -1397,7 +3460,6 @@ async function processResetPassword(req, res) {
   }
 }
 
-// Helper: Send Email using Brevo
 async function sendPasswordResetEmail(email, token) {
   const transporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
@@ -1428,7 +3490,9 @@ async function sendPasswordResetEmail(email, token) {
   });
 }
 
-// Public: show career page
+/* ****************************************
+ * Career Page
+ * *************************************** */
 async function getCareerPage(req, res) {
   try {
     const jobs = await accountModel.getAllJobs();
@@ -1445,7 +3509,6 @@ async function getCareerPage(req, res) {
   }
 }
 
-// Admin: show add-job form
 async function buildAddJob(req, res) {
   if (!res.locals.loggedin || res.locals.accountData?.account_type !== 'admin') {
     req.flash("notice", "Only administrators can post jobs.");
@@ -1460,21 +3523,24 @@ async function buildAddJob(req, res) {
   });
 }
 
-// Admin: save new job to DB
 async function processAddJob(req, res) {
   if (!res.locals.loggedin || res.locals.accountData?.account_type !== 'admin') {
     req.flash("notice", "Only administrators can post jobs.");
     return res.redirect("/account");
   }
+
   const { department_name, job_title, number_of_positions, qualifications, experience } = req.body;
+
   try {
     if (!department_name?.trim() || !job_title?.trim() || !experience?.trim()) {
       req.flash("notice", "Department, job title, and experience are required.");
       return res.redirect("/account/inventory/add-job");
     }
+
     const qualificationsArray = qualifications
       ? qualifications.split('\n').map(q => q.trim()).filter(Boolean)
       : [];
+
     await accountModel.createJob({
       department_name: department_name.trim(),
       job_title: job_title.trim(),
@@ -1483,6 +3549,7 @@ async function processAddJob(req, res) {
       experience: experience.trim(),
       posted_by: res.locals.accountData.account_id
     });
+
     req.flash("success", "Job posted successfully!");
     res.redirect("/account/inventory/add-job");
   } catch (err) {
@@ -1492,10 +3559,9 @@ async function processAddJob(req, res) {
   }
 }
 
-// ═══════════════════════════════════════════════════════
-//  ADMIN — ASSIGN TASK
-// ═══════════════════════════════════════════════════════
-
+/* ****************************************
+ * Admin: Assign Task
+ * *************************************** */
 async function buildAssignTask(req, res) {
   try {
     const employees = await accountModel.getAllEmployees();
@@ -1517,10 +3583,12 @@ async function buildAssignTask(req, res) {
 async function processAssignTask(req, res) {
   try {
     const { title, description, assigned_to, priority, due_date } = req.body;
+
     if (!title?.trim() || !assigned_to) {
       req.flash("notice", "Title and employee are required.");
       return res.redirect("/account/inventory/assign-task");
     }
+
     await accountModel.createTask({
       title:       title.trim(),
       description: description?.trim() || null,
@@ -1529,6 +3597,7 @@ async function processAssignTask(req, res) {
       priority:    priority || "medium",
       due_date:    due_date || null
     });
+
     req.flash("success", "Task assigned successfully!");
     res.redirect("/account/inventory/assign-task");
   } catch (err) {
@@ -1568,10 +3637,9 @@ async function deleteTask(req, res) {
   }
 }
 
-// ═══════════════════════════════════════════════════════
-//  ADMIN — REPORTS & COMMENTS
-// ═══════════════════════════════════════════════════════
-
+/* ****************************************
+ * Admin: Reports & Comments
+ * *************************************** */
 async function viewAllReports(req, res) {
   try {
     const reports = await taskModel.getAllReports();
@@ -1595,10 +3663,12 @@ async function viewReportDetail(req, res) {
     const report_id = parseInt(req.params.report_id);
     const report    = await taskModel.getReportById(report_id);
     const comments  = await taskModel.getCommentsByReportId(report_id);
+
     if (!report) {
       req.flash("notice", "Report not found.");
       return res.redirect("/account/inventory/reports");
     }
+
     res.render("inventory/management", {
       title: "Report Detail",
       layout: false,
@@ -1635,14 +3705,12 @@ async function processAddComment(req, res) {
 
     const report = await taskModel.getReportById(report_id);
 
-    // Notify employee
     await taskModel.createNotification({
       user_id: report.employee_account_id,
       message: `Admin ${admin_name} commented on your report for task: "${report.task_title}"`,
       link:    `/account/tasks/my-report/${report_id}`
     });
 
-    // Mark task completed
     await taskModel.updateTaskStatus(report.task_id, "completed");
 
     req.flash("success", "Comment posted and employee notified!");
@@ -1667,42 +3735,34 @@ async function downloadReportPDF(req, res) {
 
     const doc = new PDFDocument({ margin: 50, size: "A4" });
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition",
-      `attachment; filename="UHWF_Report_${report_id}.pdf"`);
+    res.setHeader("Content-Disposition", `attachment; filename="UHWF_Report_${report_id}.pdf"`);
     doc.pipe(res);
 
-    // Green header bar
     doc.rect(0, 0, 595, 80).fill("#2e7d32");
-    doc.fillColor("white").fontSize(22).font("Helvetica-Bold")
-       .text("UHWF Tanzania", 50, 22);
+    doc.fillColor("white").fontSize(22).font("Helvetica-Bold").text("UHWF Tanzania", 50, 22);
     doc.fontSize(11).font("Helvetica").text("Task Report", 50, 50);
     doc.moveDown(4);
 
-    // Info rows
     const rows = [
       ["Task",      report.task_title],
       ["Employee",  report.employee_name],
       ["Email",     report.employee_email],
       ["Priority",  (report.priority || "N/A").toUpperCase()],
-      ["Due Date",  report.due_date
-                      ? new Date(report.due_date).toLocaleDateString("en-GB")
-                      : "N/A"],
+      ["Due Date",  report.due_date ? new Date(report.due_date).toLocaleDateString("en-GB") : "N/A"],
       ["Submitted", new Date(report.submitted_at).toLocaleString("en-GB")],
     ];
+
     rows.forEach(([label, value]) => {
-      doc.fontSize(10).font("Helvetica-Bold").fillColor("#555")
-         .text(`${label}:  `, { continued: true });
+      doc.fontSize(10).font("Helvetica-Bold").fillColor("#555").text(`${label}:  `, { continued: true });
       doc.font("Helvetica").fillColor("#1a1a2e").text(value || "N/A");
     });
 
     doc.moveDown();
     doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor("#e0e0e0").stroke();
     doc.moveDown();
-
     doc.fontSize(13).font("Helvetica-Bold").fillColor("#2e7d32").text("Report Content");
     doc.moveDown(0.3);
-    doc.fontSize(10).font("Helvetica").fillColor("#333")
-       .text(report.report_text, { lineGap: 5 });
+    doc.fontSize(10).font("Helvetica").fillColor("#333").text(report.report_text, { lineGap: 5 });
 
     if (comments && comments.length > 0) {
       doc.moveDown();
@@ -1713,18 +3773,15 @@ async function downloadReportPDF(req, res) {
       comments.forEach((c, i) => {
         doc.fontSize(10).font("Helvetica-Bold").fillColor("#2e7d32")
            .text(`[${i+1}] ${c.commenter_name} — ${new Date(c.created_at).toLocaleString("en-GB")}`);
-        doc.fontSize(10).font("Helvetica").fillColor("#333")
-           .text(c.comment_text, { indent: 12, lineGap: 4 });
+        doc.fontSize(10).font("Helvetica").fillColor("#333").text(c.comment_text, { indent: 12, lineGap: 4 });
         doc.moveDown(0.4);
       });
     }
 
     doc.moveDown(2);
     doc.fontSize(8).fillColor("#aaa").font("Helvetica")
-       .text(`Generated by UHWF Tanzania Portal · ${new Date().toLocaleString("en-GB")}`,
-             { align: "center" });
+       .text(`Generated by UHWF Tanzania Portal · ${new Date().toLocaleString("en-GB")}`, { align: "center" });
     doc.end();
-
   } catch (err) {
     console.error("downloadReportPDF:", err.message);
     req.flash("notice", "Failed to generate PDF.");
@@ -1732,15 +3789,15 @@ async function downloadReportPDF(req, res) {
   }
 }
 
-// ═══════════════════════════════════════════════════════
-//  EMPLOYEE — TASKS
-// ═══════════════════════════════════════════════════════
-
+/* ****************************************
+ * Employee: Tasks
+ * *************************************** */
 async function employeeTaskList(req, res) {
   try {
     const account_id  = res.locals.accountData.account_id;
     const tasks       = await taskModel.getTasksByEmployee(account_id);
     const unreadCount = await taskModel.countUnreadNotifications(account_id);
+
     res.render("inventory/dashboard_01", {
       title: "My Tasks",
       layout: false,
@@ -1802,11 +3859,13 @@ async function processSubmitReport(req, res) {
       req.flash("notice", "Report content is required.");
       return res.redirect(`/account/tasks/submit-report/${task_id}`);
     }
+
     await taskModel.submitReport({
       task_id,
       submitted_by: account_id,
       report_text:  report_text.trim()
     });
+
     req.flash("success", "Report submitted successfully!");
     res.redirect("/account/tasks/my-tasks");
   } catch (err) {
@@ -1816,15 +3875,15 @@ async function processSubmitReport(req, res) {
   }
 }
 
-// ═══════════════════════════════════════════════════════
-//  EMPLOYEE — NOTIFICATIONS
-// ═══════════════════════════════════════════════════════
-
+/* ****************************************
+ * Employee: Notifications
+ * *************************************** */
 async function viewNotifications(req, res) {
   try {
     const account_id    = res.locals.accountData.account_id;
     const notifications = await taskModel.getNotificationsByUser(account_id);
     await taskModel.markNotificationsRead(account_id);
+
     res.render("inventory/dashboard_01", {
       title: "Notifications",
       layout: false,
@@ -1848,8 +3907,8 @@ async function viewMyReport(req, res) {
     const report_id   = parseInt(req.params.report_id);
     const report      = await taskModel.getReportById(report_id);
     const comments    = await taskModel.getCommentsByReportId(report_id);
-    const unreadCount = await taskModel.countUnreadNotifications(
-                          res.locals.accountData.account_id);
+    const unreadCount = await taskModel.countUnreadNotifications(res.locals.accountData.account_id);
+
     res.render("inventory/dashboard_01", {
       title: "My Report",
       layout: false,
@@ -1869,15 +3928,15 @@ async function viewMyReport(req, res) {
   }
 }
 
-// ═══════════════════════════════════════════════════════
-//  EMPLOYEE — EDIT PROFILE
-// ═══════════════════════════════════════════════════════
-
+/* ****************************************
+ * Employee: Edit Profile
+ * *************************************** */
 async function buildEditProfile(req, res) {
   try {
     const account_id  = res.locals.accountData.account_id;
     const profile     = await taskModel.getEmployeeProfile(account_id);
     const unreadCount = await taskModel.countUnreadNotifications(account_id);
+
     res.render("inventory/dashboard_01", {
       title: "Edit Profile",
       layout: false,
@@ -1901,6 +3960,7 @@ async function processEditProfile(req, res) {
     const account_id    = res.locals.accountData.account_id;
     const { firstname, lastname, phone_number } = req.body;
     const profile_image = req.file ? `/images/site/${req.file.filename}` : null;
+
     await taskModel.updateEmployeeProfile({
       account_id,
       firstname:    firstname?.trim()    || "",
@@ -1908,6 +3968,7 @@ async function processEditProfile(req, res) {
       phone_number: phone_number?.trim() || null,
       profile_image
     });
+
     req.flash("success", "Profile updated successfully!");
     res.redirect("/account/tasks/edit-profile");
   } catch (err) {
@@ -1919,17 +3980,14 @@ async function processEditProfile(req, res) {
 
 const editProfileMiddleware = [upload.single("profile_image"), processEditProfile];
 
-
-// ═══════════════════════════════════════════════════════
-//  TEAM MEMBERS CONTROLLER
-// ═══════════════════════════════════════════════════════
-
-// Public: about page shows team
-// Public: Team page
+/* ****************************************
+ * Team Members
+ * *************************************** */
 async function buildTeamPage(req, res) {
   try {
     const teamMembers = await accountModel.getAllTeamMembers();
     let nav = await utilities.getNav();
+
     res.render("pages/team", {
       title: "Our Team",
       nav,
@@ -1949,8 +4007,6 @@ async function buildTeamPage(req, res) {
   }
 }
 
-
-// Admin: view all team members
 async function viewTeamMembers(req, res) {
   try {
     const teamMembers = await accountModel.getAllTeamMembersAdmin();
@@ -1969,20 +4025,19 @@ async function viewTeamMembers(req, res) {
   }
 }
 
-// Admin: show add team member form
 async function buildAddTeamMember(req, res) {
   try {
     res.render("inventory/management", {
-        title: "Add Team Member",
-        layout: false,
-        showAddTeamMember: true,
-        showAccount: false,
-        studentCount: 0,   // ← required by management.ejs
-        memberCount:  0,   // ← required by management.ejs
-        activeCount:  0,   // ← required by management.ejs
-        members:      [],  // ← required by management.ejs
-        messages:     req.flash()
-      });
+      title: "Add Team Member",
+      layout: false,
+      showAddTeamMember: true,
+      showAccount: false,
+      studentCount: 0,
+      memberCount:  0,
+      activeCount:  0,
+      members:      [],
+      messages:     req.flash()
+    });
   } catch (err) {
     console.error("buildAddTeamMember:", err.message);
     req.flash("notice", "Failed to load form.");
@@ -1990,12 +4045,10 @@ async function buildAddTeamMember(req, res) {
   }
 }
 
-// Admin: save new team member
 async function processAddTeamMember(req, res) {
-  // If null → not logged in or JWT expired
   if (!res.locals.accountData) {
     req.flash("notice", "Session expired. Please log in again.");
-    return res.redirect("/account/login");   // ← safe redirect, no crash
+    return res.redirect("/account/login");
   }
 
   const {
@@ -2009,35 +4062,31 @@ async function processAddTeamMember(req, res) {
     return res.redirect("/account/inventory/team/add");
   }
 
-  const profile_image = req.file
-    ? `/images/site/${req.file.filename}`
-    : null;
+  const profile_image = req.file ? `/images/site/${req.file.filename}` : null;
 
   try {
     await accountModel.createTeamMember({
       full_name:     full_name.trim(),
       position:      position.trim(),
-      description:   description?.trim()    || null,
+      description:   description?.trim()   || null,
       profile_image: profile_image,
-      linkedin_url:  linkedin_url?.trim()   || null,
-      twitter_url:   twitter_url?.trim()    || null,
-      instagram_url: instagram_url?.trim()  || null,
-      email_url:     email_url?.trim()      || null,
+      linkedin_url:  linkedin_url?.trim()  || null,
+      twitter_url:   twitter_url?.trim()   || null,
+      instagram_url: instagram_url?.trim() || null,
+      email_url:     email_url?.trim()     || null,
       display_order: parseInt(display_order) || 0,
       created_by:    res.locals.accountData.account_id
     });
 
     req.flash("success", "Team member added successfully!");
     return res.redirect("/account/inventory/team/add");
-
   } catch (err) {
-    console.error("=== DB ERROR:", err.message);   // ← will show exact DB error
+    console.error("DB ERROR:", err.message);
     req.flash("notice", "Save error: " + err.message);
     return res.redirect("/account/inventory/team/add");
   }
 }
 
-// Admin: show edit form
 async function buildEditTeamMember(req, res) {
   try {
     const member_id = parseInt(req.params.member_id);
@@ -2063,7 +4112,6 @@ async function buildEditTeamMember(req, res) {
   }
 }
 
-// Admin: process edit
 async function processEditTeamMember(req, res) {
   try {
     const member_id = parseInt(req.params.member_id);
@@ -2078,9 +4126,7 @@ async function processEditTeamMember(req, res) {
       return res.redirect(`/account/inventory/team/edit/${member_id}`);
     }
 
-    const profile_image = req.file
-      ? `/images/site/${req.file.filename}`
-      : null;
+    const profile_image = req.file ? `/images/site/${req.file.filename}` : null;
 
     await accountModel.updateTeamMember({
       member_id,
@@ -2104,7 +4150,6 @@ async function processEditTeamMember(req, res) {
   }
 }
 
-// Admin: delete
 async function processDeleteTeamMember(req, res) {
   try {
     const member_id = parseInt(req.params.member_id);
@@ -2118,99 +4163,97 @@ async function processDeleteTeamMember(req, res) {
   }
 }
 
-
-// Export the middleware chain correctly
+/* ****************************************
+ * Middleware chains
+ * *************************************** */
 module.exports.addMemberMiddleware = [
   upload.single("profile_image"),
-  utilities.handleErrors(processAddMember)  // ← wrap your actual handler
+  utilities.handleErrors(processAddMember)
 ];
-// Export the middleware chain correctly
 module.exports.addEmployeeMiddleware = [
   upload.single("profile_image"),
-  utilities.handleErrors(processAddEmployee)  // ← wrap your actual handler
+  utilities.handleErrors(processAddEmployee)
 ];
 module.exports.addEventMiddleware = [
   upload.single("profile_image"),
-  utilities.handleErrors(processAddEvent)  // ← wrap your actual handler
+  utilities.handleErrors(processAddEvent)
 ];
 module.exports.addNewMiddleware = [
   upload.single("profile_image"),
-  utilities.handleErrors(processAddNews)  // ← wrap your actual handler
+  utilities.handleErrors(processAddNews)
 ];
-
-// Export middleware chain for update (with multer) for employee edit
 module.exports.updateEmployeeMiddleware = [
   upload.single("profile_image"),
   utilities.handleErrors(processUpdateEmployee)
 ];
-
 module.exports.updateMemberMiddleware = [
   upload.single("profile_image"),
   utilities.handleErrors(processUpdateMember)
 ];
 module.exports.addTeamMemberMiddleware = [
-  upload.single("profile_image"),utilities.handleErrors(
-  processAddTeamMember)
+  upload.single("profile_image"),
+  utilities.handleErrors(processAddTeamMember)
 ];
-
 module.exports.editTeamMemberMiddleware = [
-  upload.single("profile_image"),utilities.handleErrors(
-  processEditTeamMember)
+  upload.single("profile_image"),
+  utilities.handleErrors(processEditTeamMember)
 ];
 
-// Export everything else
-module.exports.buildLogin = buildLogin;
-module.exports.buildRegister = buildRegister;
-module.exports.registerAccount = registerAccount;
-module.exports.accountLogin = accountLogin;
-module.exports.logoutaccount = logoutaccount;
-module.exports.accountManagement = accountManagement;
-module.exports.buildAddMember = buildAddMember;
-module.exports.addMember =addMember;
-module.exports.buildEditMember =buildEditMember;
-module.exports.userDashboard=userDashboard;
-module.exports.submitContact=submitContact;
-module.exports.viewMembers=viewMembers;
-module.exports.getAllMembers=getMemberDetail;
-module.exports.deleteMember=deleteMember;
-module.exports.getAllStudents=getAllStudents;
-module.exports.viewEmployees=viewEmployees;
-module.exports.buildaddEmployee =buildaddEmployee;
-module.exports.employeeDashboard=employeeDashboard;
-module.exports.buildEditEmployee=buildEditEmployee;
-module.exports.deleteEmployee=deleteEmployee;
-module.exports.buildHome=buildHome;
-module.exports.buildAddEvent=buildAddEvent;
-module.exports.processAddEvent=processAddEvent;
-module.exports.buildAddNews=buildAddNews;
-module.exports.processAddNews=processAddNews;
-module.exports.buildEventDetail=buildEventDetail;
-module.exports.processEventRegistration=processEventRegistration;
-module.exports.viewEventRegistrations=viewEventRegistrations;
+/* ****************************************
+ * Named exports
+ * *************************************** */
+module.exports.buildLogin                    = buildLogin;
+module.exports.buildRegister                 = buildRegister;
+module.exports.registerAccount               = registerAccount;
+module.exports.accountLogin                  = accountLogin;
+module.exports.logoutaccount                 = logoutaccount;
+module.exports.accountManagement             = accountManagement;
+module.exports.buildAddMember                = buildAddMember;
+module.exports.addMember                     = addMember;
+module.exports.buildEditMember               = buildEditMember;
+module.exports.userDashboard                 = userDashboard;
+module.exports.submitContact                 = submitContact;
+module.exports.viewMembers                   = viewMembers;
+module.exports.getAllMembers                  = getMemberDetail;
+module.exports.deleteMember                  = deleteMember;
+module.exports.getAllStudents                 = getAllStudents;
+module.exports.viewEmployees                 = viewEmployees;
+module.exports.buildaddEmployee              = buildaddEmployee;
+module.exports.employeeDashboard             = employeeDashboard;
+module.exports.buildEditEmployee             = buildEditEmployee;
+module.exports.deleteEmployee                = deleteEmployee;
+module.exports.buildHome                     = buildHome;
+module.exports.buildAddEvent                 = buildAddEvent;
+module.exports.processAddEvent               = processAddEvent;
+module.exports.buildAddNews                  = buildAddNews;
+module.exports.processAddNews                = processAddNews;
+module.exports.buildEventDetail              = buildEventDetail;
+module.exports.processEventRegistration      = processEventRegistration;
+module.exports.viewEventRegistrations        = viewEventRegistrations;
 module.exports.downloadEventRegistrationsExcel = downloadEventRegistrationsExcel;
-module.exports.buildVideoGallery=buildVideoGallery;
-module.exports.buildAddVideo=buildAddVideo;
-module.exports.processAddVideo=processAddVideo;
-module.exports.buildForgotPassword=buildForgotPassword;
-module.exports.sendResetLink=sendResetLink;
-module.exports.buildResetPassword=buildResetPassword;
-module.exports.processResetPassword=processResetPassword;
-module.exports.getCareerPage=getCareerPage;
-module.exports.buildAddJob=buildAddJob;
-module.exports.processAddJob=processAddJob;
-module.exports.viewVideos=viewVideos;
-module.exports.deleteVideo=deleteVideo;
-module.exports.buildAssignTask=buildAssignTask;
-module.exports.processAssignTask=processAssignTask;
-module.exports.viewAllTasks=viewAllTasks;
-module.exports.employeeTaskList=employeeTaskList;
-module.exports.buildTeamPage = buildTeamPage;
-module.exports.viewTeamMembers         = viewTeamMembers;
-module.exports.buildAddTeamMember      = buildAddTeamMember;
-module.exports.processAddTeamMember    = processAddTeamMember;
-module.exports.buildEditTeamMember     = buildEditTeamMember;
-module.exports.processEditTeamMember   = processEditTeamMember;
-module.exports.processDeleteTeamMember = processDeleteTeamMember;
+module.exports.buildVideoGallery             = buildVideoGallery;
+module.exports.buildAddVideo                 = buildAddVideo;
+module.exports.processAddVideo               = processAddVideo;
+module.exports.buildForgotPassword           = buildForgotPassword;
+module.exports.sendResetLink                 = sendResetLink;
+module.exports.buildResetPassword            = buildResetPassword;
+module.exports.processResetPassword          = processResetPassword;
+module.exports.getCareerPage                 = getCareerPage;
+module.exports.buildAddJob                   = buildAddJob;
+module.exports.processAddJob                 = processAddJob;
+module.exports.viewVideos                    = viewVideos;
+module.exports.deleteVideo                   = deleteVideo;
+module.exports.buildAssignTask               = buildAssignTask;
+module.exports.processAssignTask             = processAssignTask;
+module.exports.viewAllTasks                  = viewAllTasks;
+module.exports.employeeTaskList              = employeeTaskList;
+module.exports.buildTeamPage                 = buildTeamPage;
+module.exports.viewTeamMembers               = viewTeamMembers;
+module.exports.buildAddTeamMember            = buildAddTeamMember;
+module.exports.processAddTeamMember          = processAddTeamMember;
+module.exports.buildEditTeamMember           = buildEditTeamMember;
+module.exports.processEditTeamMember         = processEditTeamMember;
+module.exports.processDeleteTeamMember       = processDeleteTeamMember;
 
 
 
