@@ -143,11 +143,18 @@ async function accountLogin(req, res) {
 
       const accessToken = jwt.sign(accountData, process.env.ACCESS_TOKEN_SECRET, { expiresIn: 3600 * 1000 });
 
+      // res.cookie("jwt", accessToken, {
+      //   httpOnly: true,
+      //   secure: process.env.NODE_ENV !== 'development',
+      //   maxAge: 3600 * 1000,
+    // });
       res.cookie("jwt", accessToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV !== 'development',
+        secure: process.env.NODE_ENV === 'production',  // true only in production
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',  // ← ADD THIS
         maxAge: 3600 * 1000,
       });
+      
       const accountType = (accountData.account_type || '').trim().toLowerCase();
       const rawType = accountData.account_type || '(missing)';
       if (accountType === 'admin') {
