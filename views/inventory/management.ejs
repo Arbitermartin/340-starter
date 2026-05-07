@@ -13,6 +13,9 @@
   const displayVideos =(typeof showAddVideo==='undefined')? false :showAddVideo;
   const displayAssignTask = (typeof showAssignTask  === 'undefined') ? false : showAssignTask;
   const displayAllTasks  =(typeof showAllTasks  === 'undefined') ? false : showAllTasks;
+  const displayTeamMembers    = (typeof showTeamMembers    === 'undefined') ? false : showTeamMembers;
+const displayAddTeamMember  = (typeof showAddTeamMember  === 'undefined') ? false : showAddTeamMember;
+const displayEditTeamMember = (typeof showEditTeamMember === 'undefined') ? false : showEditTeamMember;
 %>
 
 
@@ -111,7 +114,7 @@
               <li><a class="dropdown-item" href="/account/inventory/assign-task">
                 <i class="bi bi-plus-circle"></i> Assign Task
               </a></li>
-              <li><a class="dropdown-item" href="/account/inventory/all-tasks">
+              <li><a class="dropdown-item" href="/account/inventory/all-task">
                 <i class="bi bi-list-ul"></i> All Tasks
               </a></li>
               <li><a class="dropdown-item" href="/account/inventory/reports">
@@ -157,6 +160,21 @@
               <a class="dropdown-item" href="/account/inventory/add-job">
                 <i class="bi bi-briefcase"></i>Add jobs
               </a>
+            </li>
+            <li class="dropdown-1">
+              <span><i class="bi bi-people-fill"></i> Team Members</span>
+              <ul class="dropdown-menu">
+                <li>
+                  <a class="dropdown-item" href="/account/inventory/team/add">
+                    <i class="bi bi-plus-circle"></i> Add Member
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="/account/inventory/team">
+                    <i class="bi bi-people"></i> Manage Team
+                  </a>
+                </li>
+              </ul>
             </li>
             <li class="dropdown-1">
               <span><i class="bi bi-gear"></i> Settings</span>
@@ -264,6 +282,15 @@
   <% } %>
   <% if (displayAllTasks === true) { %>
     <%- include('all-tasks') %>
+  <% } %>
+  <% if (displayTeamMembers === true) { %>
+    <%- include('team-members') %>
+  <% } %>
+  <% if (displayAddTeamMember === true) { %>
+    <%- include('add-team-member') %>
+  <% } %>
+  <% if (displayEditTeamMember === true) { %>
+    <%- include('edit-team-member') %>
   <% } %>
  
 </div>

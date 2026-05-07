@@ -1,0 +1,114 @@
+<div class="main-body-1" id="employeeManagement">
+  <div class="page-header">
+    <h1>Our Team Member Management</h1>
+    <p>All Registered Team Member</p>
+  </div>
+
+          <% if (typeof teamMembers !== 'undefined' && teamMembers && teamMembers.length > 0) { %>
+            <div class="table-container">
+              <table class="members-table">
+                <thead>
+                  <tr>
+                    <th>Photo</th>
+                    <th>Name</th>
+                    <th>Position</th>
+                    <th>Social</th>
+                    <th>Order</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% teamMembers.forEach(member => { %>
+                    <tr>
+                      <td>
+                        <% if (member.profile_image) { %>
+                          <img src="<%= member.profile_image %>"
+                               alt="<%= member.full_name %>"
+                              class="table-avatar-1">
+                        <% } else { %>
+                          <div>
+                            <i class="bi bi-person-fill"></i>
+                          </div>
+                        <% } %>
+                      </td>
+                      <td>
+                        <strong><%= member.full_name %></strong>
+                      </td>
+                      <td style="font-size:0.85rem;color:#555;">
+                        <%= member.position %>
+                      </td>
+                      <td>
+                        <div class="social_links">
+                          <% if (member.linkedin_url) { %>
+                            <a href="<%= member.linkedin_url %>" target="_blank" title="LinkedIn">
+                              <i class="fab fa-linkedin"></i>
+                            </a>
+                          <% } %>
+                          <% if (member.twitter_url) { %>
+                            <a href="<%= member.twitter_url %>" target="_blank"
+                               style="color:#1da1f2;" title="Twitter">
+                              <i class="fab fa-twitter"></i>
+                            </a>
+                          <% } %>
+                          <% if (member.instagram_url) { %>
+                            <a href="<%= member.instagram_url %>" target="_blank"
+                               style="color:#e1306c;" title="Instagram">
+                              <i class="fab fa-instagram"></i>
+                            </a>
+                          <% } %>
+                          <% if (member.email_url) { %>
+                            <a href="mailto:<%= member.email_url %>"
+                               style="color:#555;" title="Email">
+                              <i class="fas fa-envelope"></i>
+                            </a>
+                          <% } %>
+                          <% if (!member.linkedin_url && !member.twitter_url && !member.instagram_url && !member.email_url) { %>
+                            <span style="color:#ccc;font-size:0.78rem;">None</span>
+                          <% } %>
+                        </div>
+                      </td>
+                      <td style="text-align:center;">
+                        <span style="font-size:0.85rem;font-weight:600;color:#2e7d32;">
+                          #<%= member.display_order %>
+                        </span>
+                      </td>
+                      <td>
+                        <% if (member.is_active) { %>
+                          <span class="t-badge t-badge-completed">Active</span>
+                        <% } else { %>
+                          <span class="t-badge t-badge-pending">Hidden</span>
+                        <% } %>
+                      </td>
+                      <td>
+                        <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
+                          <a href="/account/inventory/team/edit/<%= member.member_id %>"
+                             class="t-btn t-btn-info t-btn-sm">
+                            <i class="bi bi-pencil-fill"></i> Edit
+                          </a>
+                          <form method="POST"
+                                action="/account/inventory/team/delete/<%= member.member_id %>"
+                                onsubmit="return confirm('Delete <%= member.full_name %>?')">
+                            <button type="submit" class="t-btn t-btn-danger t-btn-sm">
+                              <i class="bi bi-trash3"></i> Delete
+                            </button>
+                          </form>
+                        </div>
+                      </td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          <% } else { %>
+            <div class="t-empty">
+              <i class="bi bi-people"></i>
+              <p>No team members yet.
+                <a href="/account/inventory/team/add">Add the first one.</a>
+              </p>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>

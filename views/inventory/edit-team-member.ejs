@@ -1,0 +1,113 @@
+<div class="main-body">
+    <div style="padding:1.5rem;">
+      <div class="t-panel">
+        <div class="t-panel-hd" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
+          <h2><i class="bi bi-pencil-fill"></i> Edit Team Member</h2>
+          <a href="/account/inventory/team" class="t-btn t-btn-gray t-btn-sm">
+            <i class="bi bi-arrow-left"></i> Back
+          </a>
+        </div>
+        <div class="t-panel-bd">
+  
+          <% if (messages?.notice) { %>
+            <div class="t-flash t-warn">
+              <i class="bi bi-exclamation-triangle-fill"></i> <%= messages.notice %>
+            </div>
+          <% } %>
+  
+          <!-- Current photo -->
+          <div style="display:flex;align-items:center;gap:1.25rem;margin-bottom:1.5rem;padding-bottom:1.25rem;border-bottom:1px solid #e0e4e2;">
+            <% if (member.profile_image) { %>
+              <img src="<%= member.profile_image %>"
+                   alt="<%= member.full_name %>"
+                   style="width:75px;height:75px;border-radius:50%;object-fit:cover;border:3px solid #a5d6a7;"/>
+            <% } else { %>
+              <div style="width:75px;height:75px;border-radius:50%;background:linear-gradient(135deg,#2e7d32,#43a047);display:flex;align-items:center;justify-content:center;color:white;font-size:2rem;">
+                <i class="bi bi-person-fill"></i>
+              </div>
+            <% } %>
+            <div>
+              <strong style="font-size:1rem;"><%= member.full_name %></strong>
+              <p style="font-size:0.85rem;color:#666;margin-top:2px;"><%= member.position %></p>
+            </div>
+          </div>
+  
+          <form action="/account/inventory/team/edit/<%= member.member_id %>"
+                method="POST"
+                enctype="multipart/form-data"
+                class="t-form">
+  
+            <div class="t-row2">
+              <div class="t-fg">
+                <label>Full Name <span class="req">*</span></label>
+                <input type="text" name="full_name"
+                       value="<%= member.full_name %>" required/>
+              </div>
+              <div class="t-fg">
+                <label>Position / Title <span class="req">*</span></label>
+                <input type="text" name="position"
+                       value="<%= member.position %>" required/>
+              </div>
+            </div>
+  
+            <div class="t-fg">
+              <label>Description</label>
+              <textarea name="description" rows="3"><%= member.description || '' %></textarea>
+            </div>
+  
+            <div class="t-fg">
+              <label>New Profile Photo</label>
+              <input type="file" name="profile_image" accept="image/*"/>
+              <small style="color:#888;font-size:0.75rem;display:block;margin-top:4px;">
+                Leave blank to keep current photo.
+              </small>
+            </div>
+  
+            <div style="background:#f8faf8;border:1px solid #e0e4e2;border-radius:10px;padding:1.1rem;margin-bottom:1rem;">
+              <p style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#2e7d32;margin-bottom:0.75rem;">
+                <i class="bi bi-share-fill"></i> Social Links
+              </p>
+              <div class="t-row2">
+                <div class="t-fg">
+                  <label><i class="fab fa-linkedin-in"></i> LinkedIn URL</label>
+                  <input type="url" name="linkedin_url"
+                         value="<%= member.linkedin_url || '' %>"/>
+                </div>
+                <div class="t-fg">
+                  <label><i class="fab fa-twitter"></i> Twitter URL</label>
+                  <input type="url" name="twitter_url"
+                         value="<%= member.twitter_url || '' %>"/>
+                </div>
+              </div>
+              <div class="t-row2">
+                <div class="t-fg">
+                  <label><i class="fab fa-instagram"></i> Instagram URL</label>
+                  <input type="url" name="instagram_url"
+                         value="<%= member.instagram_url || '' %>"/>
+                </div>
+                <div class="t-fg">
+                  <label><i class="fas fa-envelope"></i> Email</label>
+                  <input type="email" name="email_url"
+                         value="<%= member.email_url || '' %>"/>
+                </div>
+              </div>
+            </div>
+  
+            <div class="t-fg" style="max-width:200px;">
+              <label>Display Order</label>
+              <input type="number" name="display_order"
+                     value="<%= member.display_order || 0 %>" min="0"/>
+              <small style="color:#888;font-size:0.75rem;">Lower number shows first</small>
+            </div>
+  
+            <div class="t-fa">
+              <a href="/account/inventory/team" class="t-btn t-btn-gray">Cancel</a>
+              <button type="submit" class="t-btn t-btn-green">
+                <i class="bi bi-save-fill"></i> Save Changes
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>

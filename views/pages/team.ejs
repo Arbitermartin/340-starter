@@ -7,113 +7,81 @@
       </div>
     </section>
   
-    <section class="team-section">
-      <div class="container">
-        <!-- <div class="section-title">
-          <h2>Our Leadership</h2>
-          <p>We are more than a dealership — we are a family</p>
-        </div> -->
-  
-        <div class="team-grid">
-          <!-- Team Member 1 -->
-          <div class="team-card" data-aos="fade-up">
+   <!-- TEAM -->
+   <section class="team-section">
+    <div class="section-header">
+      <h2>Our Leadership</h2>
+      <p>Committed professionals driving our mission forward with passion and expertise.</p>
+    </div>
+
+    <div class="team-grid">
+
+      <% if (typeof teamMembers !== 'undefined' && teamMembers && teamMembers.length > 0) { %>
+
+        <% teamMembers.forEach((member, index) => { %>
+          <div class="team-card" data-aos="fade-up" data-aos-delay="<%= index * 80 %>">
+
+            <!-- Photo -->
             <div class="team-image">
-              <img src="/images/site/Rogasian.webp" alt="Sarah Johnson" loading="lazy">
-              <div class="social-links">
-                <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-                <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                <a href="#" aria-label="Email"><i class="fas fa-envelope"></i></a>
+              <% if (member.profile_image) { %>
+                <img src="<%= member.profile_image %>"
+                     alt="<%= member.full_name %>"
+                     loading="lazy"/>
+              <% } else { %>
+                <div class="no-photo">
+                  <i class="bi bi-person-fill"></i>
+                </div>
+              <% } %>
+
+              <!-- Social overlay on hover -->
+              <div class="social-overlay">
+                <% if (member.linkedin_url) { %>
+                  <a href="<%= member.linkedin_url %>"
+                     target="_blank" rel="noopener" aria-label="LinkedIn">
+                    <i class="fab fa-linkedin-in"></i>
+                  </a>
+                <% } %>
+                <% if (member.twitter_url) { %>
+                  <a href="<%= member.twitter_url %>"
+                     target="_blank" rel="noopener" aria-label="Twitter">
+                    <i class="fab fa-twitter"></i>
+                  </a>
+                <% } %>
+                <% if (member.instagram_url) { %>
+                  <a href="<%= member.instagram_url %>"
+                     target="_blank" rel="noopener" aria-label="Instagram">
+                    <i class="fab fa-instagram"></i>
+                  </a>
+                <% } %>
+                <% if (member.email_url) { %>
+                  <a href="mailto:<%= member.email_url %>" aria-label="Email">
+                    <i class="fas fa-envelope"></i>
+                  </a>
+                <% } %>
               </div>
             </div>
+
+            <!-- Info -->
             <div class="team-info">
-              <h3>Rogasian C Simon</h3>
-              <span class="position">CEO &Co-founder</span>
-              <p>With 18 years of automotive leadership, Sarah ensures every customer leaves happy.</p>
+              <h3><%= member.full_name %></h3>
+              <span class="position"><%= member.position %></span>
+              <% if (member.description) { %>
+                <p><%= member.description %></p>
+              <% } %>
             </div>
+
           </div>
-  
-          <!-- Team Member 2 -->
-          <div class="team-card" data-aos="fade-up" data-aos-delay="100">
-            <div class="team-image">
-              <img src="/images/site/Huberti.webp" alt="Michael Chen" loading="lazy">
-              <div class="social-links">
-                <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-                <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-              </div>
-            </div>
-            <div class="team-info">
-              <h3>Huberti Rogasian Paschal</h3>
-              <span class="position">Co-Founder & Board vice president</span>
-              <p>Michael has helped over 5,000 families find their perfect vehicle.</p>
-            </div>
-          </div>
-  
-          <!-- Team Member 3 -->
-          <div class="team-card" data-aos="fade-up" data-aos-delay="200">
-            <div class="team-image">
-              <img src="/images/site/Sarah.webp" alt="Sarah Katunzi" loading="lazy">
-              <div class="social-links">
-                <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-                <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-              </div>
-            </div>
-            <div class="team-info">
-              <h3>Sarah A Katunzi</h3>
-              <span class="position">Co-Founder & Board Secretary</span>
-              <p>Expert in getting you the best rates and payment plans.</p>
-            </div>
-          </div>
-          <!-- team member 04 -->
-          <div class="team-card" data-aos="fade-up" data-aos-delay="100">
-            <div class="team-image">
-              <img src="/images/site/martin.webp" alt="Michael Chen" loading="lazy">
-              <div class="social-links">
-                <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-                <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-              </div>
-            </div>
-            <div class="team-info">
-              <h3>Martin Arexander Kasike</h3>
-              <span class="position">Developer & Technical support</span>
-              <p>Michael has helped over 5,000 families find their perfect vehicle.</p>
-            </div>
-          </div>
-           <!-- team member 04 -->
-           <div class="team-card" data-aos="fade-up" data-aos-delay="100">
-            <div class="team-image">
-              <img src="/images/site/martin.webp" alt="Michael Chen" loading="lazy">
-              <div class="social-links">
-                <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-                <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-              </div>
-            </div>
-            <div class="team-info">
-              <h3>Martin Arexander Kasike</h3>
-              <span class="position">Developer & Technical support</span>
-              <p>Michael has helped over 5,000 families find their perfect vehicle.</p>
-            </div>
-          </div>
-           <!-- team member 04 -->
-           <div class="team-card" data-aos="fade-up" data-aos-delay="100">
-            <div class="team-image">
-              <img src="/images/site/martin.webp" alt="Michael Chen" loading="lazy">
-              <div class="social-links">
-                <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-                <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-              </div>
-            </div>
-            <div class="team-info">
-              <h3>Martin Arexander Kasike</h3>
-              <span class="position">Developer & Technical support</span>
-              <p>Michael has helped over 5,000 families find their perfect vehicle.</p>
-            </div>
-          </div>
-  
-          <!-- Add more team members as needed -->
+        <% }) %>
+
+      <% } else { %>
+        <div class="team-empty">
+          <i class="bi bi-people"></i>
+          <p>No team members to display yet.</p>
         </div>
-      </div>
-    </section>
-  
+      <% } %>
+
+    </div>
+  </section>
     <section class="values-section">
         <h2>Our Core Values</h2>
       <div class="container">

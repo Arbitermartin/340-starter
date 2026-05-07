@@ -645,8 +645,77 @@ async function buildEditEmployee(req, res) {
  *  Process Update Employee (POST)
  *  Uses multer middleware for optional new image
  * *************************************** */
+// async function processUpdateEmployee(req, res) {
+//   const employeeId = parseInt(req.params.employee_id);
+//   let employee;
+//   try {
+//     employee = await accountModel.getEmployeeById(employeeId);
+//     if (!employee) {
+//       req.flash("notice", "Employee not found");
+//       return res.redirect("/account/inventory/employees");
+//     }
+//   } catch (err) {
+//     console.error("Failed to fetch employee:", err);
+//     req.flash("error", "Could not load employee data");
+//     return res.redirect("/account/inventory/employees");
+//   }
+
+//   const {
+//     firstname,
+//     lastname,
+//     email,
+//     employee_code,
+//     phone_number,
+//     department,
+//     position,
+//     hire_date,
+//     status
+//   } = req.body;
+
+//   let profile_image = null;
+//   if (req.file) {
+//     profile_image = `/images/site/${req.file.filename}`;
+//   }
+
+//   try {
+//     // 1. Update account table (name + email)
+//     await accountModel.updateAccountBasic(
+//       employee.account_id,
+//       firstname?.trim() || "",
+//       lastname?.trim() || "",
+//       email?.trim().toLowerCase() || ""
+//     );
+
+//     // 2. Update employee table
+//     const updated = await accountModel.updateEmployee({
+//       employee_id: employee.employee_id,          // ← FIXED: use the real ID
+//       employee_code: employee_code?.trim() || employee.employee_code || "",
+//       phone_number: phone_number?.trim() || null,
+//       department: department?.trim() || null,
+//       position: position?.trim() || null,
+//       hire_date: hire_date && hire_date.trim() !== '' ? hire_date.trim() : null,
+//       profile_image,                              // null = keep old
+//       status: status || employee.status || "active"
+//     });
+
+//     if (updated) {
+//       req.flash("notice", `Employee ${firstname} ${lastname} updated successfully!`);
+//       return res.redirect("/account/inventory/employees");  // better redirect
+//     } else {
+//       req.flash("notice", "No changes made or update failed.");
+//       return res.redirect(`/account/inventory/edit-employee/${employee.employee_id}`);
+//     }
+//   } catch (error) {
+//     console.error("Update employee failed:", error.message);
+//     console.error(error.stack);  // ← helps see full error
+//     req.flash("notice", `Error: ${error.message || "Update failed"}`);
+//     return res.redirect(`/account/inventory/edit-employee/${employee.employee_id}`);
+//   }
+// }
+
 async function processUpdateEmployee(req, res) {
   const employeeId = parseInt(req.params.employee_id);
+
   let employee;
   try {
     employee = await accountModel.getEmployeeById(employeeId);
@@ -656,64 +725,59 @@ async function processUpdateEmployee(req, res) {
     }
   } catch (err) {
     console.error("Failed to fetch employee:", err);
-    req.flash("error", "Could not load employee data");
     return res.redirect("/account/inventory/employees");
   }
 
   const {
-    firstname,
-    lastname,
-    email,
-    employee_code,
-    phone_number,
-    department,
-    position,
-    hire_date,
-    status
+    firstname, lastname, email,
+    employee_code, phone_number,
+    department, position, hire_date, status
   } = req.body;
 
-  let profile_image = null;
-  if (req.file) {
-    profile_image = `/images/site/${req.file.filename}`;
-  }
+  // Log to confirm body is received
+  console.log("UPDATE BODY:", req.body);
+  console.log("UPDATE FILE:", req.file ? req.file.filename : "no file");
+
+  const profile_image = req.file
+    ? `/images/site/${req.file.filename}`
+    : null;
 
   try {
-    // 1. Update account table (name + email)
+    // 1. Update account table
     await accountModel.updateAccountBasic(
       employee.account_id,
-      firstname?.trim() || "",
-      lastname?.trim() || "",
+      firstname?.trim()          || "",
+      lastname?.trim()           || "",
       email?.trim().toLowerCase() || ""
     );
 
     // 2. Update employee table
     const updated = await accountModel.updateEmployee({
-      employee_id: employee.employee_id,          // ← FIXED: use the real ID
+      employee_id:   employeeId,
       employee_code: employee_code?.trim() || employee.employee_code || "",
-      phone_number: phone_number?.trim() || null,
-      department: department?.trim() || null,
-      position: position?.trim() || null,
-      hire_date: hire_date && hire_date.trim() !== '' ? hire_date.trim() : null,
-      profile_image,                              // null = keep old
-      status: status || employee.status || "active"
+      phone_number:  phone_number?.trim()  || null,
+      department:    department?.trim()    || null,
+      position:      position?.trim()      || null,
+      hire_date:     hire_date?.trim()     || null,
+      profile_image: profile_image,
+      status:        status                || employee.status || "active"
     });
 
     if (updated) {
       req.flash("notice", `Employee ${firstname} ${lastname} updated successfully!`);
-      return res.redirect("/account/inventory/employees");  // better redirect
+      return res.redirect("/account/inventory/employees");
     } else {
-      req.flash("notice", "No changes made or update failed.");
-      return res.redirect(`/account/inventory/edit-employee/${employee.employee_id}`);
+      req.flash("notice", "No changes made.");
+      return res.redirect(`/account/inventory/edit-employee/${employeeId}`);
     }
+
   } catch (error) {
     console.error("Update employee failed:", error.message);
-    console.error(error.stack);  // ← helps see full error
-    req.flash("notice", `Error: ${error.message || "Update failed"}`);
-    return res.redirect(`/account/inventory/edit-employee/${employee.employee_id}`);
+    console.error(error.stack);
+    req.flash("notice", `Error: ${error.message}`);
+    return res.redirect(`/account/inventory/edit-employee/${employeeId}`);
   }
 }
-
-
 
 /* *****************************
  * Deliver employee dashboard
@@ -1819,15 +1883,204 @@ async function processEditProfile(req, res) {
 
 const editProfileMiddleware = [upload.single("profile_image"), processEditProfile];
 
-// module.exports = {
-//   buildAssignTask, processAssignTask,
-//   viewAllTasks, deleteTask,
-//   viewAllReports, viewReportDetail,
-//   processAddComment, downloadReportPDF,
-//   employeeTaskList, buildSubmitReport, processSubmitReport,
-//   viewNotifications, viewMyReport,
-//   buildEditProfile, editProfileMiddleware,
-// };
+
+// ═══════════════════════════════════════════════════════
+//  TEAM MEMBERS CONTROLLER
+// ═══════════════════════════════════════════════════════
+
+// Public: about page shows team
+// Public: Team page
+async function buildTeamPage(req, res) {
+  try {
+    const teamMembers = await accountModel.getAllTeamMembers();
+    let nav = await utilities.getNav();
+    res.render("pages/team", {
+      title: "Our Team",
+      nav,
+      teamMembers,
+      messages: req.flash(),
+      loggedin: res.locals.loggedin || false,
+      accountData: res.locals.accountData || null
+    });
+  } catch (err) {
+    console.error("buildTeamPage:", err.message);
+    res.render("pages/team", {
+      title: "Our Team",
+      nav: await utilities.getNav(),
+      teamMembers: [],
+      messages: req.flash()
+    });
+  }
+}
+
+
+// Admin: view all team members
+async function viewTeamMembers(req, res) {
+  try {
+    const teamMembers = await accountModel.getAllTeamMembersAdmin();
+    res.render("inventory/management", {
+      title: "Manage Team",
+      layout: false,
+      showTeamMembers: true,
+      showAccount: false,
+      teamMembers,
+      messages: req.flash()
+    });
+  } catch (err) {
+    console.error("viewTeamMembers:", err.message);
+    req.flash("notice", "Failed to load team members.");
+    res.redirect("/account/");
+  }
+}
+
+// Admin: show add team member form
+async function buildAddTeamMember(req, res) {
+  try {
+    res.render("inventory/management", {
+        title: "Add Team Member",
+        layout: false,
+        showAddTeamMember: true,
+        showAccount: false,
+        studentCount: 0,   // ← required by management.ejs
+        memberCount:  0,   // ← required by management.ejs
+        activeCount:  0,   // ← required by management.ejs
+        members:      [],  // ← required by management.ejs
+        messages:     req.flash()
+      });
+  } catch (err) {
+    console.error("buildAddTeamMember:", err.message);
+    req.flash("notice", "Failed to load form.");
+    res.redirect("/account/");
+  }
+}
+
+// Admin: save new team member
+async function processAddTeamMember(req, res) {
+  // If null → not logged in or JWT expired
+  if (!res.locals.accountData) {
+    req.flash("notice", "Session expired. Please log in again.");
+    return res.redirect("/account/login");   // ← safe redirect, no crash
+  }
+
+  const {
+    full_name, position, description,
+    linkedin_url, twitter_url,
+    instagram_url, email_url, display_order
+  } = req.body;
+
+  if (!full_name?.trim() || !position?.trim()) {
+    req.flash("notice", "Name and position are required.");
+    return res.redirect("/account/inventory/team/add");
+  }
+
+  const profile_image = req.file
+    ? `/images/site/${req.file.filename}`
+    : null;
+
+  try {
+    await accountModel.createTeamMember({
+      full_name:     full_name.trim(),
+      position:      position.trim(),
+      description:   description?.trim()    || null,
+      profile_image: profile_image,
+      linkedin_url:  linkedin_url?.trim()   || null,
+      twitter_url:   twitter_url?.trim()    || null,
+      instagram_url: instagram_url?.trim()  || null,
+      email_url:     email_url?.trim()      || null,
+      display_order: parseInt(display_order) || 0,
+      created_by:    res.locals.accountData.account_id
+    });
+
+    req.flash("success", "Team member added successfully!");
+    return res.redirect("/account/inventory/team/add");
+
+  } catch (err) {
+    console.error("=== DB ERROR:", err.message);   // ← will show exact DB error
+    req.flash("notice", "Save error: " + err.message);
+    return res.redirect("/account/inventory/team/add");
+  }
+}
+
+// Admin: show edit form
+async function buildEditTeamMember(req, res) {
+  try {
+    const member_id = parseInt(req.params.member_id);
+    const member    = await accountModel.getTeamMemberById(member_id);
+
+    if (!member) {
+      req.flash("notice", "Team member not found.");
+      return res.redirect("/account/inventory/team");
+    }
+
+    res.render("inventory/management", {
+      title: "Edit Team Member",
+      layout: false,
+      showEditTeamMember: true,
+      showAccount: false,
+      member,
+      messages: req.flash()
+    });
+  } catch (err) {
+    console.error("buildEditTeamMember:", err.message);
+    req.flash("notice", "Failed to load member.");
+    res.redirect("/account/inventory/team");
+  }
+}
+
+// Admin: process edit
+async function processEditTeamMember(req, res) {
+  try {
+    const member_id = parseInt(req.params.member_id);
+    const {
+      full_name, position, description,
+      linkedin_url, twitter_url, instagram_url,
+      email_url, display_order
+    } = req.body;
+
+    if (!full_name?.trim() || !position?.trim()) {
+      req.flash("notice", "Name and position are required.");
+      return res.redirect(`/account/inventory/team/edit/${member_id}`);
+    }
+
+    const profile_image = req.file
+      ? `/images/site/${req.file.filename}`
+      : null;
+
+    await accountModel.updateTeamMember({
+      member_id,
+      full_name:     full_name.trim(),
+      position:      position.trim(),
+      description:   description?.trim() || null,
+      profile_image,
+      linkedin_url:  linkedin_url?.trim()  || null,
+      twitter_url:   twitter_url?.trim()   || null,
+      instagram_url: instagram_url?.trim() || null,
+      email_url:     email_url?.trim()     || null,
+      display_order: parseInt(display_order) || 0
+    });
+
+    req.flash("success", "Team member updated successfully!");
+    res.redirect("/account/inventory/team");
+  } catch (err) {
+    console.error("processEditTeamMember:", err.message);
+    req.flash("notice", "Failed to update: " + err.message);
+    res.redirect(`/account/inventory/team/edit/${req.params.member_id}`);
+  }
+}
+
+// Admin: delete
+async function processDeleteTeamMember(req, res) {
+  try {
+    const member_id = parseInt(req.params.member_id);
+    await accountModel.deleteTeamMember(member_id);
+    req.flash("notice", "Team member deleted.");
+    res.redirect("/account/inventory/team");
+  } catch (err) {
+    console.error("processDeleteTeamMember:", err.message);
+    req.flash("notice", "Failed to delete.");
+    res.redirect("/account/inventory/team");
+  }
+}
 
 
 // Export the middleware chain correctly
@@ -1858,6 +2111,15 @@ module.exports.updateEmployeeMiddleware = [
 module.exports.updateMemberMiddleware = [
   upload.single("profile_image"),
   utilities.handleErrors(processUpdateMember)
+];
+module.exports.addTeamMemberMiddleware = [
+  upload.single("profile_image"),utilities.handleErrors(
+  processAddTeamMember)
+];
+
+module.exports.editTeamMemberMiddleware = [
+  upload.single("profile_image"),utilities.handleErrors(
+  processEditTeamMember)
 ];
 
 // Export everything else
@@ -1905,6 +2167,14 @@ module.exports.deleteVideo=deleteVideo;
 module.exports.buildAssignTask=buildAssignTask;
 module.exports.processAssignTask=processAssignTask;
 module.exports.viewAllTasks=viewAllTasks;
+module.exports.employeeTaskList=employeeTaskList;
+module.exports.buildTeamPage = buildTeamPage;
+module.exports.viewTeamMembers         = viewTeamMembers;
+module.exports.buildAddTeamMember      = buildAddTeamMember;
+module.exports.processAddTeamMember    = processAddTeamMember;
+module.exports.buildEditTeamMember     = buildEditTeamMember;
+module.exports.processEditTeamMember   = processEditTeamMember;
+module.exports.processDeleteTeamMember = processDeleteTeamMember;
 
 
 

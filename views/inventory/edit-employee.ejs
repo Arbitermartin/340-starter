@@ -5,10 +5,9 @@
     <p>Update information for <%= employee.firstname %> <%= employee.lastname %></p>
   </div>
 
-  <form action="/account/inventory/update-employee/<%= employee?.employee_id %>" 
-        method="POST" 
-        enctype="multipart/form-data" 
-        class="employee-form">
+  <form action="/account/inventory/update-employee/<%= employee.employee_id %>" 
+      method="POST" 
+      enctype="multipart/form-data" class="employee-form">
 
     <div class="form-row">
 

@@ -324,3 +324,33 @@ CREATE TABLE IF NOT EXISTS public.notifications (
   is_read         BOOLEAN   DEFAULT FALSE,
   created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+-- =============================================
+--  TEAM MEMBERS TABLE - UHWF Tanzania
+-- =============================================
+
+CREATE TABLE IF NOT EXISTS public.team_members (
+  member_id     SERIAL PRIMARY KEY,
+  full_name     VARCHAR(255) NOT NULL,
+  position      VARCHAR(255) NOT NULL,
+  description   TEXT,
+  profile_image VARCHAR(500),
+  linkedin_url  VARCHAR(500),
+  twitter_url   VARCHAR(500),
+  instagram_url VARCHAR(500),
+  email_url     VARCHAR(500),
+  display_order INTEGER   DEFAULT 0,
+  is_active     BOOLEAN   DEFAULT TRUE,
+  created_by    INTEGER   REFERENCES public.account(account_id) ON DELETE SET NULL,
+  created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+-- Test insert to confirm table works
+INSERT INTO public.team_members 
+  (full_name, position, description, display_order)
+VALUES 
+  
+  
+  ('Sarah A Katunzi',         'Co-Founder & Board Secretary',  'Ensuring governance and organizational excellence.',3);
+

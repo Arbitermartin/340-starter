@@ -471,46 +471,100 @@ async function updateAccountBasic(account_id, firstname, lastname, email) {
  *   Update employee-specific fields
  *   (profile_image = null → keep existing)
  * *************************************** */
-async function updateEmployee(
-  employee_id,
-  employee_code,
-  phone_number,
-  department,
-  position,
-  hire_date,
-  profile_image = null,
-  status = 'active'
-) {
+// async function updateEmployee(
+//   employee_id,
+//   employee_code,
+//   phone_number,
+//   department,
+//   position,
+//   hire_date,
+//   profile_image = null,
+//   status = 'active'
+// ) {
+//   try {
+//     let sql = `
+//       UPDATE public.employees
+//       SET 
+//         employee_code = $1,
+//         phone_number = $2,
+//         department = $3,
+//         position = $4,
+//         hire_date = $5,
+//         status = $6,
+//     `;
+//     let values = [employee_code, phone_number, department, position, hire_date, status];
+
+//     if (profile_image !== null) {
+//       sql += `, profile_image = $7`;
+//       values.push(profile_image);
+//     }
+
+//     sql += ` WHERE employee_id = $${values.length + 1} RETURNING employee_id`;
+//     values.push(employee_id);
+
+//     const result = await pool.query(sql, values);
+//     return result.rowCount > 0;
+//   } catch (error) {
+//     console.error("updateEmployee error:", error);
+//     throw error;
+//   }
+// }
+// ✅ In account-model.js - change the signature to accept object
+async function updateEmployee({
+  employee_id, employee_code, phone_number,
+  department, position, hire_date,
+  profile_image = null, status = 'active'
+}) {
   try {
-    let sql = `
-      UPDATE public.employees
-      SET 
-        employee_code = $1,
-        phone_number = $2,
-        department = $3,
-        position = $4,
-        hire_date = $5,
-        status = $6,
-        --updated_at = CURRENT_TIMESTAMP
-    `;
-    let values = [employee_code, phone_number, department, position, hire_date, status];
+    let sql, values;
 
     if (profile_image !== null) {
-      sql += `, profile_image = $7`;
-      values.push(profile_image);
+      sql = `
+        UPDATE public.employees
+        SET 
+          employee_code = $1,
+          phone_number  = $2,
+          department    = $3,
+          position      = $4,
+          hire_date     = $5,
+          status        = $6,
+          profile_image = $7
+        WHERE employee_id = $8
+        RETURNING employee_id
+      `;
+      values = [
+        employee_code, phone_number, department,
+        position, hire_date, status,
+        profile_image, employee_id
+      ];
+    } else {
+      sql = `
+        UPDATE public.employees
+        SET 
+          employee_code = $1,
+          phone_number  = $2,
+          department    = $3,
+          position      = $4,
+          hire_date     = $5,
+          status        = $6
+        WHERE employee_id = $7
+        RETURNING employee_id
+      `;
+      values = [
+        employee_code, phone_number, department,
+        position, hire_date, status,
+        employee_id
+      ];
     }
-
-    sql += ` WHERE employee_id = $${values.length + 1} RETURNING employee_id`;
-    values.push(employee_id);
 
     const result = await pool.query(sql, values);
     return result.rowCount > 0;
+
   } catch (error) {
-    console.error("updateEmployee error:", error);
+    console.error("updateEmployee error:", error.message);
     throw error;
   }
 }
-
 /*******************
  * Delivery delete employee
  */
@@ -1129,6 +1183,109 @@ async function getAllEmployees() {
   );
   return result.rows;
 }
+
+// ── TEAM MEMBERS ─────────────────────────────────────────
+
+// async function createTeamMember({ full_name, position, description, profile_image, linkedin_url, twitter_url, instagram_url, email_url, display_order, created_by }) {
+//   const result = await pool.query(
+//     `INSERT INTO public.team_members 
+//       (full_name, position, description, profile_image, linkedin_url, twitter_url, instagram_url, email_url, display_order, created_by)
+//      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+//     [full_name, position, description, profile_image, linkedin_url || null, twitter_url || null, instagram_url || null, email_url || null, display_order || 0, created_by]
+//   );
+//   return result.rows[0];
+// }
+async function createTeamMember({ 
+  full_name, position, description, profile_image, 
+  linkedin_url, twitter_url, instagram_url, 
+  email_url, display_order, created_by 
+}) {
+  const result = await pool.query(
+    `INSERT INTO public.team_members 
+      (full_name, position, description, profile_image, 
+       linkedin_url, twitter_url, instagram_url, email_url, 
+       display_order, created_by)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) 
+     RETURNING *`,
+    [
+      full_name        || null,
+      position         || null,
+      description      || null,
+      profile_image    || null,
+      linkedin_url     || null,
+      twitter_url      || null,
+      instagram_url    || null,
+      email_url        || null,
+      display_order    || 0,
+      created_by       || null
+    ]
+  );
+  return result.rows[0];
+}
+
+async function getAllTeamMembers() {
+  const result = await pool.query(
+    `SELECT * FROM public.team_members 
+     WHERE is_active = TRUE 
+     ORDER BY display_order ASC, created_at ASC`
+  );
+  return result.rows;
+}
+
+async function getAllTeamMembersAdmin() {
+  const result = await pool.query(
+    `SELECT * FROM public.team_members 
+     ORDER BY display_order ASC, created_at ASC`
+  );
+  return result.rows;
+}
+
+async function getTeamMemberById(member_id) {
+  const result = await pool.query(
+    `SELECT * FROM public.team_members WHERE member_id = $1`,
+    [member_id]
+  );
+  return result.rows[0] || null;
+}
+
+async function updateTeamMember({ member_id, full_name, position, description, profile_image, linkedin_url, twitter_url, instagram_url, email_url, display_order }) {
+  if (profile_image) {
+    const result = await pool.query(
+      `UPDATE public.team_members SET
+        full_name=$1, position=$2, description=$3, profile_image=$4,
+        linkedin_url=$5, twitter_url=$6, instagram_url=$7, email_url=$8, display_order=$9
+       WHERE member_id=$10 RETURNING *`,
+      [full_name, position, description, profile_image, linkedin_url || null, twitter_url || null, instagram_url || null, email_url || null, display_order || 0, member_id]
+    );
+    return result.rows[0];
+  } else {
+    const result = await pool.query(
+      `UPDATE public.team_members SET
+        full_name=$1, position=$2, description=$3,
+        linkedin_url=$4, twitter_url=$5, instagram_url=$6, email_url=$7, display_order=$8
+       WHERE member_id=$9 RETURNING *`,
+      [full_name, position, description, linkedin_url || null, twitter_url || null, instagram_url || null, email_url || null, display_order || 0, member_id]
+    );
+    return result.rows[0];
+  }
+}
+
+async function deleteTeamMember(member_id) {
+  const result = await pool.query(
+    `DELETE FROM public.team_members WHERE member_id=$1 RETURNING *`,
+    [member_id]
+  );
+  return result.rows[0];
+}
+
+async function toggleTeamMember(member_id, is_active) {
+  const result = await pool.query(
+    `UPDATE public.team_members SET is_active=$1 WHERE member_id=$2 RETURNING *`,
+    [is_active, member_id]
+  );
+  return result.rows[0];
+}
+
 module.exports={registerAccount,checkExistingEmail,getAccountByEmail,addMember,updateMember,getMemberById,getAllMembers,deleteMember,getAllStudents,viewEmployees,addAccount,addEmployee,getEmployeeById,getAccountByEmployeeCode,deleteEmployee,updateAccountBasic,updateEmployee,saveContactMessage,getLatestNews,getUpcomingEvents,createNews,createEvent,getEventById,addEventRegistration,getAllEventRegistrations,createVideo,getAllVideos,saveResetToken,verifyResetToken,updatePassword,getAllJobs,createJob,softDeleteVideo,createTask, getAllTasks, getTasksByEmployee, getTaskById,updateTaskStatus, deleteTask,submitReport, getReportByTaskId, getAllReports, getReportById,addComment, getCommentsByReportId,createNotification, getNotificationsByUser,countUnreadNotifications, markNotificationsRead,
-  getEmployeeProfile, updateEmployeeProfile, getAllEmployees,}
+  getEmployeeProfile, updateEmployeeProfile, getAllEmployees, createTeamMember, getAllTeamMembers,getAllTeamMembersAdmin,getTeamMemberById,updateTeamMember,deleteTeamMember,toggleTeamMember}
 

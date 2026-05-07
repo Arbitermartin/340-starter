@@ -47,11 +47,13 @@
           Cancel
         </a>
 
-        <form action="/account/inventory/employees/<%= employee.employee_id %>/delete" method="POST" class="delete-form">
-          <button type="submit" class="btn btn-delete">
-            Yes, Delete Permanently
-          </button>
-        </form>
+        <form action="/account/inventory/delete-employee/<%= employee.employee_id %>" 
+          method="POST" 
+          onsubmit="return confirm('Are you sure you want to delete this employee?')">
+      <button type="submit" class="btn btn-danger">
+        <i class="bi bi-trash"></i> Delete Employee
+      </button>
+    </form>
       </div>
     </div>
   </div>

@@ -184,7 +184,8 @@ router.get(
 
 // POST - actual delete (already from previous step)
 router.post(
-  "/inventory/delete-employee/:employee_id/delete",(accountController.deleteEmployee)
+  "/inventory/delete-employee/:employee_id",
+  utilities.handleErrors(accountController.deleteEmployee)
 );
 
 // POST: Submit contact form
@@ -256,6 +257,17 @@ router.post("/inventory/tasks/:task_id/delete",utilities.handleErrors(accountCon
 // router.get( "/tasks/notifications",              utilities.checkLogin, taskController.viewNotifications);
 // router.get( "/tasks/edit-profile",               utilities.checkLogin, taskController.buildEditProfile);
 // router.post("/tasks/edit-profile",               utilities.checkLogin, taskController.editProfileMiddleware);
+
+
+
+
+// ── ADMIN TEAM ROUTES ────────────────────────────────────
+router.get( "/inventory/team",utilities.handleErrors (accountController.viewTeamMembers));
+router.get( "/inventory/team/add",utilities.handleErrors(accountController.buildAddTeamMember));
+router.post("/inventory/team/add",(accountController.addTeamMemberMiddleware));
+router.get( "/inventory/team/edit/:member_id",utilities.handleErrors(accountController.buildEditTeamMember));
+router.post("/inventory/team/edit/:member_id",utilities.handleErrors(accountController.editTeamMemberMiddleware));
+router.post("/inventory/team/delete/:member_id",utilities.handleErrors(accountController.processDeleteTeamMember));
 
 
 
